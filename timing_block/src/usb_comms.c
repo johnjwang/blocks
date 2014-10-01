@@ -41,9 +41,9 @@ void usb_init(void)
     USBBufferInit(&g_sRxBuffer);
 
     //
-    // Set the USB stack mode to Device mode with VBUS monitoring.
+    // Set the USB stack mode to Device mode without VBUS monitoring.
     //
-    USBStackModeSet(0, eUSBModeDevice, 0);
+    USBStackModeSet(0, eUSBModeForceDevice, 0);
 
     //
     // Pass our device information to the USB library and place the device

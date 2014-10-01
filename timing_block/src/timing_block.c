@@ -44,16 +44,10 @@ int main(void)
 
     usb_init();
 
-    uint8_t msg[20] = "This is a test";
-    while(1)
-    {
-    	bool success = usb_write(msg, sizeof(msg));
-    	SysCtlDelay(SysCtlClockGet());
-    }
 
-#ifdef DEBUG
-    debug_init();
-#endif
+	#ifdef DEBUG
+		debug_init();
+	#endif
 
 	//
     // Loop forever.

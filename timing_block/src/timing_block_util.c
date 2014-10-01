@@ -61,7 +61,10 @@ void leds_init()
 	timer_cycles_per_overflow = SysCtlClockGet() / 4;
 
     SysCtlPeripheralEnable(SYSCTL_PERIPH_WTIMER4);
-    TimerConfigure(WTIMER4_BASE, TIMER_CFG_PERIODIC);
+	TimerDisable(WTIMER4_BASE, TIMER_A);
+    TimerConfigure(WTIMER4_BASE, TIMER_CFG_SPLIT_PAIR | TIMER_CFG_A_PERIODIC | TIMER_CFG_B_PERIODIC);
+
+    TimerControlStall(WTIMER4_BASE, TIMER_A, true);
 
     TimerLoadSet(WTIMER4_BASE, TIMER_A, timer_cycles_per_overflow);
 
