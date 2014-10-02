@@ -6,6 +6,7 @@
  */
 #include<stdint.h>
 #include<stdbool.h>
+#include<string.h>
 
 #include "inc/hw_memmap.h"
 #include "inc/hw_ints.h"
@@ -59,6 +60,16 @@ void uart_comms_up_send(uint8_t *msg, uint32_t dataLen)
 	for(i = 0; i < dataLen; ++i)
 	{
 		UARTCharPut(UART2_BASE, msg[i]);
+	}
+}
+
+void uart_comms_up_demo(void)
+{
+	while(1)
+	{
+		static uint8_t *msg = "This is a test\r\n";
+		uart_comms_up_send(msg, strlen((char*)msg));
+		SysCtlDelay(SysCtlClockGet() / 3);
 	}
 }
 

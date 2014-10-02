@@ -70,8 +70,8 @@
 								</option>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.1.linkerID.LIBRARY.1997740724" name="Include library file or command file as input (--library, -l)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.1.linkerID.LIBRARY" valueType="libs">
 									<listOptionValue builtIn="false" value="&quot;libc.a&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${TIVAWARE}\driverlib\ccs\Debug\driverlib.lib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${TIVAWARE}\usblib\ccs\Debug\usblib.lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${BLOCKS_HOME}\workspace\driverlib\Debug\driverlib.lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${BLOCKS_HOME}\workspace\usblib\Debug\usblib.lib&quot;"/>
 								</option>
 								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_5.1.exeLinker.inputType__CMD_SRCS.870957202" name="Linker Command Files" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.1.exeLinker.inputType__CMD_SRCS"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_5.1.exeLinker.inputType__CMD2_SRCS.2120128271" name="Linker Command Files" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.1.exeLinker.inputType__CMD2_SRCS"/>

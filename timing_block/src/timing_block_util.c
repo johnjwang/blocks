@@ -51,10 +51,10 @@ void leds_init()
 
     uint8_t i;
     for(i = 0; i < NUM_LEDS; ++i)
-    	set_led(i, statuses[i].led_status);
+		set_led(i, statuses[i].led_status);
 
 
-    //	frequency    			  = SysCtlClockGet();
+    //	frequency				  = SysCtlClockGet();
 	timer_cycles_per_overflow = SysCtlClockGet() / 4;
 
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_WTIMER4);
@@ -164,13 +164,13 @@ static void TimingBlockUtilIntHandler(void)
     uint8_t i;
     for(i = 0; i < NUM_LEDS; ++i)
     {
-    	if(statuses[i].num_toggles_left > 0)
-    	{
-    		if(statuses[i].num_toggles_left > 2)
-    		{
+		if(statuses[i].num_toggles_left > 0)
+		{
+			if(statuses[i].num_toggles_left > 2)
+			{
 				set_led(i, ~statuses[i].led_status);
-    		}
-    		statuses[i].num_toggles_left--;
-    	}
+			}
+			statuses[i].num_toggles_left--;
+		}
     }
 }

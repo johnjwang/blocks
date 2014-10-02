@@ -37,7 +37,7 @@ int main(void)
 
     leds_init();
     time_init();
-//    uart_comms_up_init();
+    uart_comms_up_init();
 
     IntMasterEnable();
 
@@ -50,20 +50,25 @@ int main(void)
 		debug_init();
 	#endif
 
+	uint32_t sysclk = SysCtlClockGet();
+
+//	uart_comms_up_demo();
+//	usb_demo();
+
 	//
     // Loop forever.
     //
 
-	static const int num_blinks = 3, num_leds = 2;
-	static int start_idx = 1;
-	int i = start_idx, next_i = start_idx, j = 1;
-
-	while(1)
+    static const int num_blinks = 3, num_leds = 2;
+    static int start_idx = 1;
+    int i = start_idx, next_i = start_idx, j = 1;
+    
+    while(1)
     {
     	if(!is_blinking(i))
     	{
     		i = next_i;
-    		blink_led(i, j);
+    		blink_led(i+1, j);
     		j++;
     		if(j > num_blinks){
     			next_i = (i + 1 - start_idx) % num_leds + start_idx;
