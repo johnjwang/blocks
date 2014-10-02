@@ -49,8 +49,8 @@ void leds_init()
     GPIOPinTypeGPIOOutput(GPIO_PORTD_BASE, GPIO_PIN_6);
     GPIOPinTypeGPIOOutput(GPIO_PORTE_BASE, GPIO_PIN_2);
 
-    statuses[3].invert = 1;
-    statuses[4].invert = 1;
+    statuses[1].invert = 0;
+    statuses[2].invert = 0;
 
     uint8_t i;
     for(i = 0; i < NUM_LEDS; ++i)

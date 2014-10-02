@@ -10,5 +10,6 @@
 
 void usb_init(void);
 bool usb_write(uint8_t *msg, uint32_t datalen);
+void usb_demo(void);
 
 #endif /* USB_COMMS_H_ */

@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include "usb_comms.h"
 
@@ -60,6 +61,16 @@ bool usb_write(uint8_t *msg, uint32_t datalen)
     	return true;
     } else {
     	return false;
+	}
+}
+
+void usb_demo()
+{
+	while(1)
+	{
+		static uint8_t *msg = "This is a test\r\n";
+		usb_write(msg, strlen((char*)msg));
+		SysCtlDelay(SysCtlClockGet() / 3);
 	}
 }
 

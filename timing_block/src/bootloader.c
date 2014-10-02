@@ -53,6 +53,7 @@ void bootloader_check_upload()
     // blink the leds 3 times to indicate window in which
     // pressing reset button would put device into dfu mode
 	blink_led(1,3);
+	blink_led(2,3);
 	blink_led(3,3);
 	blink_led(4,3);
 	SysCtlDelay(30000000);
