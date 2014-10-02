@@ -10,3 +10,21 @@ Import a new project in ccs:
 	Click "Import Project" and click "Browse..."
 	Navigate to BLOCKS_HOME and click ok
 	Make sure that you DO NOT have the "Copy projects into workspace" checked.
+
+    IMPORTANT: we had to compile our own version of driverlib
+    to get the SysCtlClockGet to function properly, a but for our
+    chip prevents the clock frequency from ever being reported as
+    higher than a divisor of 3. To fix this, do:
+    
+    in file: driverlib/sysctl.c
+    
+    	comment out lines 2939 - 2942
+    	//if(ui32Max < ui32Clk)
+    	//{
+    	//	ui32Clk = ui32Max;
+    	//}
+    
+    Then, make sure that you clean and recompile all dependencies.
+    Also ensure that your driverlib and usblib are in your workspace
+    and you have them compiled as our code now links to them in the
+    workspace copies.

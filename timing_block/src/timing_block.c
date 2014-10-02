@@ -43,17 +43,15 @@ int main(void)
 
     bootloader_check_upload();
 
-//    usb_init();
+    usb_init();
+
+//	uart_comms_up_demo();
+//	usb_demo();
 
 
 	#ifdef DEBUG
 		debug_init();
 	#endif
-
-	uint32_t sysclk = SysCtlClockGet();
-
-//	uart_comms_up_demo();
-//	usb_demo();
 
 	//
     // Loop forever.
@@ -68,7 +66,7 @@ int main(void)
     	if(!is_blinking(i))
     	{
     		i = next_i;
-    		blink_led(i+1, j);
+    		blink_led(i, j);
     		j++;
     		if(j > num_blinks){
     			next_i = (i + 1 - start_idx) % num_leds + start_idx;
