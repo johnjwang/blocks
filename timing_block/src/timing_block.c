@@ -18,6 +18,7 @@
 #include "time_util.h"
 #include "uart_comms.h"
 #include "usb_comms.h"
+#include "timer_capture_generate.h"
 
 
 #ifdef DEBUG
@@ -43,6 +44,7 @@ int main(void)
     bootloader_check_upload();
 
     usb_init();
+    timer_capture_generate_init();
 
 
 	#ifdef DEBUG
@@ -51,8 +53,10 @@ int main(void)
 
 	uint32_t sysclk = SysCtlClockGet();
 
-//	uart_comms_up_demo();
-//	usb_demo();
+	while(1){
+		timer_generate_pulse(1000);
+	}
+
 
 	//
     // Loop forever.
