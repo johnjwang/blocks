@@ -33,6 +33,12 @@ uint32_t timer_generate_load;
 #define TIMEOUT_MSG "cap timed out\r\n"
 #define TIMEOUT_MSG_LEN sizeof(TIMEOUT_MSG)
 
+#define CAPTURE_LOW_MSG "captured edge low\r\n"
+#define CAPTURE_LOW_MSG_LEN sizeof(CAPTURE_LOW_MSG)
+
+#define CAPTURE_HIGH_MSG "captured edge high\r\n"
+#define CAPTURE_HIGH_MSG_LEN sizeof(CAPTURE_HIGH_MSG)
+
 // XXX: put all the pin mux and timer maping into these and group by input / output #
 //		this will let us do for loops for most of the tedious stuff
 //struct timer_capture_t
@@ -94,6 +100,8 @@ void timer_capture_generate_init(void)
 	GPIOPinTypeTimer(GPIO_PORTC_BASE, GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3                                                    );
 
 
+	GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_4, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
+
 	// Timer Configuration
 	TimerConfigure(TIMER0_BASE,  TIMER_CFG_SPLIT_PAIR | TIMER_CFG_A_CAP_TIME | TIMER_CFG_B_PWM     );
 	TimerConfigure(TIMER1_BASE,  TIMER_CFG_SPLIT_PAIR | TIMER_CFG_A_CAP_TIME | TIMER_CFG_B_CAP_TIME);
@@ -139,14 +147,14 @@ void timer_capture_generate_init(void)
 	TimerLoadSet(TIMER1_BASE,  TIMER_A, timer_cycles_per_overflow);
 	TimerLoadSet(TIMER1_BASE,  TIMER_B, timer_cycles_per_overflow);
 	TimerLoadSet(TIMER3_BASE,  TIMER_A, timer_cycles_per_overflow);
-	TimerLoadSet(TIMER3_BASE,  TIMER_B, timer_generate_load     );
-	TimerLoadSet(TIMER4_BASE,  TIMER_A, timer_generate_load     );
-	TimerLoadSet(TIMER4_BASE,  TIMER_B, timer_generate_load     );
-	TimerLoadSet(TIMER5_BASE,  TIMER_A, timer_generate_load     );
-	TimerLoadSet(TIMER5_BASE,  TIMER_B, timer_generate_load     );
-	TimerLoadSet(WTIMER0_BASE, TIMER_A, timer_generate_load     );
-	TimerLoadSet(WTIMER0_BASE, TIMER_B, timer_generate_load     );
-	TimerLoadSet(WTIMER1_BASE, TIMER_A, timer_generate_load     );
+	TimerLoadSet(TIMER3_BASE,  TIMER_B, timer_generate_load      );
+	TimerLoadSet(TIMER4_BASE,  TIMER_A, timer_generate_load      );
+	TimerLoadSet(TIMER4_BASE,  TIMER_B, timer_generate_load      );
+	TimerLoadSet(TIMER5_BASE,  TIMER_A, timer_generate_load      );
+	TimerLoadSet(TIMER5_BASE,  TIMER_B, timer_generate_load      );
+	TimerLoadSet(WTIMER0_BASE, TIMER_A, timer_generate_load      );
+	TimerLoadSet(WTIMER0_BASE, TIMER_B, timer_generate_load      );
+	TimerLoadSet(WTIMER1_BASE, TIMER_A, timer_generate_load      );
 	TimerLoadSet(WTIMER1_BASE, TIMER_B, timer_cycles_per_overflow);
 	TimerLoadSet(WTIMER2_BASE, TIMER_B, timer_cycles_per_overflow);
 	TimerLoadSet(WTIMER3_BASE, TIMER_A, timer_cycles_per_overflow);
@@ -154,10 +162,10 @@ void timer_capture_generate_init(void)
 	TimerLoadSet(WTIMER5_BASE, TIMER_A, timer_cycles_per_overflow);
 
 	// Set PWM Generators to Update Match Value After Overflow
-	TimerUpdateMode(TIMER4_BASE, TIMER_A, TIMER_UP_MATCH_TIMEOUT);
+	TimerUpdateMode(TIMER0_BASE, TIMER_B, TIMER_UP_MATCH_TIMEOUT);
 
 	// Set PWM to 0 Duty Cycle
-	TimerMatchSet(TIMER4_BASE, TIMER_A, timer_generate_load     );
+	TimerMatchSet(TIMER0_BASE, TIMER_B, timer_generate_load      );
 
 	// Configure Capture Event
 	TimerControlEvent(TIMER0_BASE,  TIMER_A, TIMER_EVENT_BOTH_EDGES);
@@ -180,12 +188,11 @@ void timer_capture_generate_init(void)
 
 	// Enable Capture Interrupt
 	IntEnable(INT_TIMER1A);
-//	TimerIntEnable(TIMER1_BASE, TIMER_CAPA_EVENT | TIMER_TIMA_TIMEOUT);
 	TimerIntEnable(TIMER1_BASE, TIMER_CAPA_EVENT);
 
 	// Enable Timer
 	TimerEnable(TIMER1_BASE, TIMER_A);
-	TimerEnable(TIMER4_BASE, TIMER_A);
+	TimerEnable(TIMER0_BASE, TIMER_B);
 }
 
 void timer_generate_pulse(uint32_t pulse_width)
@@ -194,26 +201,21 @@ void timer_generate_pulse(uint32_t pulse_width)
 	if (pulse_width > timer_generate_load) timer_match = 0;
 	else timer_match = timer_generate_load - pulse_width;
 
-	TimerMatchSet(TIMER4_BASE, TIMER_A, timer_match);
+	TimerMatchSet(TIMER0_BASE, TIMER_B, timer_match);
 }
 
 static void timer_capture_int_handler(void)
 {
-	uint32_t int_status =   TimerIntStatus(TIMER1_BASE, 1)
-						  & (TIMER_CAPA_EVENT | TIMER_TIMA_TIMEOUT);
-	TimerIntClear(TIMER0_BASE, int_status);
+	TimerIntClear(TIMER1_BASE, TIMER_CAPA_EVENT);
 
 	static uint8_t msg[30];
 
-	if (int_status & TIMER_CAPA_EVENT)
-	{
-		snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(TIMER1_BASE, TIMER_A));
-		usb_write(msg, 30);
+	if (GPIOPinRead(GPIO_PORTB_BASE, GPIO_PIN_4) == 0) {
+		usb_write(CAPTURE_LOW_MSG, CAPTURE_LOW_MSG_LEN);
+	} else {
+//		usb_write(CAPTURE_HIGH_MSG, CAPTURE_HIGH_MSG_LEN);
 	}
-	else if (int_status & TIMER_TIMA_TIMEOUT)
-	{
-		usb_write(TIMEOUT_MSG, TIMEOUT_MSG_LEN);
-		snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(TIMER1_BASE, TIMER_A));
-		usb_write(msg, 30);
-	}
+//	snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(TIMER1_BASE, TIMER_A));
+//	usb_write(msg, 30);
+
 }

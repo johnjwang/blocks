@@ -50,15 +50,16 @@ int main(void)
 //	uart_comms_up_demo();
 //	usb_demo();
 
-
 	#ifdef DEBUG
 		debug_init();
 	#endif
 
 	uint32_t sysclk = SysCtlClockGet();
 
+	uint32_t pulse_width = 50000;
 	while(1){
-		timer_generate_pulse(1000);
+		timer_generate_pulse(pulse_width);
+		SysCtlDelay(SysCtlClockGet() / 3);
 	}
 
 
