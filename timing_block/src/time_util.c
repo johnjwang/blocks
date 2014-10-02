@@ -34,23 +34,23 @@ void time_init()
 	timer_cycles_per_overflow = SysCtlClockGet();
 	timer_period_us			  = timer_cycles_per_overflow * 1000000.0 / frequency;
 
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_WTIMER4);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_WTIMER4);
 
     // XXX This next line is needed but already called by the timing_block_util's init function
     // leaving the line in, for some reason, makes the timing_block_util's timer not work.
     // Haven't looked into a fix but its probably simple.
     //    TimerConfigure(WTIMER4_BASE, TIMER_CFG_SPLIT_PAIR | TIMER_CFG_A_PERIODIC | TIMER_CFG_B_PERIODIC);
 
-    TimerControlStall(WTIMER4_BASE, TIMER_B, true);
+	TimerControlStall(WTIMER4_BASE, TIMER_B, true);
 
-    TimerLoadSet(WTIMER4_BASE, TIMER_B, timer_cycles_per_overflow);
+	TimerLoadSet(WTIMER4_BASE, TIMER_B, timer_cycles_per_overflow);
 
-    TimerIntRegister(WTIMER4_BASE, TIMER_B, &TimeUtilIntHandler);
+	TimerIntRegister(WTIMER4_BASE, TIMER_B, &TimeUtilIntHandler);
 
-    IntPrioritySet(INT_WTIMER4B, 0x00);
+	IntPrioritySet(INT_WTIMER4B, 0x00);
 
-    IntEnable(INT_WTIMER4B);
-    TimerIntEnable(WTIMER4_BASE, TIMER_TIMB_TIMEOUT);
+	IntEnable(INT_WTIMER4B);
+	TimerIntEnable(WTIMER4_BASE, TIMER_TIMB_TIMEOUT);
 
 	TimerEnable(WTIMER4_BASE, TIMER_B);
 }
@@ -90,7 +90,7 @@ static void TimeUtilIntHandler(void)
     //
     // Clear the timer interrupt.
     //
-    TimerIntClear(WTIMER4_BASE, TIMER_TIMB_TIMEOUT);
+	TimerIntClear(WTIMER4_BASE, TIMER_TIMB_TIMEOUT);
 
     uptime_overflow += 1;
 

@@ -11,6 +11,7 @@
 
 #include "driverlib/sysctl.h"
 #include "driverlib/interrupt.h"
+#include "driverlib/rom.h"
 
 
 #include "bootloader.h"
@@ -46,6 +47,9 @@ int main(void)
     usb_init();
     timer_capture_generate_init();
 
+//	uart_comms_up_demo();
+//	usb_demo();
+
 
 	#ifdef DEBUG
 		debug_init();
@@ -61,18 +65,20 @@ int main(void)
 	//
     // Loop forever.
     //
+
+    static const int num_blinks = 3, num_leds = 2;
+    static int start_idx = 1;
+    int i = start_idx, next_i = start_idx, j = 1;
+    
     while(1)
     {
-
-    	static const int num_blinks = 3, num_leds = 2;
-    	static int i = 0, next_i = 0, j = 1;
-    	if(!is_blinking(i+1))
+    	if(!is_blinking(i))
     	{
     		i = next_i;
-    		blink_led(i+1, j);
+    		blink_led(i, j);
     		j++;
     		if(j > num_blinks){
-    			next_i = (i + 1) % num_leds;
+    			next_i = (i + 1 - start_idx) % num_leds + start_idx;
 				j = 1;
 			}
     	}
