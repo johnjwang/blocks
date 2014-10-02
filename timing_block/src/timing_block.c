@@ -51,8 +51,8 @@ int main(void)
 
 	uint32_t sysclk = SysCtlClockGet();
 
-	uart_comms_up_demo();
-	usb_demo();
+//	uart_comms_up_demo();
+//	usb_demo();
 
 	//
     // Loop forever.
