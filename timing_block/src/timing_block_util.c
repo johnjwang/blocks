@@ -19,7 +19,7 @@
 #include "timing_block_util.h"
 #include "time_util.h"
 
-#define NUM_LEDS 5
+#define NUM_LEDS 3
 
 static void TimingBlockUtilIntHandler(void);
 
@@ -39,18 +39,15 @@ static uint64_t timer_cycles_per_overflow;
 void leds_init()
 {
     //**Initialize LEDs**//
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
-    SysCtlDelay(1);
-    GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_1);
-    GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_2);
-    GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_3);
-    GPIOPinTypeGPIOOutput(GPIO_PORTD_BASE, GPIO_PIN_6);
-    GPIOPinTypeGPIOOutput(GPIO_PORTE_BASE, GPIO_PIN_2);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
+	SysCtlDelay(1);
+	GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_1);
+	GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_2);
+	GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_3);
 
-    statuses[3].invert = 1;
-    statuses[4].invert = 1;
+
+    statuses[1].invert = 1;
+    statuses[2].invert = 1;
 
     uint8_t i;
     for(i = 0; i < NUM_LEDS; ++i)
@@ -60,20 +57,20 @@ void leds_init()
     //	frequency    			  = SysCtlClockGet();
 	timer_cycles_per_overflow = SysCtlClockGet() / 4;
 
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_WTIMER4);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_WTIMER4);
 	TimerDisable(WTIMER4_BASE, TIMER_A);
-    TimerConfigure(WTIMER4_BASE, TIMER_CFG_SPLIT_PAIR | TIMER_CFG_A_PERIODIC | TIMER_CFG_B_PERIODIC);
+	TimerConfigure(WTIMER4_BASE, TIMER_CFG_SPLIT_PAIR | TIMER_CFG_A_PERIODIC | TIMER_CFG_B_PERIODIC);
 
-    TimerControlStall(WTIMER4_BASE, TIMER_A, true);
+	TimerControlStall(WTIMER4_BASE, TIMER_A, true);
 
-    TimerLoadSet(WTIMER4_BASE, TIMER_A, timer_cycles_per_overflow);
+	TimerLoadSet(WTIMER4_BASE, TIMER_A, timer_cycles_per_overflow);
 
-    TimerIntRegister(WTIMER4_BASE, TIMER_A, &TimingBlockUtilIntHandler);
+	TimerIntRegister(WTIMER4_BASE, TIMER_A, &TimingBlockUtilIntHandler);
 
-    IntPrioritySet(INT_WTIMER4A, 0x20);
+	IntPrioritySet(INT_WTIMER4A, 0x20);
 
-    IntEnable(INT_WTIMER4A);
-    TimerIntEnable(WTIMER4_BASE, TIMER_TIMA_TIMEOUT);
+	IntEnable(INT_WTIMER4A);
+	TimerIntEnable(WTIMER4_BASE, TIMER_TIMA_TIMEOUT);
 
 	TimerEnable(WTIMER4_BASE, TIMER_A);
 }
@@ -142,14 +139,6 @@ static void set_led(uint8_t led_num, uint8_t led_status)
 
 		case 2:
 			GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, pin_status);
-			break;
-
-		case 3:
-			GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_6, pin_status);
-			break;
-
-		case 4:
-			GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_2, pin_status);
 			break;
 
 		default:
