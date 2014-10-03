@@ -213,9 +213,9 @@ static void timer_capture_int_handler(void)
 	if (GPIOPinRead(GPIO_PORTB_BASE, GPIO_PIN_4) == 0) {
 		usb_write(CAPTURE_LOW_MSG, CAPTURE_LOW_MSG_LEN);
 	} else {
-//		usb_write(CAPTURE_HIGH_MSG, CAPTURE_HIGH_MSG_LEN);
+		usb_write(CAPTURE_HIGH_MSG, CAPTURE_HIGH_MSG_LEN);
 	}
-//	snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(TIMER1_BASE, TIMER_A));
-//	usb_write(msg, 30);
+	snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(TIMER1_BASE, TIMER_A));
+	usb_write(msg, 30);
 
 }

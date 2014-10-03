@@ -19,6 +19,7 @@
 #include "time_util.h"
 #include "uart_comms.h"
 #include "usb_comms.h"
+#include "gpio_ctl.h"
 #include "timer_capture_generate.h"
 
 
@@ -39,13 +40,14 @@ int main(void)
     leds_init();
     time_init();
     uart_comms_up_init();
+    gpio_ctl_init();
 
     IntMasterEnable();
 
     bootloader_check_upload();
 
     usb_init();
-    timer_capture_generate_init();
+//    timer_capture_generate_init();
 
 //	uart_comms_up_demo();
 //	usb_demo();
@@ -54,13 +56,13 @@ int main(void)
 		debug_init();
 	#endif
 
-	uint32_t sysclk = SysCtlClockGet();
+//	uint32_t sysclk = SysCtlClockGet();
 
-	uint32_t pulse_width = 50000;
-	while(1){
-		timer_generate_pulse(pulse_width);
-		SysCtlDelay(SysCtlClockGet() / 3);
-	}
+//	uint32_t pulse_width = 50000;
+//	while(1){
+//		timer_generate_pulse(pulse_width);
+//		SysCtlDelay(SysCtlClockGet() / 3);
+//	}
 
 
 	//
@@ -71,6 +73,11 @@ int main(void)
     static int start_idx = 1;
     int i = start_idx, next_i = start_idx, j = 1;
     
+    uint8_t buf[30];
+    uint32_t buflen = 30;
+    uint32_t output = GPIO_OUTPUT_1;
+    uint8_t outval = 1;
+
     while(1)
     {
     	if(!is_blinking(i))
@@ -83,6 +90,21 @@ int main(void)
 				j = 1;
 			}
     	}
+
+    	uint64_t utime = timestamp_now();
+    	static last_utime = 0;
+    	if(last_utime + 300000 > utime)
+    	{
+    		last_utime = utime;
+    		gpio_ctl_write(output++, outval);
+			if (output > GPIO_OUTPUT_9) {
+				output = GPIO_OUTPUT_1;
+				outval = 1 - outval;
+			}
+
+			gpio_ctl_values_snprintf(buf, buflen);
+			usb_write(buf, buflen);
+		}
 
 		#ifdef DEBUG
 			debug();
