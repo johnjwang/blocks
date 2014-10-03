@@ -39,7 +39,7 @@ int main(void)
 
     leds_init();
     time_init();
-    uart_comms_up_init();
+//    uart_comms_up_init();
     gpio_ctl_init();
 
     IntMasterEnable();
@@ -103,7 +103,8 @@ int main(void)
 				outval = 1 - outval;
 			}
 
-			usb_write(buf, gpio_ctl_values_snprintf_no_preread(buf, buflen));
+			uint32_t strlen =gpio_ctl_values_snprintf_no_preread(buf, buflen);
+			usb_write(buf, strlen);
 		}
 
 		#ifdef DEBUG
