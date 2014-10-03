@@ -57,7 +57,10 @@ void gpio_ctl_init()
 	for (i=0; i<NUM_GPIO; ++i) {
 		GPIODirModeSet(gpios[i].port, gpios[i].pin, gpios[i].dir);
 		GPIOPadConfigSet(gpios[i].port, gpios[i].pin, gpios[i].dr_str, gpios[i].pad_type);
-		if (gpios[i].int_type != 0) GPIOIntEnable(gpios[i].port, gpios[i].int_flag);
+		if (gpios[i].int_type != 0) {
+			GPIOIntTypeSet(gpios[i].port, gpios[i].pin, gpios[i].int_type);
+			GPIOIntEnable(gpios[i].port, gpios[i].int_flag);
+		}
 	}
 
 	for (i=GPIO_INPUT_1; i<=GPIO_INPUT_9; ++i) {
@@ -209,6 +212,17 @@ int32_t gpio_ctl_values_snprintf(uint8_t *buf, uint32_t len)
 		gpios[i].value = gpio_ctl_read(i);
 	}
 
+	return snprintf((char*)buf, len, "%hu%hu%hu%hu%hu%hu%hu%hu%hu %hu%hu%hu%hu%hu%hu%hu%hu%hu\r\n",
+			gpios[GPIO_INPUT_1].value, gpios[GPIO_INPUT_2].value, gpios[GPIO_INPUT_3].value,
+			gpios[GPIO_INPUT_4].value, gpios[GPIO_INPUT_5].value, gpios[GPIO_INPUT_6].value,
+			gpios[GPIO_INPUT_7].value, gpios[GPIO_INPUT_8].value, gpios[GPIO_INPUT_9].value,
+			gpios[GPIO_OUTPUT_1].value, gpios[GPIO_OUTPUT_2].value, gpios[GPIO_OUTPUT_3].value,
+			gpios[GPIO_OUTPUT_4].value, gpios[GPIO_OUTPUT_5].value, gpios[GPIO_OUTPUT_6].value,
+			gpios[GPIO_OUTPUT_7].value, gpios[GPIO_OUTPUT_8].value, gpios[GPIO_OUTPUT_9].value);
+}
+
+int32_t gpio_ctl_values_snprintf_no_preread(uint8_t *buf, uint32_t len)
+{
 	return snprintf((char*)buf, len, "%hu%hu%hu%hu%hu%hu%hu%hu%hu %hu%hu%hu%hu%hu%hu%hu%hu%hu\r\n",
 			gpios[GPIO_INPUT_1].value, gpios[GPIO_INPUT_2].value, gpios[GPIO_INPUT_3].value,
 			gpios[GPIO_INPUT_4].value, gpios[GPIO_INPUT_5].value, gpios[GPIO_INPUT_6].value,

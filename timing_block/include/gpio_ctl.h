@@ -35,5 +35,6 @@ void gpio_ctl_init();
 int8_t gpio_ctl_read(uint32_t gpio_num); // gpio_num = GPIO_???PUT_n
 void gpio_ctl_write(uint32_t gpio_num, uint8_t value); // gpio_num = GPIO_???PUT_n, value = 1,0
 int32_t gpio_ctl_values_snprintf(uint8_t *buf, uint32_t len);
+int32_t gpio_ctl_values_snprintf_no_preread(uint8_t *buf, uint32_t len);
 
 #endif /* GPIO_CTL_H_ */

@@ -75,7 +75,8 @@ int main(void)
     
     uint8_t buf[30];
     uint32_t buflen = 30;
-    uint32_t output = GPIO_INPUT_1;
+    uint32_t outstart = GPIO_INPUT_1;
+    uint32_t output = outstart;
     uint8_t outval = 1;
 
     while(1)
@@ -98,11 +99,11 @@ int main(void)
     		last_utime = utime;
     		gpio_ctl_write(output++, outval);
 			if (output > GPIO_OUTPUT_9) {
-				output = GPIO_INPUT_1;
+				output = outstart;
 				outval = 1 - outval;
 			}
 
-			usb_write(buf, gpio_ctl_values_snprintf(buf, buflen));
+			usb_write(buf, gpio_ctl_values_snprintf_no_preread(buf, buflen));
 		}
 
 		#ifdef DEBUG
