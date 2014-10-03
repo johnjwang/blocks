@@ -75,7 +75,7 @@ int main(void)
     
     uint8_t buf[30];
     uint32_t buflen = 30;
-    uint32_t output = GPIO_OUTPUT_1;
+    uint32_t output = GPIO_INPUT_1;
     uint8_t outval = 1;
 
     while(1)
@@ -92,18 +92,17 @@ int main(void)
     	}
 
     	uint64_t utime = timestamp_now();
-    	static last_utime = 0;
-    	if(last_utime + 300000 > utime)
+    	static uint64_t last_utime = 0;
+    	if(last_utime + 300000 < utime)
     	{
     		last_utime = utime;
     		gpio_ctl_write(output++, outval);
 			if (output > GPIO_OUTPUT_9) {
-				output = GPIO_OUTPUT_1;
+				output = GPIO_INPUT_1;
 				outval = 1 - outval;
 			}
 
-			gpio_ctl_values_snprintf(buf, buflen);
-			usb_write(buf, buflen);
+			usb_write(buf, gpio_ctl_values_snprintf(buf, buflen));
 		}
 
 		#ifdef DEBUG

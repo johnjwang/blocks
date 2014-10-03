@@ -54,7 +54,7 @@ void uart_comms_up_init(void)
 	IntEnable(INT_UART2);
 }
 
-void uart_comms_up_send(uint8_t *msg, uint32_t dataLen)
+void uart_comms_up_write(uint8_t *msg, uint32_t dataLen)
 {
 	uint32_t i;
 	for(i = 0; i < dataLen; ++i)
@@ -68,7 +68,7 @@ void uart_comms_up_demo(void)
 	while(1)
 	{
 		static uint8_t *msg = "This is a test\r\n";
-		uart_comms_up_send(msg, strlen((char*)msg));
+		uart_comms_up_write(msg, strlen((char*)msg));
 		SysCtlDelay(SysCtlClockGet() / 3);
 	}
 }

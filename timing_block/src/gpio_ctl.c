@@ -192,20 +192,24 @@ void gpio_ctl_write(uint32_t gpio_num, uint8_t value)
 {
 	if (gpio_num >= NUM_GPIO) return;
 
-	if(gpio_num < GPIO_OUTPUT_1)
-	{
+	if (gpios[gpio_num].dir == GPIO_DIR_MODE_IN) {
 		gpios[gpio_num].pad_type = value != 0 ? GPIO_PIN_TYPE_STD_WPU : GPIO_PIN_TYPE_STD_WPD;
 		GPIOPadConfigSet(gpios[gpio_num].port, gpios[gpio_num].pin, gpios[gpio_num].dr_str, gpios[gpio_num].pad_type);
-		return;
+	} else {
+		value != 0 ? GPIOPinWrite(gpios[gpio_num].port, gpios[gpio_num].pin,  gpios[gpio_num].pin)
+				   : GPIOPinWrite(gpios[gpio_num].port, gpios[gpio_num].pin, ~gpios[gpio_num].pin);
+		gpios[gpio_num].value = value != 0 ? 1 : 0;
 	}
-	value != 0 ? GPIOPinWrite(gpios[gpio_num].port, gpios[gpio_num].pin,  gpios[gpio_num].pin)
-			   : GPIOPinWrite(gpios[gpio_num].port, gpios[gpio_num].pin, ~gpios[gpio_num].pin);
-	gpios[gpio_num].value = value != 0 ? 1 : 0;
 }
 
-void gpio_ctl_values_snprintf(uint8_t *buf, uint32_t len)
+int32_t gpio_ctl_values_snprintf(uint8_t *buf, uint32_t len)
 {
-	snprintf((char*)buf, len, "%hu%hu%hu%hu%hu%hu%hu%hu%hu %hu%hu%hu%hu%hu%hu%hu%hu%hu\r\n",
+	int i;
+	for (i=GPIO_INPUT_1; i<=GPIO_OUTPUT_9; ++i) {
+		gpios[i].value = gpio_ctl_read(i);
+	}
+
+	return snprintf((char*)buf, len, "%hu%hu%hu%hu%hu%hu%hu%hu%hu %hu%hu%hu%hu%hu%hu%hu%hu%hu\r\n",
 			gpios[GPIO_INPUT_1].value, gpios[GPIO_INPUT_2].value, gpios[GPIO_INPUT_3].value,
 			gpios[GPIO_INPUT_4].value, gpios[GPIO_INPUT_5].value, gpios[GPIO_INPUT_6].value,
 			gpios[GPIO_INPUT_7].value, gpios[GPIO_INPUT_8].value, gpios[GPIO_INPUT_9].value,
