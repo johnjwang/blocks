@@ -1,0 +1,7 @@
+struct rpm_t
+{
+    int64_t utime;
+
+    int8_t nmotors;
+    float rpm[nmotors];
+}
