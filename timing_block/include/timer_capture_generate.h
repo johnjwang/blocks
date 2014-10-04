@@ -8,9 +8,8 @@
 #ifndef TIMER_CAPTURE_GENERATE_H_
 #define TIMER_CAPTURE_GENERATE_H_
 
-
 void timer_capture_generate_init(void);
 void timer_generate_pulse(uint32_t pulse_width);
-
+void timer_capture_generate_start(void);
 
 #endif /* TIMER_CAPTURE_GENERATE_H_ */
