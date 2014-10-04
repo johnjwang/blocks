@@ -1,0 +1,18 @@
+LCM = lcm-gen
+
+LCMTYPES_NAMES := skyspecs_pose_t.lcm imu_data_t.lcm
+
+# Construct the pathnames to the java types.
+LCMTYPES_JAVA := $(LCMTYPES_NAMES:%.lcm=%.java)
+LCMTYPES_JAVA := $(addprefix src/skyspecs/lcmtypes/,$(LCMTYPES_JAVA))
+
+SUFFIXES += .java .lcm
+
+all:    $(LCMTYPES_JAVA)
+
+
+src/skyspecs/lcmtypes/%.java: $(SKYSPECS_HOME)/lcmtypes/%.lcm
+	$(LCM) -j  --jpath=src --jdefaultpkg=skyspecs.lcmtypes $<
+
+clean:
+	rm -rf *~ src/skyspecs/lcmtypes/*
