@@ -212,17 +212,15 @@ int32_t gpio_ctl_values_snprintf(uint8_t *buf, uint32_t len)
 		gpios[i].value = gpio_ctl_read(i);
 	}
 
-	return snprintf((char*)buf, len, "%hu%hu%hu%hu%hu%hu%hu%hu%hu %hu%hu%hu%hu%hu%hu%hu%hu%hu\r\n",
-			gpios[GPIO_INPUT_1].value, gpios[GPIO_INPUT_2].value, gpios[GPIO_INPUT_3].value,
-			gpios[GPIO_INPUT_4].value, gpios[GPIO_INPUT_5].value, gpios[GPIO_INPUT_6].value,
-			gpios[GPIO_INPUT_7].value, gpios[GPIO_INPUT_8].value, gpios[GPIO_INPUT_9].value,
-			gpios[GPIO_OUTPUT_1].value, gpios[GPIO_OUTPUT_2].value, gpios[GPIO_OUTPUT_3].value,
-			gpios[GPIO_OUTPUT_4].value, gpios[GPIO_OUTPUT_5].value, gpios[GPIO_OUTPUT_6].value,
-			gpios[GPIO_OUTPUT_7].value, gpios[GPIO_OUTPUT_8].value, gpios[GPIO_OUTPUT_9].value);
+	return gpio_ctl_values_snprintf_no_preread(buf, len);
 }
 
 int32_t gpio_ctl_values_snprintf_no_preread(uint8_t *buf, uint32_t len)
 {
+	// XXX: I think the Fault assertion is being triggered when the internal USB interrupt handler is
+	//      triggered while we are in the middle of a snprintf call. Not sure why this causes a problem
+	//      but I think we may want to avoid large snprintfs
+
 	return snprintf((char*)buf, len, "%hu%hu%hu%hu%hu%hu%hu%hu%hu %hu%hu%hu%hu%hu%hu%hu%hu%hu\r\n",
 			gpios[GPIO_INPUT_1].value, gpios[GPIO_INPUT_2].value, gpios[GPIO_INPUT_3].value,
 			gpios[GPIO_INPUT_4].value, gpios[GPIO_INPUT_5].value, gpios[GPIO_INPUT_6].value,
