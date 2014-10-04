@@ -122,32 +122,32 @@ void timer_capture_generate_init(void)
 	if (timer_prescaler > 255) timer_prescaler = 255;
 
 	// Set Prescale Value
-	TimerPrescaleSet(TIMER0_BASE,  TIMER_A, timer_prescaler);
-	TimerPrescaleSet(TIMER0_BASE,  TIMER_B, timer_prescaler);
-	TimerPrescaleSet(TIMER1_BASE,  TIMER_A, timer_prescaler);
-	TimerPrescaleSet(TIMER1_BASE,  TIMER_B, timer_prescaler);
-	TimerPrescaleSet(TIMER3_BASE,  TIMER_A, timer_prescaler);
-	TimerPrescaleSet(TIMER3_BASE,  TIMER_B, timer_prescaler);
-	TimerPrescaleSet(TIMER4_BASE,  TIMER_A, timer_prescaler);
-	TimerPrescaleSet(TIMER4_BASE,  TIMER_B, timer_prescaler);
-	TimerPrescaleSet(TIMER5_BASE,  TIMER_A, timer_prescaler);
-	TimerPrescaleSet(TIMER5_BASE,  TIMER_B, timer_prescaler);
-	TimerPrescaleSet(WTIMER0_BASE, TIMER_A, timer_prescaler);
-	TimerPrescaleSet(WTIMER0_BASE, TIMER_B, timer_prescaler);
-	TimerPrescaleSet(WTIMER1_BASE, TIMER_A, timer_prescaler);
-	TimerPrescaleSet(WTIMER1_BASE, TIMER_B, timer_prescaler);
-	TimerPrescaleSet(WTIMER2_BASE, TIMER_B, timer_prescaler);
-	TimerPrescaleSet(WTIMER3_BASE, TIMER_A, timer_prescaler);
-	TimerPrescaleSet(WTIMER3_BASE, TIMER_B, timer_prescaler);
-	TimerPrescaleSet(WTIMER5_BASE, TIMER_A, timer_prescaler);
+//	TimerPrescaleSet(TIMER0_BASE,  TIMER_A, timer_prescaler);
+//	TimerPrescaleSet(TIMER0_BASE,  TIMER_B, timer_prescaler);
+//	TimerPrescaleSet(TIMER1_BASE,  TIMER_A, timer_prescaler);
+//	TimerPrescaleSet(TIMER1_BASE,  TIMER_B, timer_prescaler);
+//	TimerPrescaleSet(TIMER3_BASE,  TIMER_A, timer_prescaler);
+//	TimerPrescaleSet(TIMER3_BASE,  TIMER_B, timer_prescaler);
+//	TimerPrescaleSet(TIMER4_BASE,  TIMER_A, timer_prescaler);
+//	TimerPrescaleSet(TIMER4_BASE,  TIMER_B, timer_prescaler);
+//	TimerPrescaleSet(TIMER5_BASE,  TIMER_A, timer_prescaler);
+//	TimerPrescaleSet(TIMER5_BASE,  TIMER_B, timer_prescaler);
+//	TimerPrescaleSet(WTIMER0_BASE, TIMER_A, (timer_prescaler << 16) | 0x00ff);
+//	TimerPrescaleSet(WTIMER0_BASE, TIMER_B, (timer_prescaler << 16) | 0x00ff);
+//	TimerPrescaleSet(WTIMER1_BASE, TIMER_A, (timer_prescaler << 16) | 0x00ff);
+//	TimerPrescaleSet(WTIMER1_BASE, TIMER_B, (timer_prescaler << 16) | 0x00ff);
+//	TimerPrescaleSet(WTIMER2_BASE, TIMER_B, (timer_prescaler << 16) | 0x00ff);
+//	TimerPrescaleSet(WTIMER3_BASE, TIMER_A, (timer_prescaler << 16) | 0x00ff);
+//	TimerPrescaleSet(WTIMER3_BASE, TIMER_B, (timer_prescaler << 16) | 0x00ff);
+//	TimerPrescaleSet(WTIMER5_BASE, TIMER_A, (timer_prescaler << 16) | 0x00ff);
 
 	// Set Load Value
 	TimerLoadSet(TIMER0_BASE,  TIMER_A, timer_cycles_per_overflow);
-	TimerLoadSet(TIMER0_BASE,  TIMER_B, timer_generate_load     );
+	TimerLoadSet(TIMER0_BASE,  TIMER_B, timer_generate_load      );
 	TimerLoadSet(TIMER1_BASE,  TIMER_A, timer_cycles_per_overflow);
 	TimerLoadSet(TIMER1_BASE,  TIMER_B, timer_cycles_per_overflow);
 	TimerLoadSet(TIMER3_BASE,  TIMER_A, timer_cycles_per_overflow);
-	TimerLoadSet(TIMER3_BASE,  TIMER_B, timer_generate_load      );
+	TimerLoadSet(TIMER3_BASE,  TIMER_B, timer_cycles_per_overflow);
 	TimerLoadSet(TIMER4_BASE,  TIMER_A, timer_generate_load      );
 	TimerLoadSet(TIMER4_BASE,  TIMER_B, timer_generate_load      );
 	TimerLoadSet(TIMER5_BASE,  TIMER_A, timer_generate_load      );
@@ -155,17 +155,33 @@ void timer_capture_generate_init(void)
 	TimerLoadSet(WTIMER0_BASE, TIMER_A, timer_generate_load      );
 	TimerLoadSet(WTIMER0_BASE, TIMER_B, timer_generate_load      );
 	TimerLoadSet(WTIMER1_BASE, TIMER_A, timer_generate_load      );
-	TimerLoadSet(WTIMER1_BASE, TIMER_B, timer_cycles_per_overflow);
+	TimerLoadSet(WTIMER1_BASE, TIMER_B, timer_generate_load      );
 	TimerLoadSet(WTIMER2_BASE, TIMER_B, timer_cycles_per_overflow);
 	TimerLoadSet(WTIMER3_BASE, TIMER_A, timer_cycles_per_overflow);
 	TimerLoadSet(WTIMER3_BASE, TIMER_B, timer_cycles_per_overflow);
 	TimerLoadSet(WTIMER5_BASE, TIMER_A, timer_cycles_per_overflow);
 
 	// Set PWM Generators to Update Match Value After Overflow
-	TimerUpdateMode(TIMER0_BASE, TIMER_B, TIMER_UP_MATCH_TIMEOUT);
+	TimerUpdateMode(TIMER0_BASE,  TIMER_B, TIMER_UP_MATCH_TIMEOUT);
+	TimerUpdateMode(TIMER4_BASE,  TIMER_A, TIMER_UP_MATCH_TIMEOUT);
+	TimerUpdateMode(TIMER4_BASE,  TIMER_B, TIMER_UP_MATCH_TIMEOUT);
+	TimerUpdateMode(TIMER5_BASE,  TIMER_A, TIMER_UP_MATCH_TIMEOUT);
+	TimerUpdateMode(TIMER5_BASE,  TIMER_B, TIMER_UP_MATCH_TIMEOUT);
+	TimerUpdateMode(WTIMER0_BASE, TIMER_A, TIMER_UP_MATCH_TIMEOUT);
+	TimerUpdateMode(WTIMER0_BASE, TIMER_B, TIMER_UP_MATCH_TIMEOUT);
+	TimerUpdateMode(WTIMER1_BASE, TIMER_A, TIMER_UP_MATCH_TIMEOUT);
+	TimerUpdateMode(WTIMER1_BASE, TIMER_B, TIMER_UP_MATCH_TIMEOUT);
 
-	// Set PWM to 0 Duty Cycle
-	TimerMatchSet(TIMER0_BASE, TIMER_B, timer_generate_load      );
+    // Set PWM to 0 Duty Cycle
+	TimerMatchSet(TIMER0_BASE,  TIMER_B, timer_generate_load);
+	TimerMatchSet(TIMER4_BASE,  TIMER_A, timer_generate_load);
+	TimerMatchSet(TIMER4_BASE,  TIMER_B, timer_generate_load);
+	TimerMatchSet(TIMER5_BASE,  TIMER_A, timer_generate_load);
+	TimerMatchSet(TIMER5_BASE,  TIMER_B, timer_generate_load);
+	TimerMatchSet(WTIMER0_BASE, TIMER_A, timer_generate_load);
+	TimerMatchSet(WTIMER0_BASE, TIMER_B, timer_generate_load);
+	TimerMatchSet(WTIMER1_BASE, TIMER_A, timer_generate_load);
+	TimerMatchSet(WTIMER1_BASE, TIMER_B, timer_generate_load);
 
 	// Configure Capture Event
 	TimerControlEvent(TIMER0_BASE,  TIMER_A, TIMER_EVENT_BOTH_EDGES);
@@ -189,10 +205,20 @@ void timer_capture_generate_init(void)
 	// Enable Capture Interrupt
 	IntEnable(INT_TIMER1A);
 	TimerIntEnable(TIMER1_BASE, TIMER_CAPA_EVENT);
+}
 
-	// Enable Timer
-	TimerEnable(TIMER1_BASE, TIMER_A);
-	TimerEnable(TIMER0_BASE, TIMER_B);
+void timer_capture_generate_start(void)
+{
+    // Enable Timer
+    TimerEnable(TIMER0_BASE,  TIMER_B);
+    TimerEnable(TIMER4_BASE,  TIMER_A);
+    TimerEnable(TIMER4_BASE,  TIMER_B);
+    TimerEnable(TIMER5_BASE,  TIMER_A);
+    TimerEnable(TIMER5_BASE,  TIMER_B);
+    TimerEnable(WTIMER0_BASE, TIMER_A);
+    TimerEnable(WTIMER0_BASE, TIMER_B);
+    TimerEnable(WTIMER1_BASE, TIMER_A);
+    TimerEnable(WTIMER1_BASE, TIMER_B);
 }
 
 void timer_generate_pulse(uint32_t pulse_width)
@@ -201,7 +227,16 @@ void timer_generate_pulse(uint32_t pulse_width)
 	if (pulse_width > timer_generate_load) timer_match = 0;
 	else timer_match = timer_generate_load - pulse_width;
 
-	TimerMatchSet(TIMER0_BASE, TIMER_B, timer_match);
+    TimerMatchSet(TIMER0_BASE,  TIMER_B, timer_match);
+    TimerMatchSet(TIMER4_BASE,  TIMER_A, timer_match);
+    TimerMatchSet(TIMER4_BASE,  TIMER_B, timer_match);
+    TimerMatchSet(TIMER5_BASE,  TIMER_A, timer_match);
+    TimerMatchSet(TIMER5_BASE,  TIMER_B, timer_match);
+    TimerMatchSet(WTIMER0_BASE, TIMER_A, timer_match);
+    TimerMatchSet(WTIMER0_BASE, TIMER_B, timer_match);
+    TimerMatchSet(WTIMER1_BASE, TIMER_A, timer_match);
+    TimerMatchSet(WTIMER1_BASE, TIMER_B, timer_match);
+
 }
 
 static void timer_capture_int_handler(void)
