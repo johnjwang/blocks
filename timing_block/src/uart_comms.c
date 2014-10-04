@@ -17,6 +17,9 @@
 #include "driverlib/pin_map.h"
 #include "driverlib/uart.h"
 
+#include "timer_capture_generate.h"
+#include "usb_comms.h"
+
 static void uart_comms_up_int_handler(void);
 
 void uart_comms_up_init(void)
@@ -29,7 +32,7 @@ void uart_comms_up_init(void)
 
 	GPIOPinTypeUART(GPIO_PORTG_BASE, GPIO_PIN_4 | GPIO_PIN_5);
 
-    UARTConfigSetExpClk(UART2_BASE, SysCtlClockGet(), 115200,
+    UARTConfigSetExpClk(UART2_BASE, SysCtlClockGet(), 9600,
                         (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
                          UART_CONFIG_PAR_NONE));
 
@@ -83,6 +86,8 @@ static void uart_comms_up_int_handler(void)
 
 	while(UARTCharsAvail(UART2_BASE))
 	{
-        UARTCharPutNonBlocking(UART2_BASE, UARTCharGetNonBlocking(UART2_BASE));
+	    uint32_t data = UARTCharGet(UART2_BASE);
+	    usb_write_char((char)data);
+	    timer_generate_pulse_percent(((char)data - '0') / 10.0);
 	}
 }

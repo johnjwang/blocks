@@ -84,7 +84,7 @@ int main(void)
 //    ppm_start();
     timer_capture_generate_start();
 
-    timer_generate_pulse(2000);
+//    timer_generate_pulse(2000);
 
     while(1)
     {

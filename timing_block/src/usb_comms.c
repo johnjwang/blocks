@@ -24,6 +24,8 @@
 #include "driverlib/sysctl.h"
 #include "driverlib/gpio.h"
 
+#include "timer_capture_generate.h"
+
 static bool usb_configured = false;
 
 
@@ -52,6 +54,13 @@ void usb_init(void)
     //
     USBDCDCInit(0, &g_sCDCDevice);
 
+}
+
+bool usb_write_char(char data)
+{
+    uint8_t msg[1] = {0};
+    msg[0] = data;
+    return usb_write(msg, 1);
 }
 
 bool usb_write(uint8_t *msg, uint32_t datalen)
@@ -258,6 +267,11 @@ RxHandler(void *pvCBData, uint32_t ui32Event, uint32_t ui32MsgValue,
         //
         case USB_EVENT_RX_AVAILABLE:
         {
+            uint8_t data[1];
+            if(USBBufferRead((tUSBBuffer *)&g_sRxBuffer, data, 1))
+            {
+                timer_generate_pulse_percent((data[0] - '0') / 10.0);
+            }
             break;
         }
 
