@@ -1,30 +1,74 @@
-In order to import these projects into CCS do the following:
 
+Setting up the CCS Workspace
+---------------------------
+Launch CCS
 Set your ccs workspace to be the workspace in this git repo (not required)
 Open ccs and setup path requirements:
 	Window->Preferences->General->Workspace->Linked Resources
 	Click new and in the "name" section enter 'TIVAWARE' (without quotes) and click folder. Navigate to the installation location of tivaware on your system." Click "Ok"
 	Click new again and then in the "name" section enter 'BLOCKS_HOME' (without quotes) and click folder. Navigate to this directory and click Ok.
+    Click Ok again to exit preferences.
 
-Import a new project in ccs:
+Compile driverlib and usblib
+    Right click on driverlib in the Project Explorer and select 'Properties'
+    Click on 'General' and select the chip that you are building for. Ie, TM4C1232C3PM
+    Then switch configurations in the same menu pane to 'Release' and select the correct chip
+    Do the same for usblib 
+    Note: A hotkey for properties is to click on the project and press alt+enter
+    Now that the libraries are configured, click on the driverlib and then click on the hammer icon in the top tray to build.
+    Do the same for usblib
+
+Import blocks projects
 	Click "Import Project" and click "Browse..."
 	Navigate to BLOCKS_HOME and click ok
-	Make sure that you DO NOT have the "Copy projects into workspace" checked.
+	Again, make sure that you DO NOT have the "Copy projects into workspace" checked.
+    Click Select All
+    Click Finish
+    Press ctrl+b to build your workspace
+
+Fix ccs util for building binary files (Linux only)
+    Navigate to your ccs installation directory. Ie, ~/ti/ccsv6
+    Open the file utils/tiobj2bin and change the first line from 
+        #!/bin/sh
+        to
+        #!/bin/bash
+
+Download UniFlash to be able to flash Tiva from command line
+    wget https://dl.dropboxusercontent.com/u/36951037/UNIFLASH2.2.0.00016_linux.tar.gz
+    extract the tar.gz with 'tar -xvaf uniflash.tar.gz'
+    run the uniflash_setup script without sudo permission
+    install into your ti installation directory
+    Once completed navigate to the uniflash installation directory. Ie ~/ti/uniflashv2
+    Run the following command $sudo ./install_scripts/install_drivers.sh
+
+
+
+
+
+
+-------------------------------------------------------------------------------
+Manually adding driverlib and usblib
+
+Import driverlib and usblib in ccs:
+    Click'Import Project'
+    Click 'Browse' and browse to $TIVAWARE/driverlib and click Ok
+    Click 'Select All'
+    Make sure 'Copy projects into workspace' is NOT selected
+    Click Ok
+    Do the same for usblib
 
     IMPORTANT: we had to compile our own version of driverlib
-    to get the SysCtlClockGet to function properly, a but for our
+    to get the SysCtlClockGet to function properly, a bug for our
     chip prevents the clock frequency from ever being reported as
-    higher than a divisor of 3. To fix this, do:
+    higher than 66.6MHz (a clock divisor of 3). To fix this, do:
     
     in file: driverlib/sysctl.c
     
-    	comment out lines 2939 - 2942
-    	//if(ui32Max < ui32Clk)
-    	//{
-    	//	ui32Clk = ui32Max;
-    	//}
+        comment out lines 2939 - 2942
+        //if(ui32Max < ui32Clk)
+        //{
+        //	ui32Clk = ui32Max;
+        //}
     
     Then, make sure that you clean and recompile all dependencies.
-    Also ensure that your driverlib and usblib are in your workspace
-    and you have them compiled as our code now links to them in the
-    workspace copies.
+
