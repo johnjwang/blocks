@@ -26,7 +26,6 @@
 
 static void usb_load_new();
 
-
 void bootloader_check_upload()
 {
     uint32_t eeprom_data[1];
@@ -77,6 +76,9 @@ static void usb_load_new()
 	SysTickDisable();
 	HWREG(NVIC_DIS0) = 0xffffffff;
 	HWREG(NVIC_DIS1) = 0xffffffff;
+    HWREG(NVIC_DIS2) = 0xffffffff;
+    HWREG(NVIC_DIS3) = 0xffffffff;
+    HWREG(NVIC_DIS4) = 0xffffffff;
 
 	// 1. Enable USB PLL
 	// 2. Enable USB controller
@@ -89,7 +91,9 @@ static void usb_load_new()
 	// 4. Activate USB DFU
 	SysCtlDelay(SysCtlClockGet() / 3);
 
-	turn_off_led(1); turn_off_led(2); turn_off_led(3); turn_off_led(4);
+	turn_off_led(2);
+	turn_off_led(3);
+	turn_off_led(4);
 
 	IntMasterEnable(); // Re-enable interrupts at NVIC level
 	ROM_UpdateUSB(0);
