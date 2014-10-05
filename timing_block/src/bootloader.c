@@ -66,6 +66,7 @@ void bootloader_check_upload()
 
 static void usb_load_new()
 {
+    turn_on_led(1); turn_on_led(2); turn_on_led(3); turn_on_led(4);
 	// Configure the required pins for USB operation.
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
 	GPIOPinTypeUSBAnalog(GPIO_PORTD_BASE, GPIO_PIN_5 | GPIO_PIN_4);
@@ -87,9 +88,13 @@ static void usb_load_new()
 
 	// 4. Activate USB DFU
 	SysCtlDelay(SysCtlClockGet() / 3);
+
+	turn_off_led(1); turn_off_led(2); turn_off_led(3); turn_off_led(4);
+
 	IntMasterEnable(); // Re-enable interrupts at NVIC level
 	ROM_UpdateUSB(0);
 	// 5. Should never get here since update is in progress
+
 }
 
 
