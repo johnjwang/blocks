@@ -50,8 +50,26 @@ uint32_t timer_generate_load;
 //{
 //
 //};
+static void timer_capture_int_handler(int num);
+static void timer_capture_int_handler0(void);
+static void timer_capture_int_handler1(void);
+static void timer_capture_int_handler2(void);
+static void timer_capture_int_handler3(void);
+static void timer_capture_int_handler4(void);
+static void timer_capture_int_handler5(void);
+static void timer_capture_int_handler6(void);
+static void timer_capture_int_handler7(void);
+static void timer_capture_int_handler8(void);
 
-static void timer_capture_int_handler(void);
+static void (*timer_capture_int_handlers[9])(void) = {timer_capture_int_handler0,
+                                                      timer_capture_int_handler1,
+                                                      timer_capture_int_handler2,
+                                                      timer_capture_int_handler3,
+                                                      timer_capture_int_handler4,
+                                                      timer_capture_int_handler5,
+                                                      timer_capture_int_handler6,
+                                                      timer_capture_int_handler7,
+                                                      timer_capture_int_handler8};
 
 void timer_capture_generate_init(void)
 {
@@ -175,7 +193,7 @@ void timer_capture_generate_init(void)
 	TimerUpdateMode(WTIMER1_BASE, TIMER_B, TIMER_UP_MATCH_TIMEOUT);
 
     // Set PWM to 0 Duty Cycle
-	uint32_t duty_cycle = cycles_per_pwm_period / 10; // 10% duty cycle
+	uint32_t duty_cycle = cycles_per_pwm_period / 2; // 50% duty cycle
 	timer_generate_pulse(duty_cycle);
 
 	// Configure Capture Event
@@ -189,17 +207,39 @@ void timer_capture_generate_init(void)
 	TimerControlEvent(WTIMER3_BASE, TIMER_B, TIMER_EVENT_BOTH_EDGES);
 	TimerControlEvent(WTIMER5_BASE, TIMER_A, TIMER_EVENT_BOTH_EDGES);
 
-	// XXX stopped caring about all of them at once
+	// Enable Timer Interrupts
+	TimerIntEnable(TIMER0_BASE,  TIMER_CAPA_EVENT);
+    TimerIntEnable(TIMER1_BASE,  TIMER_CAPA_EVENT);
+    TimerIntEnable(TIMER1_BASE,  TIMER_CAPB_EVENT);
+    TimerIntEnable(TIMER3_BASE,  TIMER_CAPA_EVENT);
+    TimerIntEnable(TIMER3_BASE,  TIMER_CAPB_EVENT);
+    TimerIntEnable(WTIMER2_BASE, TIMER_CAPB_EVENT);
+    TimerIntEnable(WTIMER3_BASE, TIMER_CAPA_EVENT);
+    TimerIntEnable(WTIMER3_BASE, TIMER_CAPB_EVENT);
+    TimerIntEnable(WTIMER5_BASE, TIMER_CAPA_EVENT);
+
+    // Prioritize Capture Interrupt
+    IntPrioritySet(INT_TIMER0A, 0x20);
+    IntPrioritySet(INT_TIMER1A, 0x20);
+    IntPrioritySet(INT_TIMER1B, 0x20);
+    IntPrioritySet(INT_TIMER3A, 0x20);
+    IntPrioritySet(INT_TIMER3B, 0x20);
+    IntPrioritySet(INT_WTIMER2B, 0x20);
+    IntPrioritySet(INT_WTIMER3A, 0x20);
+    IntPrioritySet(INT_WTIMER3B, 0x20);
+    IntPrioritySet(INT_WTIMER5A, 0x20);
 
 	// Register Capture Interrupt
-	TimerIntRegister(TIMER1_BASE, TIMER_A, &timer_capture_int_handler);
+	TimerIntRegister(TIMER0_BASE,  TIMER_A, timer_capture_int_handlers[0]);
+	TimerIntRegister(TIMER1_BASE,  TIMER_A, timer_capture_int_handlers[1]);
+	TimerIntRegister(TIMER1_BASE,  TIMER_B, timer_capture_int_handlers[2]);
+	TimerIntRegister(TIMER3_BASE,  TIMER_A, timer_capture_int_handlers[3]);
+	TimerIntRegister(TIMER3_BASE,  TIMER_B, timer_capture_int_handlers[4]);
+	TimerIntRegister(WTIMER2_BASE, TIMER_B, timer_capture_int_handlers[5]);
+	TimerIntRegister(WTIMER3_BASE, TIMER_A, timer_capture_int_handlers[6]);
+	TimerIntRegister(WTIMER3_BASE, TIMER_B, timer_capture_int_handlers[7]);
+	TimerIntRegister(WTIMER5_BASE, TIMER_A, timer_capture_int_handlers[8]);
 
-	// Prioritize Capture Interrupt
-	IntPrioritySet(INT_TIMER1A, 0x20);
-
-	// Enable Capture Interrupt
-	IntEnable(INT_TIMER1A);
-	TimerIntEnable(TIMER1_BASE, TIMER_CAPA_EVENT);
 }
 
 void timer_capture_generate_start(void)
@@ -249,18 +289,100 @@ void timer_generate_pulse(uint32_t pulse_width)
     usb_write(msg, snprintf((char*)msg, 20, "%lu\r\n", match_set));
 }
 
-static void timer_capture_int_handler(void)
+static void timer_capture_int_handler0(void)
 {
-	TimerIntClear(TIMER1_BASE, TIMER_CAPA_EVENT);
+    timer_capture_int_handler(0);
+}
 
-	static uint8_t msg[30];
+static void timer_capture_int_handler1(void)
+{
+    timer_capture_int_handler(1);
+}
 
-	if (GPIOPinRead(GPIO_PORTB_BASE, GPIO_PIN_4) == 0) {
-		usb_write(CAPTURE_LOW_MSG, CAPTURE_LOW_MSG_LEN);
-	} else {
-		usb_write(CAPTURE_HIGH_MSG, CAPTURE_HIGH_MSG_LEN);
-	}
-	snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(TIMER1_BASE, TIMER_A));
-	usb_write(msg, 30);
+static void timer_capture_int_handler2(void)
+{
+    timer_capture_int_handler(2);
+}
 
+static void timer_capture_int_handler3(void)
+{
+    timer_capture_int_handler(3);
+}
+
+static void timer_capture_int_handler4(void)
+{
+    timer_capture_int_handler(4);
+}
+
+static void timer_capture_int_handler5(void)
+{
+    timer_capture_int_handler(5);
+}
+
+static void timer_capture_int_handler6(void)
+{
+    timer_capture_int_handler(6);
+}
+
+static void timer_capture_int_handler7(void)
+{
+    timer_capture_int_handler(7);
+}
+
+static void timer_capture_int_handler8(void)
+{
+    timer_capture_int_handler(8);
+}
+
+static void timer_capture_int_handler(int num)
+{
+    static uint8_t msg[30];
+    switch(num)
+    {
+        case 0:
+            TimerIntClear(TIMER0_BASE, TIMER_CAPA_EVENT);
+            snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(TIMER0_BASE, TIMER_A));
+            usb_write(msg, 30);
+            break;
+        case 1:
+            TimerIntClear(TIMER1_BASE, TIMER_CAPA_EVENT);
+            snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(TIMER1_BASE, TIMER_A));
+            usb_write(msg, 30);
+            break;
+        case 2:
+            TimerIntClear(TIMER1_BASE, TIMER_CAPB_EVENT);
+            snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(TIMER1_BASE, TIMER_B));
+            usb_write(msg, 30);
+            break;
+        case 3:
+            TimerIntClear(TIMER3_BASE, TIMER_CAPA_EVENT);
+            snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(TIMER3_BASE, TIMER_A));
+            usb_write(msg, 30);
+            break;
+        case 4:
+            TimerIntClear(TIMER3_BASE, TIMER_CAPB_EVENT);
+            snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(TIMER3_BASE, TIMER_B));
+            usb_write(msg, 30);
+            break;
+        case 5:
+            TimerIntClear(WTIMER2_BASE, TIMER_CAPB_EVENT);
+            snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(WTIMER2_BASE, TIMER_B));
+            usb_write(msg, 30);
+            break;
+        case 6:
+            TimerIntClear(WTIMER3_BASE, TIMER_CAPA_EVENT);
+            snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(WTIMER3_BASE, TIMER_A));
+            usb_write(msg, 30);
+            break;
+        case 7:
+            TimerIntClear(WTIMER3_BASE, TIMER_CAPB_EVENT);
+            snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(WTIMER3_BASE, TIMER_B));
+            usb_write(msg, 30);
+            break;
+        case 8:
+            TimerIntClear(WTIMER5_BASE, TIMER_CAPA_EVENT);
+            snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(WTIMER5_BASE, TIMER_A));
+            usb_write(msg, 30);
+            break;
+    }
 }
