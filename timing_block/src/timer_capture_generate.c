@@ -19,6 +19,7 @@
 #include "driverlib/interrupt.h"
 #include "driverlib/pin_map.h"
 
+#include "time_util.h"
 #include "usb_comms.h"
 #include "timer_capture_generate.h"
 
@@ -117,8 +118,15 @@ void timer_capture_generate_init(void)
 	GPIOPinTypeTimer(GPIO_PORTD_BASE,              GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 |                           GPIO_PIN_6             );
 	GPIOPinTypeTimer(GPIO_PORTG_BASE, GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3                                                    );
 
-
+    GPIOPadConfigSet(GPIO_PORTD_BASE, GPIO_PIN_3, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
+	GPIOPadConfigSet(GPIO_PORTD_BASE, GPIO_PIN_2, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
+	GPIOPadConfigSet(GPIO_PORTD_BASE, GPIO_PIN_1, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
+	GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_6, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
 	GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_4, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
+	GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_5, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
+	GPIOPadConfigSet(GPIO_PORTD_BASE, GPIO_PIN_6, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
+	GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_3, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
+	GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_2, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
 
 	// Timer Configuration
 	TimerConfigure(TIMER0_BASE,  TIMER_CFG_SPLIT_PAIR | TIMER_CFG_A_CAP_TIME | TIMER_CFG_B_PWM     );
@@ -134,12 +142,14 @@ void timer_capture_generate_init(void)
 
 	// Period and Prescalar Calculation
 	sys_clk_cycles_per_second = SysCtlClockGet();
-	cycles_per_capture_period = (ms_per_capture_period * sys_clk_cycles_per_second) / 1000;
-	cycles_per_pwm_period     = (ms_per_pwm_period * sys_clk_cycles_per_second / 1000);
+	cycles_per_capture_period = ((uint64_t)ms_per_capture_period * (uint64_t)sys_clk_cycles_per_second) / 1000;
+	cycles_per_pwm_period     = ((uint64_t)ms_per_pwm_period * (uint64_t)sys_clk_cycles_per_second) / 1000;
 
 	// Set Prescale Value
-	uint32_t pwm_prescaler     = (cycles_per_pwm_period     & 0xFF0000) >> 16;
-	uint32_t capture_prescaler = (cycles_per_capture_period & 0xFF0000) >> 16;
+	uint32_t pwm_prescaler     = (cycles_per_pwm_period     & 0xFFFF0000) >> 16;
+	uint32_t capture_prescaler = (cycles_per_capture_period & 0xFFFF0000) >> 16;
+	if (pwm_prescaler > 255) while(1);
+	if (capture_prescaler > 255) while(1);
     TimerPrescaleSet(TIMER0_BASE,  TIMER_A, capture_prescaler); // input
     TimerPrescaleSet(TIMER0_BASE,  TIMER_B, pwm_prescaler      ); // output
     TimerPrescaleSet(TIMER1_BASE,  TIMER_A, capture_prescaler); // input
@@ -240,11 +250,32 @@ void timer_capture_generate_init(void)
 	TimerIntRegister(WTIMER3_BASE, TIMER_B, timer_capture_int_handlers[7]);
 	TimerIntRegister(WTIMER5_BASE, TIMER_A, timer_capture_int_handlers[8]);
 
+	// Prioritize Capture Interrupt
+    IntEnable(INT_TIMER0A);
+    IntEnable(INT_TIMER1A);
+    IntEnable(INT_TIMER1B);
+    IntEnable(INT_TIMER3A);
+    IntEnable(INT_TIMER3B);
+    IntEnable(INT_WTIMER2B);
+    IntEnable(INT_WTIMER3A);
+    IntEnable(INT_WTIMER3B);
+    IntEnable(INT_WTIMER5A);
 }
 
 void timer_capture_generate_start(void)
 {
-    // Enable Timer
+    // Enable Timer Captures
+    TimerEnable(TIMER0_BASE,  TIMER_A);
+    TimerEnable(TIMER1_BASE,  TIMER_A);
+    TimerEnable(TIMER1_BASE,  TIMER_B);
+    TimerEnable(TIMER3_BASE,  TIMER_A);
+    TimerEnable(TIMER3_BASE,  TIMER_B);
+    TimerEnable(WTIMER2_BASE, TIMER_B);
+    TimerEnable(WTIMER3_BASE, TIMER_A);
+    TimerEnable(WTIMER3_BASE, TIMER_B);
+    TimerEnable(WTIMER5_BASE, TIMER_A);
+
+    // Enable Timer Generators
     TimerEnable(TIMER0_BASE,  TIMER_B);
     TimerEnable(TIMER4_BASE,  TIMER_A);
     TimerEnable(TIMER4_BASE,  TIMER_B);
@@ -337,52 +368,59 @@ static void timer_capture_int_handler8(void)
 static void timer_capture_int_handler(int num)
 {
     static uint8_t msg[30];
+    static long lastTime = 0;
+    uint64_t time;
     switch(num)
     {
         case 0:
             TimerIntClear(TIMER0_BASE, TIMER_CAPA_EVENT);
-            snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(TIMER0_BASE, TIMER_A));
-            usb_write(msg, 30);
+//            time = ((TimerPrescaleGet(TIMER0_BASE, TIMER_A) << 16) | TimerValueGet(TIMER0_BASE, TIMER_A))/80;
+            time = TimerValueGet(TIMER0_BASE, TIMER_A);
             break;
         case 1:
             TimerIntClear(TIMER1_BASE, TIMER_CAPA_EVENT);
-            snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(TIMER1_BASE, TIMER_A));
-            usb_write(msg, 30);
+//            time =  ((TimerPrescaleGet(TIMER1_BASE, TIMER_A) << 16) | TimerValueGet(TIMER1_BASE, TIMER_A))/80;
+            time = TimerValueGet(TIMER1_BASE, TIMER_A);
             break;
         case 2:
             TimerIntClear(TIMER1_BASE, TIMER_CAPB_EVENT);
-            snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(TIMER1_BASE, TIMER_B));
-            usb_write(msg, 30);
+//            time = ((TimerPrescaleGet(TIMER1_BASE, TIMER_B) << 16) | TimerValueGet(TIMER1_BASE, TIMER_B))/80;
+            time = TimerValueGet(TIMER1_BASE, TIMER_B);
             break;
         case 3:
             TimerIntClear(TIMER3_BASE, TIMER_CAPA_EVENT);
-            snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(TIMER3_BASE, TIMER_A));
-            usb_write(msg, 30);
+//            time = ((TimerPrescaleGet(TIMER3_BASE, TIMER_A) << 16) | TimerValueGet(TIMER3_BASE, TIMER_A))/80;
+            time = TimerValueGet(TIMER3_BASE, TIMER_A);
             break;
         case 4:
             TimerIntClear(TIMER3_BASE, TIMER_CAPB_EVENT);
-            snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(TIMER3_BASE, TIMER_B));
-            usb_write(msg, 30);
+//            time = ((TimerPrescaleGet(TIMER3_BASE, TIMER_B) << 16) | TimerValueGet(TIMER3_BASE, TIMER_B))/80;
+            time = TimerValueGet(TIMER3_BASE, TIMER_B);
             break;
         case 5:
             TimerIntClear(WTIMER2_BASE, TIMER_CAPB_EVENT);
-            snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(WTIMER2_BASE, TIMER_B));
-            usb_write(msg, 30);
+//            time = TimerValueGet(WTIMER2_BASE, TIMER_B)/80;
+            time = TimerValueGet(WTIMER2_BASE, TIMER_B);
             break;
         case 6:
             TimerIntClear(WTIMER3_BASE, TIMER_CAPA_EVENT);
-            snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(WTIMER3_BASE, TIMER_A));
-            usb_write(msg, 30);
+//            time = TimerValueGet(WTIMER3_BASE, TIMER_A)/80;
+            time = TimerValueGet(WTIMER3_BASE, TIMER_A);
             break;
         case 7:
             TimerIntClear(WTIMER3_BASE, TIMER_CAPB_EVENT);
-            snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(WTIMER3_BASE, TIMER_B));
-            usb_write(msg, 30);
+//            time = TimerValueGet(WTIMER3_BASE, TIMER_B)/80;
+            time = TimerValueGet(WTIMER3_BASE, TIMER_B);
             break;
         case 8:
             TimerIntClear(WTIMER5_BASE, TIMER_CAPA_EVENT);
-            snprintf((char*)msg, 30, "%lu\r\n", TimerValueGet(WTIMER5_BASE, TIMER_A));
-            usb_write(msg, 30);
+//            time = TimerValueGet(WTIMER5_BASE, TIMER_A)/80;
+            time = TimerValueGet(WTIMER5_BASE, TIMER_A);
             break;
     }
+    uint32_t delta;
+    if(lastTime < time) delta = lastTime + cycles_per_capture_period - time;
+    else delta = lastTime - time;
+    usb_write(msg, snprintf((char*)msg, 30, "%ld\r\n", delta/80));
+    lastTime = time;
 }
