@@ -51,11 +51,21 @@ void bootloader_check_upload()
 
     // blink the leds 3 times to indicate window in which
     // pressing reset button would put device into dfu mode
-	blink_led(1,3);
-	blink_led(2,3);
-	blink_led(3,3);
-	blink_led(4,3);
-	SysCtlDelay(30000000);
+	uint8_t i;
+    for(i = 0; i < 3; i++)
+	{
+        turn_on_led(1);
+        turn_on_led(2);
+        turn_on_led(3);
+        turn_on_led(4);
+        SysCtlDelay(6000000);
+        turn_off_led(1);
+        turn_off_led(2);
+        turn_off_led(3);
+        turn_off_led(4);
+        SysCtlDelay(4000000);
+	}
+    SysCtlDelay(10000000);
 
 	// Write a 0 back to the first word of eeprom
 	eeprom_data[0] = 0x00;

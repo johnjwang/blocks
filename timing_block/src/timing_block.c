@@ -40,14 +40,16 @@ int main(void)
 
     leds_init();
     time_init();
+    bootloader_check_upload();
+
+    //****** All user code goes below here ******
+
     uart_comms_up_init();
 //    gpio_ctl_init();
 //    ppm_init();
     timer_capture_generate_init();
 
     IntMasterEnable();
-
-    bootloader_check_upload();
 
     usb_init();
 
