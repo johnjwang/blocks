@@ -18,7 +18,7 @@
 #include "usblib/usb-ids.h"
 #include "usblib/device/usbdevice.h"
 #include "usblib/device/usbdcdc.h"
-#include "utils/ustdlib.h"
+//#include "utils/ustdlib.h"
 #include "usb_serial_structs.h"
 
 #include "driverlib/sysctl.h"

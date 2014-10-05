@@ -61,7 +61,7 @@
 // External prototypes.
 //
 //*****************************************************************************
-extern tUSBMode g_iUSBMode;
+extern volatile tUSBMode g_iUSBMode;
 
 extern void OTGDeviceDisconnect(uint32_t ui32Index);
 
