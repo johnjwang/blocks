@@ -75,11 +75,11 @@ int main(void)
     static int start_idx = 1;
     int i = start_idx, next_i = start_idx, j = 1;
     
-    uint8_t buf[30];
-    uint32_t buflen = 30;
-    uint32_t outstart = GPIO_INPUT_1;
-    uint32_t output = outstart;
-    uint8_t outval = 1;
+//    uint8_t buf[30];
+//    uint32_t buflen = 30;
+//    uint32_t outstart = GPIO_INPUT_1;
+//    uint32_t output = outstart;
+//    uint8_t outval = 1;
 
 //    ppm_start();
     timer_capture_generate_start();
