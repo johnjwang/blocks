@@ -23,12 +23,12 @@
 
 static void TimingBlockUtilIntHandler(void);
 
-static void set_led(uint8_t led_num, uint8_t led_status);
+static void set_led(uint8_t led_num, bool led_status);
 
 struct led_status
 {
 	uint8_t invert;
-	volatile uint8_t led_status;
+	volatile bool led_status;
 	volatile uint8_t num_toggles_left;
 };
 
@@ -97,7 +97,7 @@ bool turn_on_led(uint8_t led_num)
 
 	if(is_blinking(led_num)) return false;
 
-	set_led(led_num, 1);
+	set_led(led_num, true);
 	return true;
 }
 
@@ -107,7 +107,7 @@ bool turn_off_led(uint8_t led_num)
 
 	if(is_blinking(led_num)) return false;
 
-	set_led(led_num, 0);
+	set_led(led_num, false);
 	return true;
 }
 
@@ -123,9 +123,10 @@ bool toggle_led(uint8_t led_num)
 	return true;
 }
 
-static void set_led(uint8_t led_num, uint8_t led_status)
+static void set_led(uint8_t led_num, bool led_status)
 {
-	uint8_t pin_status = statuses[led_num].invert ? ~led_status : led_status;
+	uint8_t pin_status = led_status == true ? ~0 : 0;
+	if(statuses[led_num].invert) pin_status = ~pin_status;
 
 	switch(led_num)
 	{
@@ -168,7 +169,7 @@ static void TimingBlockUtilIntHandler(void)
 		{
 			if(statuses[i].num_toggles_left > 2)
 			{
-				set_led(i, ~statuses[i].led_status);
+				set_led(i, !statuses[i].led_status);
 			}
 			statuses[i].num_toggles_left--;
 		}
