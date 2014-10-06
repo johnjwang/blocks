@@ -381,9 +381,6 @@ uint16_t timer_pulse_RC(timer_cap_gen_t *timer, uint16_t pulse_width_RC)
 {
     uint64_t total_load_10 = timer_get_total_load(timer) / 10;
 
-    // XXX: might get into some integer math issues here if total_load is high enough
-    //      but for our applications it shouldn't be (we only expect total_load to be 24 bits
-    //      of data
     uint32_t pulse_width_tics = total_load_10 + (total_load_10 * pulse_width_RC) / UINT16_MAX;
     pulse_width_tics = timer_pulse(timer, pulse_width_tics);
     if (pulse_width_tics < total_load_10) return 0;
