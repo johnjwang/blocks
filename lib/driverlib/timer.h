@@ -240,6 +240,7 @@ extern "C"
 // Prototypes for the APIs.
 //
 //*****************************************************************************
+extern uint32_t _TimerIntNumberGet(uint32_t ui32Base, uint32_t ui32Timer);
 extern void TimerEnable(uint32_t ui32Base, uint32_t ui32Timer);
 extern void TimerDisable(uint32_t ui32Base, uint32_t ui32Timer);
 extern void TimerConfigure(uint32_t ui32Base, uint32_t ui32Config);

@@ -47,7 +47,7 @@ int main(void)
     uart_comms_up_init();
 //    gpio_ctl_init();
 //    ppm_init();
-    timer_capture_generate_init();
+    timer_default_init();
 
     IntMasterEnable();
 
@@ -84,9 +84,8 @@ int main(void)
 //    uint8_t outval = 1;
 
 //    ppm_start();
-    timer_capture_generate_start();
 
-//    timer_generate_pulse(2000);
+    timer_generate_pulse(SysCtlClockGet() / 1000);
 
     while(1)
     {

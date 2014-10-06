@@ -22,8 +22,8 @@
 
 typedef struct _gpio_t
 {
-	uint32_t port;    // GPIO_PORTx_BASE
-	uint32_t pin;     // GPIO_PIN_n
+	uint32_t port;    // GPIO_PORTc_BASE
+	uint32_t pin;     // GPIO_PIN_x
 
 	uint32_t dir;      // GPIO_DIR_MODE_IN, GPIO_DIR_MODE_OUT, GPIO_DIR_MODE_HW
 	uint32_t dr_str;   // GPIO_STRENGTH_2MA, GPIO_STRENGTH_4MA, GPIO_STRENGTH_8MA
@@ -32,7 +32,7 @@ typedef struct _gpio_t
 	uint32_t int_type;         // GPIO_FALLING_EDGE, GPIO_RISING_EDGE, GPIO_BOTH_EDGES
 					           // GPIO_LOW_LEVEL, GPIO_HIGH_LEVEL
 					           // option | with GPIO_DISCRETE_INT
-	uint32_t int_flag;         // GPIO_INT_PIN_n
+	uint32_t int_flag;         // GPIO_INT_PIN_x
 
 	uint8_t value; // 0, 1
 } gpio_t;
