@@ -1,4 +1,4 @@
-SUBDIRS = 
+SUBDIRS = driverlib usblib test
 
 .PHONY: all debug clean
 

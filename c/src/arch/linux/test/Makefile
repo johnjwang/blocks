@@ -1,4 +1,4 @@
-SUBDIRS = 
+SUBDIRS =
 
 .PHONY: all debug clean
 

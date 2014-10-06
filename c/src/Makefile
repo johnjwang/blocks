@@ -1,4 +1,4 @@
-SUBDIRS = src
+SUBDIRS = arch
 
 .PHONY: all debug clean
 

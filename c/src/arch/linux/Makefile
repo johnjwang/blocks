@@ -1,4 +1,4 @@
-SUBDIRS = 
+SUBDIRS = io lcmtypes test
 
 .PHONY: all debug clean
 

@@ -1,4 +1,4 @@
-SUBDIRS = 
+SUBDIRS = io test
 
 .PHONY: all debug clean
 
