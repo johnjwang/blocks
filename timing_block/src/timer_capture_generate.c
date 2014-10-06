@@ -283,6 +283,18 @@ void timer_init(timer_cap_gen_t timers[], uint8_t num)
                               timer_sels[timers[i].timer_sel_ind],
                               mode);
 
+            switch (timers[i].timer_sel_ind) {
+                case TIMERA:
+                    mode = TIMER_CAPA_EVENT;
+                    break;
+                case TIMERB:
+                    mode = TIMER_CAPB_EVENT;
+                    break;
+                default:
+                    while (1);
+                    break;
+            }
+            TimerIntEnable(timer_bases[timers[i].timer_base_ind], mode);
         } else { // generator mode
             switch (timers[i].capgen_mode) {
                 case CAPGEN_MODE_GEN_PWM:
