@@ -5,5 +5,5 @@ if [ "$1" == "" ]; then
     exit 1
 fi
 
-rm -f $1/lcm/*_t.c $1/lcm/include/*_t.h
-/usr/local/bin/lcm-gen -c --c-no-pubsub --c-cpath=$1/lcm --c-hpath=$1/lcm/include $1/lcmtypes/*
+rm -f $1/lib/lcm/*_t.c $1/lib/lcm/include/*_t.h
+/usr/local/bin/lcm-gen -c --c-no-pubsub --c-cpath=$1/lib/lcm --c-hpath=$1/lib/lcm/include $1/lcmtypes/*
