@@ -66,7 +66,7 @@ static void handler_kill(uint8_t *msg, uint16_t len)
     uint16_t i;
     for(i = 0; i < len; ++i)
     {
-        printf("%x ", msg[i]);
+        printf("%c", msg[i]);
     }
     printf("\n");
 
