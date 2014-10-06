@@ -7,9 +7,18 @@
 #include "comms.h"
 #include "serial.h"
 
-#include "lcmtypes/telemetry_t.h"
+#include "lcmtypes/kill_t.h"
 #include "lcmtypes/imu_data_t.h"
 #include "lcmtypes/rpms_t.h"
+#include "lcmtypes/telemetry_t.h"
+
+static bool verbose = false;
+
+#define verbose_printf(...) \
+    do{\
+        if(verbose) printf(__VA_ARGS__);\
+    }while(0)\
+
 
 static uint64_t timestamp_now(void)
 {
@@ -62,25 +71,18 @@ int main()
 
 static void handler_kill(uint8_t *msg, uint16_t len)
 {
-    printf("Received message on kill channel: ");
+    verbose_printf("Received message on kill channel: ");
     uint16_t i;
     for(i = 0; i < len; ++i)
     {
-        printf("%c", msg[i]);
+        verbose_printf("%x", msg[i]);
     }
-    printf("\n");
+    verbose_printf("\n");
 
-
-    rpms_t rpms;
-    rpms.utime = timestamp_now();
-    rpms.num_rpms = len;
-    rpms.rpms = (int16_t*) malloc(sizeof(int16_t) * len);
-    for(i = 0; i < len; ++i)
-    {
-        rpms.rpms[i] = msg[i];
-    }
-    rpms_t_publish(lcm, "KILL", &rpms);
-    free(rpms.rpms);
+    kill_t kill;
+    memset(&kill, 0, sizeof(kill_t));
+    kill_t_decode(msg, 0, len, &kill);
+    kill_t_publish(lcm, "KILL_RX", &kill);
 }
 
 static bool publish_serial(uint8_t byte)
