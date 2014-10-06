@@ -48,6 +48,7 @@ int main(void)
 //    gpio_ctl_init();
 //    ppm_init();
     timer_default_init();
+//    timer_capture_generate_init();
 
     IntMasterEnable();
 
@@ -84,7 +85,7 @@ int main(void)
 //    uint8_t outval = 1;
 
 //    ppm_start();
-    timer_capture_generate_start();
+//    timer_capture_generate_start();
 
 //    timer_generate_pulse(2000);
 

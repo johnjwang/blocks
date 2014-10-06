@@ -298,7 +298,7 @@ void timer_init(timer_cap_gen_t timers[], uint8_t num)
             // XXX: make a good interrupt handler
             TimerIntRegister(timer_bases[timers[i].timer_base_ind],
                              timer_bases[timers[i].timer_sel_ind],
-                             timer_capture_int_handlers[0]);
+                             timer_capture_int_handlers[i]);
         } else { // generator mode
             switch (timers[i].capgen_mode) {
                 case CAPGEN_MODE_GEN_PWM:
