@@ -6,8 +6,8 @@
 
 #include "lcm/lcm.h"
 
-#include "comms.h"
-#include "serial.h"
+#include "io/comms.h"
+#include "io/serial.h"
 
 #include "lcmtypes/kill_t.h"
 #include "lcmtypes/imu_data_t.h"
