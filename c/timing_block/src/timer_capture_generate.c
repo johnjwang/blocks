@@ -341,10 +341,10 @@ void timer_generate_pulse(uint32_t pulse_width)
                             timer_sels[default_timers[i].timer_sel_ind]);
 
         if (default_timers[i].timer_base_ind <= TIMER5) { // 16 bit timer with 8 bit prescaler
-            total_load = ((prescaler << 16) & 0x00FF0000) + (load & 0x0000FFFF);
+            total_load = ((prescaler << 16) & 0x00FF0000) | (load & 0x0000FFFF);
         } else { // 32 bit timer with 16 bit prescaler
             total_load =   ((((uint64_t)prescaler) << 32) & 0x0000FFFF00000000)
-                         + (load & 0x00000000FFFFFFFF);
+                         | (load & 0x00000000FFFFFFFF);
         }
 
         if (pulse_width > total_load) total_match = 0;
@@ -430,17 +430,17 @@ static void timer_capture_int_handler(int num)
     prescaler = TimerPrescaleGet(timer_base, timer_sel);
     load = TimerLoadGet(timer_base, timer_sel);
     if (default_timers[num].timer_base_ind <= TIMER5) { // 16 bit timer with 8 bit prescaler
-        total_load = ((prescaler << 16) & 0x00FF0000) + (load & 0x0000FFFF);
+        total_load = ((prescaler << 16) & 0x00FF0000) | (load & 0x0000FFFF);
     } else {  // 32 bit timer with 16 bit prescaler
         total_load =   ((((uint64_t)prescaler) << 32) & 0x0000FFFF00000000)
-                     + (load & 0x00000000FFFFFFFF);
+                     | (load & 0x00000000FFFFFFFF);
     }
 
     if (lastTime < UINT64_MAX) {
         uint32_t delta;
         if(lastTime < time) delta = lastTime + total_load - time;
         else delta = lastTime - time;
-        usb_write(msg, snprintf((char*)msg, 30, "%lu\r\n", delta/80));
+        usb_comms_write(msg, snprintf((char*)msg, 30, "%lu\r\n", delta/80));
     }
     lastTime = time;
 }
