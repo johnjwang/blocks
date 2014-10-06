@@ -60,7 +60,7 @@ int main()
     serial = serial_create(dev_name, B9600);
     if(serial == NULL)
     {
-        fprintf(stderr, "Serial device does not exist at %s", dev_name);
+        fprintf(stderr, "Serial device does not exist at %s\n", dev_name);
         exit(1);
     }
 
