@@ -237,7 +237,7 @@ void timer_init(timer_cap_gen_t timers[], uint8_t num)
                 }
                 break;
             default:
-                break;
+                while (1);
         }
     }
     for (i=0; i<NUM_TIMER_BASES; ++i) {
@@ -294,7 +294,7 @@ void timer_init(timer_cap_gen_t timers[], uint8_t num)
                                               timer_sels[timers[i].timer_sel_ind]), 0x20);
             // XXX: make a good interrupt handler
             TimerIntRegister(timer_bases[timers[i].timer_base_ind],
-                             timer_bases[timers[i].timer_sel_ind],
+                             timer_sels[timers[i].timer_sel_ind],
                              timer_capture_int_handlers[i]);
         } else { // generator mode
             switch (timers[i].capgen_mode) {
