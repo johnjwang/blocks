@@ -29,7 +29,7 @@
 static bool usb_configured = false;
 
 
-void usb_init(void)
+void usb_comms_init(void)
 {
     //
     // Configure the required pins for USB operation.
@@ -56,14 +56,14 @@ void usb_init(void)
 
 }
 
-bool usb_write_char(char data)
+bool usb_comms_write_byte(uint8_t data)
 {
     uint8_t msg[1] = {0};
     msg[0] = data;
-    return usb_write(msg, 1);
+    return usb_comms_write(msg, 1);
 }
 
-bool usb_write(uint8_t *msg, uint32_t datalen)
+bool usb_comms_write(uint8_t *msg, uint32_t datalen)
 {
     if(usb_configured) {
     	USBBufferWrite((tUSBBuffer *)&g_sTxBuffer, msg, datalen);
@@ -73,12 +73,12 @@ bool usb_write(uint8_t *msg, uint32_t datalen)
 	}
 }
 
-void usb_demo()
+void usb_comms_demo()
 {
 	while(1)
 	{
 		static uint8_t *msg = "This is a test\r\n";
-		usb_write(msg, strlen((char*)msg));
+		usb_comms_write(msg, strlen((char*)msg));
 		SysCtlDelay(SysCtlClockGet() / 3);
 	}
 }

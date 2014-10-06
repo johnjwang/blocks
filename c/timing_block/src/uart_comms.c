@@ -19,6 +19,7 @@
 
 #include "timer_capture_generate.h"
 #include "usb_comms.h"
+#include "comms.h"
 
 static void uart_comms_up_int_handler(void);
 
@@ -57,21 +58,29 @@ void uart_comms_up_init(void)
 	IntEnable(INT_UART2);
 }
 
-void uart_comms_up_write(uint8_t *msg, uint32_t dataLen)
+bool uart_comms_up_write_byte(uint8_t byte)
+{
+    UARTCharPut(UART2_BASE, byte);
+    return true;
+}
+
+bool uart_comms_up_write(uint8_t *msg, uint32_t dataLen)
 {
 	uint32_t i;
 	for(i = 0; i < dataLen; ++i)
 	{
-		UARTCharPut(UART2_BASE, msg[i]);
+		uart_comms_up_write_byte(msg[i]);
 	}
+	return true;
 }
 
 void uart_comms_up_demo(void)
 {
+    comms_t *uart_comms_up = comms_create(uart_comms_up_write_byte, 256);
 	while(1)
 	{
 		static uint8_t *msg = "This is a test\r\n";
-		uart_comms_up_write(msg, strlen((char*)msg));
+		comms_publish_blocking(uart_comms_up, CHANNEL_KILL, msg, strlen((char*)msg));
 		SysCtlDelay(SysCtlClockGet() / 3);
 	}
 }
@@ -87,7 +96,7 @@ static void uart_comms_up_int_handler(void)
 	while(UARTCharsAvail(UART2_BASE))
 	{
 	    uint32_t data = UARTCharGet(UART2_BASE);
-	    usb_write_char((char)data);
+	    usb_comms_write_byte((char)data);
 	    timer_generate_pulse_percent(((char)data - '0') / 10.0);
 	}
 }

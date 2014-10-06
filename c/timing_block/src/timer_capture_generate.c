@@ -317,7 +317,7 @@ void timer_generate_pulse(uint32_t pulse_width)
     TimerMatchSet(WTIMER1_BASE, TIMER_B, match_set);
 
     uint8_t msg[20] = {0};
-    usb_write(msg, snprintf((char*)msg, 20, "%lu\r\n", match_set));
+    usb_comms_write(msg, snprintf((char*)msg, 20, "%lu\r\n", match_set));
 }
 
 static void timer_capture_int_handler0(void)
@@ -421,6 +421,6 @@ static void timer_capture_int_handler(int num)
     uint32_t delta;
     if(lastTime < time) delta = lastTime + cycles_per_capture_period - time;
     else delta = lastTime - time;
-    usb_write(msg, snprintf((char*)msg, 30, "%ld\r\n", delta/80));
+    usb_comms_write(msg, snprintf((char*)msg, 30, "%ld\r\n", delta/80));
     lastTime = time;
 }

@@ -13,29 +13,48 @@
 
 typedef enum comms_channel_t
 {
-    KILL,
-    TELEMETRY,
-    NUM_MESSAGE_TYPES
+    CHANNEL_KILL,
+    CHANNEL_TELEMETRY,
+    CHANNEL_NUM_CHANNELS
 
 } comms_channel_t;
 
 
 typedef bool (*publisher_t)(uint8_t publish_byte);
-typedef void (*subscriber_t)(uint8_t msg_type, uint16_t msg_len, uint8_t *msg);
+typedef void (*subscriber_t)(uint8_t *msg, uint16_t msg_len);
 
 typedef struct comms_t
 {
-    uint32_t buf_len;
-    uint8_t *buf;
-
     publisher_t publisher;
 
-    subscriber_t *subscribers[NUM_MESSAGE_TYPES];
-    uint8_t num_subscribers[NUM_MESSAGE_TYPES];
+    uint8_t *decode_buf;
+    uint32_t decode_buf_len;
 
-    uint8_t checksum1, checksum2;
+    subscriber_t *subscribers[CHANNEL_NUM_CHANNELS];
+    uint8_t num_subscribers[CHANNEL_NUM_CHANNELS];
+
+    // Variables to handle decoding
+    comms_channel_t decode_channel;
+    uint16_t decode_data_len;
+    uint16_t decode_num_data_read;
+    uint16_t decode_checksum;
+    uint8_t  decode_state;
+    uint8_t checksum_rx1, checksum_rx2;
+    uint8_t checksum_tx1, checksum_tx2;
 
 } comms_t;
 
+comms_t* comms_create(publisher_t publisher, int32_t buf_len);
+
+void comms_subscribe(comms_t *comms, comms_channel_t channel, subscriber_t subscriber);
+
+void comms_publish_blocking(comms_t *comms,
+                            comms_channel_t channel,
+                            uint8_t *msg,
+                            uint16_t msg_len);
+
+void comms_handle(comms_t *comms, uint8_t byte);
+
+void comms_destroy(comms_t *comms);
 
 #endif /* COMMS_H_ */
