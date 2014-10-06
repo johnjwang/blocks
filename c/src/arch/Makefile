@@ -1,4 +1,4 @@
-SUBDIRS = common embedded linux tiva
+SUBDIRS = common embedded linux
 
 .PHONY: all debug clean
 

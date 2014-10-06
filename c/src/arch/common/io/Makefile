@@ -1,6 +1,6 @@
 CFLAGS:=-I${BLOCKS_HOME}/c/include/arch/common/io
 
-LIBDIR:=${BLOCKS_HOME}/build/arch/common
+LIBDIR:=${BLOCKS_HOME}/c/lib/arch/common
 LIB:=${LIBDIR}/io.lib
 
 all:
