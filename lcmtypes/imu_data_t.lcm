@@ -1,5 +1,7 @@
 struct imu_data_t
 {
+    int64_t utime;
+
     float quat[4];    // quaternion as formed by LinAlg
 
     float omega[3];   // body fixed angular rates
