@@ -142,7 +142,7 @@ _TimerBaseValid(uint32_t ui32Base)
 //! does not exist.
 //
 //*****************************************************************************
-static uint32_t
+uint32_t
 _TimerIntNumberGet(uint32_t ui32Base, uint32_t ui32Timer)
 {
     uint32_t ui32Int;
