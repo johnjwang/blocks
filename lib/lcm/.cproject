@@ -75,7 +75,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactExtension="lib" artifactName="${ProjName}" buildProperties="" cleanCommand="${CG_CLEAN_CMD}" description="" id="com.ti.ccstudio.buildDefinitions.TMS470.Release.626203507" name="Release" parent="com.ti.ccstudio.buildDefinitions.TMS470.Release" postbuildStep="" prebuildStep="${BLOCKS_HOME}/lcm/lcm-gen.sh ${BLOCKS_HOME}">
+				<configuration artifactExtension="lib" artifactName="${ProjName}" buildProperties="" cleanCommand="${CG_CLEAN_CMD}" description="" id="com.ti.ccstudio.buildDefinitions.TMS470.Release.626203507" name="Release" parent="com.ti.ccstudio.buildDefinitions.TMS470.Release" postbuildStep="" prebuildStep="${BLOCKS_HOME}/lib/lcm/lcm-gen.sh ${BLOCKS_HOME}">
 					<folderInfo id="com.ti.ccstudio.buildDefinitions.TMS470.Release.626203507." name="/" resourcePath="">
 						<toolChain id="com.ti.ccstudio.buildDefinitions.TMS470_5.1.library.ReleaseToolchain.1293829738" name="TI Build Tools" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.1.library.ReleaseToolchain" targetTool="com.ti.ccstudio.buildDefinitions.TMS470_5.1.library.librarianRelease.294769516">
 							<option id="com.ti.ccstudio.buildDefinitions.core.OPT_TAGS.1661055918" superClass="com.ti.ccstudio.buildDefinitions.core.OPT_TAGS" valueType="stringList">
