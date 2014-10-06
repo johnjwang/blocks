@@ -160,6 +160,7 @@
 									<listOptionValue builtIn="false" value="&quot;libc.a&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${BLOCKS_HOME}/lib/driverlib/Release/driverlib.lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${BLOCKS_HOME}/lib/usblib/Release/usblib.lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${BLOCKS_HOME}/lib/lcm/Release/lcm.lib&quot;"/>
 								</option>
 								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_5.1.exeLinker.inputType__CMD_SRCS.2094299871" name="Linker Command Files" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.1.exeLinker.inputType__CMD_SRCS"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_5.1.exeLinker.inputType__CMD2_SRCS.125552443" name="Linker Command Files" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.1.exeLinker.inputType__CMD2_SRCS"/>
