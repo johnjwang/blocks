@@ -47,8 +47,7 @@ int main(void)
     uart_comms_up_init();
 //    gpio_ctl_init();
 //    ppm_init();
-    timer_default_setup();
-    timer_capture_generate_init();
+    timer_default_init();
 
     IntMasterEnable();
 

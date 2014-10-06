@@ -100,7 +100,6 @@ typedef struct _timer_cap_gen_t
 
 } timer_cap_gen_t;
 
-void timer_default_setup(void);
 void timer_default_init(void);
 void timer_init(timer_cap_gen_t timers[], uint8_t num);
 
