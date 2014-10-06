@@ -51,9 +51,9 @@ int main(void)
 
     IntMasterEnable();
 
-    usb_init();
+    usb_comms_init();
 
-//	uart_comms_up_demo();
+	uart_comms_up_demo();
 //	usb_demo();
 
 	#ifdef DEBUG

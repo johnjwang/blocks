@@ -9,7 +9,8 @@
 #define UART_COMMS_H_
 
 void uart_comms_up_init(void);
-void uart_comms_up_write(uint8_t *msg, uint32_t dataLen);
+bool uart_comms_up_write_byte(uint8_t byte);
+bool uart_comms_up_write(uint8_t *msg, uint32_t dataLen);
 void uart_comms_up_demo(void);
 
 #endif /* UART_COMMS_H_ */
