@@ -1,9 +1,15 @@
 CPATH:=${CURDIR}
 HPATH:=${BLOCKS_HOME}/c/include/arch/embedded/lcmtypes
 
+LIBDIR:=${BLOCKS_HOME}/c/lib/arch/embedded
+LIB:=${LIBDIR}/liblcmtypes.a
+
 all:lcm-gen
-	@mkdir -p ${BLOCKS_HOME}/c/lib/arch/embedded
-	gcc -shared -fPIC ${CURDIR}/*.c -o ${BLOCKS_HOME}/c/lib/arch/embedded/liblcmtypes.so
+	@mkdir -p ${LIBDIR}
+	gcc -shared -fPIC ${CFLAGS} ${CURDIR}/*.c -o ${LIB}
+
+debug: CFLAGS+=-g
+debug: all
 
 lcm-gen:
 	lcm-gen -c --cinclude=${HPATH} --c-cpath=${CPATH} --c-hpath=${HPATH} ${BLOCKS_HOME}/lcmtypes/*
@@ -11,4 +17,4 @@ lcm-gen:
 clean:
 	rm -rf ${CPATH}/*.c
 	rm -rf ${HPATH}/*.h
-	rm -rf ${BLOCKS_HOME}/lib/arch/embedded/lcmtypes
+	rm -rf ${LIB}

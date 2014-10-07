@@ -1,7 +1,7 @@
 CFLAGS:=-I${BLOCKS_HOME}/c/include/arch/linux/io
 
 LIBDIR:=${BLOCKS_HOME}/c/lib/arch/linux
-LIB:=${LIBDIR}/io.lib
+LIB:=${LIBDIR}/io.a
 
 all:
 	@mkdir -p ${LIBDIR}

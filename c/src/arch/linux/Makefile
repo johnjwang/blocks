@@ -2,11 +2,14 @@ SUBDIRS = io lcmtypes test
 
 .PHONY: all debug clean
 
-debug clean:
+OBJS:=${BLOCKS_HOME}/c/lib/arch/linux/*
+LIB:=${BLOCKS_HOME}/c/lib/arch/liblinux.a 
+
+clean:
 	@for dir in $(SUBDIRS) ; do \
 		$(MAKE) $(SILENT) -C $$dir $@ || exit 2; done
 
-all:
+all debug:
 	@for dir in $(SUBDIRS) ; do \
 		$(MAKE) $(SILENT) -C $$dir $@ || exit 2; done
-	gcc -shared -fPIC ${BLOCKS_HOME}/c/lib/arch/linux/* -o ${BLOCKS_HOME}/c/lib/arch/liblinux.so
+	ar rc ${LIB} ${OBJS}

@@ -1,4 +1,4 @@
-SUBDIRS = src
+SUBDIRS = src projects
 
 .PHONY: all debug clean
 
