@@ -1,14 +1,12 @@
 CFLAGS:=-I${BLOCKS_HOME}/c/include/arch/linux/io
 
-LIBDIR:=${BLOCKS_HOME}/c/lib/arch/linux
-LIB:=${LIBDIR}/io.a
+BUILD_DIR:=${BLOCKS_HOME}/c/build/arch/linux/io
 
 all:
-	@mkdir -p ${LIBDIR}
-	gcc ./*.c ${CFLAGS} -shared -fPIC -o ${LIB}
+	@mkdir -p ${BUILD_DIR}
+	gcc -c ${CFLAGS} serial.c -o ${BUILD_DIR}/serial.o
 
 debug: CFLAGS+= -g
 
 clean:
-	rm -f ${LIB}
-
+	rm -f ${BUILD_DIR}/*.o

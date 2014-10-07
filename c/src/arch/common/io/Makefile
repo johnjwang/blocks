@@ -1,14 +1,12 @@
 CFLAGS:=-I${BLOCKS_HOME}/c/include/arch/common/io
 
-LIBDIR:=${BLOCKS_HOME}/c/lib/arch/common
-LIB:=${LIBDIR}/libio.o
+BUILD_DIR:=${BLOCKS_HOME}/c/build/arch/common/io
 
 all:
-	@mkdir -p ${LIBDIR}
-	gcc ./*.c ${CFLAGS} -shared -fPIC -o ${LIB}
+	@mkdir -p ${BUILD_DIR}
+	gcc -c comms.c ${CFLAGS} -o ${BUILD_DIR}/comms.o
 
 debug: CFLAGS+= -g
 
 clean:
-	rm -f ${LIB}
-
+	rm -f ${BUILD_DIR}/*.o
