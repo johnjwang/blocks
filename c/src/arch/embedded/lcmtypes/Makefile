@@ -1,12 +1,15 @@
 CPATH:=${CURDIR}
 HPATH:=${BLOCKS_HOME}/c/include/arch/embedded/lcmtypes
 
-LIBDIR:=${BLOCKS_HOME}/c/lib/arch/embedded
-LIB:=${LIBDIR}/liblcmtypes.a
+
+BUILD_DIR:=${BLOCKS_HOME}/c/build/arch/embedded/lcmtypes
 
 all:lcm-gen
-	@mkdir -p ${LIBDIR}
-	gcc -shared -fPIC ${CFLAGS} ${CURDIR}/*.c -o ${LIB}
+	@mkdir -p ${BUILD_DIR}
+	gcc -c ${CFLAGS} kill_t.c -o      ${BUILD_DIR}/kill_t.o
+	gcc -c ${CFLAGS} imu_data_t.c -o  ${BUILD_DIR}/imu_data_t.o
+	gcc -c ${CFLAGS} rpms_t.c -o      ${BUILD_DIR}/rpms_t.o
+	gcc -c ${CFLAGS} telemetry_t.c -o ${BUILD_DIR}/telemetry_t.o
 
 debug: CFLAGS+=-g
 debug: all
@@ -17,4 +20,4 @@ lcm-gen:
 clean:
 	rm -rf ${CPATH}/*.c
 	rm -rf ${HPATH}/*.h
-	rm -rf ${LIB}
+	rm -rf ${BUILD_DIR}/*.o
