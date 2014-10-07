@@ -15,7 +15,7 @@ debug: CFLAGS+=-g
 debug: all
 
 lcm-gen:
-	lcm-gen -c --cinclude=${HPATH} --c-cpath=${CPATH} --c-hpath=${HPATH} ${BLOCKS_HOME}/lcmtypes/*
+	lcm-gen -c --c-no-pubsub --cinclude=${HPATH} --c-cpath=${CPATH} --c-hpath=${HPATH} ${BLOCKS_HOME}/lcmtypes/*
 
 clean:
 	rm -rf ${CPATH}/*.c

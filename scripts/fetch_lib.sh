@@ -1,21 +1,14 @@
 #!/bin/bash
 
 if [ "$1" == "" ]; then
-    echo "USAGE: $0 <libname ie 'driverlib'>"
+    echo "USAGE: $0 <libcommon,libembedded,liblinux,libtiva'>"
     exit 1
 fi
 
 lib=$1
 
-echo "Fetching Debug/$lib"
-mkdir -p $BLOCKS_HOME/lib/$lib/Debug
-scp -P 49552 blocks@bendeshome.com:lib/Debug/$lib.lib $BLOCKS_HOME/lib/$lib/Debug/$lib.lib
+echo "Fetching $lib"
+scp -P 49552 blocks@bendeshome.com:lib/$lib.a $BLOCKS_HOME/c/lib/arch/
 if [ "$?" != "0" ]; then
-    echo "Unable to fetch Debug/$lib"
-fi
-echo "Fetching Release/$lib"
-mkdir -p $BLOCKS_HOME/lib/$lib/Release
-scp -P 49552 blocks@bendeshome.com:lib/Release/$lib.lib $BLOCKS_HOME/lib/$lib/Release/$lib.lib
-if [ "$?" != "0" ]; then
-    echo "Unable to fetch Release/$lib"
+    echo "Unable to fetch $lib"
 fi

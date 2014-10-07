@@ -1,4 +1,4 @@
-CFLAGS:=-I${BLOCKS_HOME}/c/include/arch/common/io
+CFLAGS:=-I${BLOCKS_HOME}/c/include/arch/common/
 
 BUILD_DIR:=${BLOCKS_HOME}/c/build/arch/common/io
 

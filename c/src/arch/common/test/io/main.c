@@ -1,5 +1,5 @@
 #include "stdio.h"
-#include "comms.h"
+#include "io/comms.h"
 
 bool publish_stdout(uint8_t byte);
 void handle_kill(uint8_t *msg, uint16_t msg_len);

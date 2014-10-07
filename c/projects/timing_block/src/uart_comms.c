@@ -19,9 +19,9 @@
 
 #include "timer_capture_generate.h"
 #include "usb_comms.h"
-#include "comms.h"
+#include "io/comms.h"
 
-//#include "kill_t.h"
+#include "lcmtypes/kill_t.h"
 
 static void uart_comms_up_int_handler(void);
 
@@ -81,17 +81,17 @@ void uart_comms_up_demo(void)
     comms_t *uart_comms_up = comms_create(uart_comms_up_write_byte, 256);
 	while(1)
 	{
-//	    kill_t kill;
-//	    kill.reason = 1;
-//
-//	    uint16_t max_len = kill_t_encoded_size(&kill);
-//	    if(max_len > 20) while(1);
-//
-//        uint8_t buf[20];
-//
-//        uint16_t len = __kill_t_encode_array(buf, 0, 20, &kill, 1);
-//
-//	    comms_publish_blocking(uart_comms_up, CHANNEL_KILL, buf, len);
+	    kill_t kill;
+	    kill.reason = 1;
+
+	    uint16_t max_len = kill_t_encoded_size(&kill);
+	    if(max_len > 20) while(1);
+
+        uint8_t buf[20];
+
+        uint16_t len = __kill_t_encode_array(buf, 0, 20, &kill, 1);
+
+	    comms_publish_blocking(uart_comms_up, CHANNEL_KILL, buf, len);
 
 		SysCtlDelay(SysCtlClockGet() / 3);
 	}

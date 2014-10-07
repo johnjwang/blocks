@@ -28,7 +28,12 @@
 		<link>
 			<name>common</name>
 			<type>2</type>
-			<locationURI>$%7BBLOCKS_HOME%7D/c/common</locationURI>
+			<locationURI>$%7BBLOCKS_HOME%7D/c/src/arch/common</locationURI>
+		</link>
+		<link>
+			<name>embedded</name>
+			<type>2</type>
+			<locationURI>$%7BBLOCKS_HOME%7D/c/src/arch/embedded</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
