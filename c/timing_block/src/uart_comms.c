@@ -109,6 +109,9 @@ static void uart_comms_up_int_handler(void)
 	{
 	    uint32_t data = UARTCharGet(UART2_BASE);
 	    usb_comms_write_byte((char)data);
-	    timer_generate_pulse_percent(((char)data - '0') / 10.0);
+	    uint8_t i;
+	    for (i=TIMER_OUTPUT_1; i<=TIMER_OUTPUT_8; ++i) {
+	        timer_default_pulse_RC(i, ((uint32_t)(((char)data - '0') * (uint32_t)UINT16_MAX)) / 10);
+	    }
 	}
 }

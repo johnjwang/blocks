@@ -270,7 +270,10 @@ RxHandler(void *pvCBData, uint32_t ui32Event, uint32_t ui32MsgValue,
             uint8_t data[1];
             if(USBBufferRead((tUSBBuffer *)&g_sRxBuffer, data, 1))
             {
-                timer_generate_pulse_percent((data[0] - '0') / 10.0);
+                uint8_t i;
+                for (i=TIMER_OUTPUT_1; i<=TIMER_OUTPUT_8; ++i) {
+                    timer_default_pulse_RC(i, ((uint32_t)(((char)data[0] - '0') * (uint32_t)UINT16_MAX)) / 10);
+                }
             }
             break;
         }

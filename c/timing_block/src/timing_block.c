@@ -68,6 +68,11 @@ int main(void)
 //		SysCtlDelay(SysCtlClockGet() / 3);
 //	}
 
+	uint8_t k;
+	for (k=TIMER_OUTPUT_1; k<=TIMER_OUTPUT_8; ++k) {
+        timer_default_pulse_RC(k, ((uint32_t)(k - TIMER_OUTPUT_1) * (uint32_t)UINT16_MAX) / 10);
+	}
+//	timer_default_pulse_RC(TIMER_OUTPUT_1, 0);
 
 	//
     // Loop forever.
@@ -84,8 +89,6 @@ int main(void)
 //    uint8_t outval = 1;
 
 //    ppm_start();
-
-    timer_generate_pulse(SysCtlClockGet() / 1000);
 
     while(1)
     {

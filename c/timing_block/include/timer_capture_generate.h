@@ -104,28 +104,11 @@ typedef struct _timer_cap_gen_t
 
 } timer_cap_gen_t;
 
+/**
+ * Initializes the default set of timers for the TIVA TM4C1232xx chip on the timing block board.
+ * Must call this before using any of the other timer_default functions for this chip.
+ */
 void timer_default_init(void);
-void timer_init(timer_cap_gen_t timers[], uint8_t num);
-
-/**
- * Measures or generates a pulse on the given timer.
- * \param timer if an input, reads value of pwm pulse, if output, writes pulse
- * \param pulse_width_tics number of tics that make up the pulse width of the signal.
- *                         arg not used when reading an input-timer value
- * \returns the measured or generated pulse width.
- */
-uint32_t timer_pulse(timer_cap_gen_t *timer, uint32_t pulse_width_tics);
-
-/**
- * Measures or generates a pulse on the given timer using RC standard PWM signals.
- * The pulse width value given maps from [0, UINT16_MAX] to a [10%, 20%] duty cycle
- * of the PWM signal.
- * \param timer if an input, reads value of pwm pulse, if output, writes pulse
- * \param pulse_width_RC number [0, UINT16_MAX] which mapes to [10%, 20%] duty cycle of the PWM
- *                              arg not used when reading an input-timer value
- * \returns the measured or generated pulse width.
- */
-uint16_t timer_pulse_RC(timer_cap_gen_t *timer, uint16_t pulse_width_RC);
 
 /**
  * Measures or generates a pulse on the given io timer.
@@ -138,7 +121,7 @@ uint32_t timer_default_pulse(uint8_t iotimer, uint32_t pulse_width_tics);
 
 /**
  * Measures or generates a pulse on the given timer using RC standard PWM signals.
- * The pulse width value given maps from [0, UINT16_MAX] to a [10%, 20%] duty cycle
+ * The pulse width value given maps from [0, UINT16_MAX] to a [05%, 10%] duty cycle
  * of the PWM signal.
  * \param iotimer (timer_io_t) if an input, reads value of pwm pulse, if output, writes pulse
  * \param pulse_width_RC number [0, UINT16_MAX] which mapes to [10%, 20%] duty cycle of the PWM
@@ -147,9 +130,10 @@ uint32_t timer_default_pulse(uint8_t iotimer, uint32_t pulse_width_tics);
  */
 uint16_t timer_default_pulse_RC(uint8_t iotimer, uint16_t pulse_width_RC);
 
+uint64_t timer_default_get_total_load(uint8_t iotimer);
 
-void timer_capture_generate_init(void);
-void timer_generate_pulse(uint32_t pulse_width);
-void timer_generate_pulse_percent(float percent);
+void timer_default_calc_ps_timer_from_total(uint8_t iotimer, uint32_t *prescale,
+                                            uint32_t *load, uint64_t total);
+
 
 #endif /* TIMER_CAPTURE_GENERATE_H_ */

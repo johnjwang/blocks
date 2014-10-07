@@ -51,7 +51,6 @@ static timer_cap_gen_t default_timers[NUM_TIMERS] = {0};
 static void timer_default_setup(void);
 
 static void timer_capture_int_handler(int num);
-static void timer_capture_int_handler0(void);
 static void timer_capture_int_handler1(void);
 static void timer_capture_int_handler2(void);
 static void timer_capture_int_handler3(void);
@@ -60,9 +59,7 @@ static void timer_capture_int_handler5(void);
 static void timer_capture_int_handler6(void);
 static void timer_capture_int_handler7(void);
 static void timer_capture_int_handler8(void);
-
-static void (*timer_capture_int_handlers[9])(void) = {timer_capture_int_handler0,
-                                                      timer_capture_int_handler1,
+static void (*timer_capture_int_handlers[8])(void) = {timer_capture_int_handler1,
                                                       timer_capture_int_handler2,
                                                       timer_capture_int_handler3,
                                                       timer_capture_int_handler4,
@@ -71,140 +68,44 @@ static void (*timer_capture_int_handlers[9])(void) = {timer_capture_int_handler0
                                                       timer_capture_int_handler7,
                                                       timer_capture_int_handler8};
 
-void timer_default_setup(void)
-{
-    default_timers[TIMER_INPUT_1]  = (timer_cap_gen_t){GPIO_PD3_WT3CCP1, OVERFLOW_60MS,
-                                                       GPIO_PD, GPIO_PIN_3,
-                                                       WTIMER3, TIMERB, CAPGEN_MODE_CAP_RF_EDGE};
-
-    default_timers[TIMER_INPUT_2]  = (timer_cap_gen_t){GPIO_PD2_WT3CCP0, OVERFLOW_60MS,
-                                                       GPIO_PD, GPIO_PIN_2,
-                                                       WTIMER3, TIMERA, CAPGEN_MODE_CAP_RF_EDGE};
-
-    default_timers[TIMER_INPUT_3]  = (timer_cap_gen_t){GPIO_PD1_WT2CCP1, OVERFLOW_60MS,
-                                                       GPIO_PD, GPIO_PIN_1,
-                                                       WTIMER2, TIMERB, CAPGEN_MODE_CAP_RF_EDGE};
-
-    default_timers[TIMER_INPUT_4]  = (timer_cap_gen_t){GPIO_PB6_T0CCP0, OVERFLOW_60MS,
-                                                       GPIO_PB, GPIO_PIN_6,
-                                                       TIMER0, TIMERA, CAPGEN_MODE_CAP_RF_EDGE};
-
-    default_timers[TIMER_INPUT_5]  = (timer_cap_gen_t){GPIO_PB4_T1CCP0, OVERFLOW_60MS,
-                                                       GPIO_PB, GPIO_PIN_4,
-                                                       TIMER1, TIMERA, CAPGEN_MODE_CAP_RF_EDGE};
-
-    default_timers[TIMER_INPUT_6]  = (timer_cap_gen_t){GPIO_PB5_T1CCP1, OVERFLOW_60MS,
-                                                       GPIO_PB, GPIO_PIN_5,
-                                                       TIMER1, TIMERB, CAPGEN_MODE_CAP_RF_EDGE};
-
-    default_timers[TIMER_INPUT_7]  = (timer_cap_gen_t){GPIO_PD6_WT5CCP0, OVERFLOW_60MS,
-                                                       GPIO_PD, GPIO_PIN_6,
-                                                       WTIMER5, TIMERA, CAPGEN_MODE_CAP_RF_EDGE};
-
-    default_timers[TIMER_INPUT_8]  = (timer_cap_gen_t){GPIO_PB3_T3CCP1, OVERFLOW_60MS,
-                                                       GPIO_PB, GPIO_PIN_3,
-                                                       TIMER3, TIMERB, CAPGEN_MODE_CAP_RF_EDGE};
-
-    default_timers[TIMER_INPUT_9]  = (timer_cap_gen_t){GPIO_PB2_T3CCP0, OVERFLOW_60MS,
-                                                       GPIO_PB, GPIO_PIN_2,
-                                                       TIMER3, TIMERA, CAPGEN_MODE_CAP_RF_EDGE};
-
-    default_timers[TIMER_OUTPUT_1] = (timer_cap_gen_t){GPIO_PG1_T4CCP1, OVERFLOW_20MS,
-                                                       GPIO_PG, GPIO_PIN_4,
-                                                       TIMER4, TIMERB, CAPGEN_MODE_GEN_PWM};
-
-    default_timers[TIMER_OUTPUT_2] = (timer_cap_gen_t){GPIO_PG2_T5CCP0, OVERFLOW_20MS,
-                                                       GPIO_PG, GPIO_PIN_2,
-                                                       TIMER5, TIMERA, CAPGEN_MODE_GEN_PWM};
-
-    default_timers[TIMER_OUTPUT_3] = (timer_cap_gen_t){GPIO_PG3_T5CCP1, OVERFLOW_20MS,
-                                                       GPIO_PG, GPIO_PIN_3,
-                                                       TIMER5, TIMERB, CAPGEN_MODE_GEN_PWM};
-
-    default_timers[TIMER_OUTPUT_4] = (timer_cap_gen_t){GPIO_PC4_WT0CCP0, OVERFLOW_20MS,
-                                                       GPIO_PC, GPIO_PIN_4,
-                                                       WTIMER0, TIMERA, CAPGEN_MODE_GEN_PWM};
-
-    default_timers[TIMER_OUTPUT_5] = (timer_cap_gen_t){GPIO_PC5_WT0CCP1, OVERFLOW_20MS,
-                                                       GPIO_PC, GPIO_PIN_5,
-                                                       WTIMER0, TIMERB, CAPGEN_MODE_GEN_PWM};
-
-    default_timers[TIMER_OUTPUT_6] = (timer_cap_gen_t){GPIO_PC6_WT1CCP0, OVERFLOW_20MS,
-                                                       GPIO_PC, GPIO_PIN_6,
-                                                       WTIMER1, TIMERA, CAPGEN_MODE_GEN_PWM};
-
-    default_timers[TIMER_OUTPUT_7] = (timer_cap_gen_t){GPIO_PC7_WT1CCP1, OVERFLOW_20MS,
-                                                       GPIO_PC, GPIO_PIN_7,
-                                                       WTIMER1, TIMERB, CAPGEN_MODE_GEN_PWM};
-
-    default_timers[TIMER_OUTPUT_8] = (timer_cap_gen_t){GPIO_PB7_T0CCP1, OVERFLOW_20MS,
-                                                       GPIO_PB, GPIO_PIN_7,
-                                                       TIMER0, TIMERB, CAPGEN_MODE_GEN_PWM};
-
-    default_timers[TIMER_OUTPUT_9] = (timer_cap_gen_t){GPIO_PG0_T4CCP0, OVERFLOW_20MS,
-                                                       GPIO_PG, GPIO_PIN_0,
-                                                       TIMER4, TIMERA, CAPGEN_MODE_GEN_PPM};
-}
-
-// XXX: make more functions like this to clean up the initializer
-static uint32_t timer_sel_to_int_cap_event(timer_cap_gen_t *timer)
-{
-    switch (timer->timer_sel_ind) {
-        case TIMERA:
-            return TIMER_CAPA_EVENT;
-        case TIMERB:
-            return TIMER_CAPB_EVENT;
-        default:
-            return 0;
-    }
-}
-
-static uint64_t timer_get_total_load(timer_cap_gen_t *timer)
-{
-    uint32_t prescaler = TimerPrescaleGet(timer_bases[timer->timer_base_ind],
-                                          timer_sels[timer->timer_sel_ind]);
-    uint32_t load = TimerLoadGet(timer_bases[timer->timer_base_ind],
-                                 timer_sels[timer->timer_sel_ind]);
-
-    if (timer->timer_base_ind <= TIMER5) { // 16 bit timer with 8 bit prescaler
-        return ((prescaler << 16) & 0x00FF0000) | (load & 0x0000FFFF);
-    } else { // 32 bit timer with 16 bit prescaler
-        return ((((uint64_t)prescaler) << 32) & 0x0000FFFF00000000) | (load & 0x00000000FFFFFFFF);
-    }
-}
-
-static uint64_t timer_default_get_total_load(uint8_t iotimer)
-{
-    return timer_get_total_load(&default_timers[iotimer]);
-}
-
+static void timer_default_setup(void);
+static void timer_init(timer_cap_gen_t timers[], uint8_t num,
+                       void (*input_int_handlers[])(void), uint8_t num_int);
+static uint32_t timer_sel_to_int_cap_event(timer_cap_gen_t *timer);
+static uint64_t timer_get_total_load(timer_cap_gen_t *timer);
 static void timer_calc_ps_timer_from_total(timer_cap_gen_t *timer, uint32_t *prescale,
-                                           uint32_t *load, uint64_t total)
-{
-    if (timer->timer_base_ind <= TIMER5) { // 16 bit timer with 8 bit prescaler
-        *prescale = (total >> 16) & 0x0000FFFF;
-        if (*prescale > 0x000000FF) while (1);
-        *load = total & 0x0000FFFF;
-    } else { // 32 bit timer with 16 bit prescaler
-        *prescale = (total >> 32) & 0x00000000FFFFFFFF;
-        if (*prescale > 0x0000FFFF) while (1);
-        *load = total & 0x00000000FFFFFFFF;
-    }
-}
+                                           uint32_t *load, uint64_t total);
 
-static void timer_default_calc_ps_timer_from_total(uint8_t iotimer, uint32_t *prescale,
-                                                   uint32_t *load, uint64_t total)
-{
-    timer_calc_ps_timer_from_total(&default_timers[iotimer], prescale, load, total);
-}
+/**
+ * Measures or generates a pulse on the given timer.
+ * \param timer if an input, reads value of pwm pulse, if output, writes pulse
+ * \param pulse_width_tics number of tics that make up the pulse width of the signal.
+ *                         arg not used when reading an input-timer value
+ * \returns the measured or generated pulse width.
+ */
+static uint32_t timer_pulse(timer_cap_gen_t *timer, uint32_t pulse_width_tics);
+
+/**
+ * Measures or generates a pulse on the given timer using RC standard PWM signals.
+ * The pulse width value given maps from [0, UINT16_MAX] to a [05%, 10%] duty cycle
+ * of the PWM signal.
+ * \param timer if an input, reads value of pwm pulse, if output, writes pulse
+ * \param pulse_width_RC number [0, UINT16_MAX] which mapes to [10%, 20%] duty cycle of the PWM
+ *                              arg not used when reading an input-timer value
+ * \returns the measured or generated pulse width.
+ */
+static uint16_t timer_pulse_RC(timer_cap_gen_t *timer, uint16_t pulse_width_RC);
 
 void timer_default_init(void)
 {
     timer_default_setup();
-    timer_init(default_timers, NUM_TIMERS);
+    // Initialize, only using the capture interrupts on inputs 1 - 8
+    timer_init(default_timers, NUM_TIMERS,
+               timer_capture_int_handlers, TIMER_INPUT_8 - TIMER_INPUT_1 + 1);
 }
 
-void timer_init(timer_cap_gen_t timers[], uint8_t num)
+static void timer_init(timer_cap_gen_t timers[], uint8_t num,
+                       void (*input_int_handlers[])(void), uint8_t num_int)
 {
     uint8_t i;
 
@@ -303,6 +204,7 @@ void timer_init(timer_cap_gen_t timers[], uint8_t num)
 
     // Configure capture events and interrupts on the inputs and match update mode on the outputs
     uint32_t mode;
+    uint8_t j = 0;
     for (i=0; i<num; ++i) {
         if (timers[i].capgen_mode & CAPGEN_MODE_CAP_MASK) { // capture mode
             switch (timers[i].capgen_mode) {
@@ -327,9 +229,11 @@ void timer_init(timer_cap_gen_t timers[], uint8_t num)
             IntPrioritySet(_TimerIntNumberGet(timer_bases[timers[i].timer_base_ind],
                                               timer_sels[timers[i].timer_sel_ind]), 0x20);
             // XXX: make a good interrupt handler
-            TimerIntRegister(timer_bases[timers[i].timer_base_ind],
-                             timer_sels[timers[i].timer_sel_ind],
-                             timer_capture_int_handlers[i]);
+            if (j<num_int) {
+                TimerIntRegister(timer_bases[timers[i].timer_base_ind],
+                                 timer_sels[timers[i].timer_sel_ind],
+                                 input_int_handlers[j]);
+            }
         } else { // generator mode
             switch (timers[i].capgen_mode) {
                 case CAPGEN_MODE_GEN_PWM:
@@ -347,13 +251,23 @@ void timer_init(timer_cap_gen_t timers[], uint8_t num)
         }
     }
 
+    for (i=0; i<=num; ++i) {
+        switch (timers[i].capgen_mode) {
+            case CAPGEN_MODE_GEN_PWM:
+                timer_pulse(&timers[i], 0);
+                break;
+            default:
+                break;
+        }
+    }
+
     // Enable timers
     for (i=0; i<num; ++i) {
         TimerEnable(timer_bases[timers[i].timer_base_ind], timer_sels[timers[i].timer_sel_ind]);
     }
 }
 
-uint32_t timer_pulse(timer_cap_gen_t *timer, uint32_t pulse_width_tics)
+static uint32_t timer_pulse(timer_cap_gen_t *timer, uint32_t pulse_width_tics)
 {
     if (timer->capgen_mode & CAPGEN_MODE_CAP_MASK) { // Input timer
         return timer->timer_val;
@@ -377,16 +291,16 @@ uint32_t timer_pulse(timer_cap_gen_t *timer, uint32_t pulse_width_tics)
     }
 }
 
-uint16_t timer_pulse_RC(timer_cap_gen_t *timer, uint16_t pulse_width_RC)
+static uint16_t timer_pulse_RC(timer_cap_gen_t *timer, uint16_t pulse_width_RC)
 {
-    uint64_t total_load_10 = timer_get_total_load(timer) / 10;
+    uint64_t total_load_20 = timer_get_total_load(timer) / 20;
 
-    uint32_t pulse_width_tics = total_load_10 + (total_load_10 * pulse_width_RC) / UINT16_MAX;
+    uint32_t pulse_width_tics = total_load_20 + (total_load_20 * pulse_width_RC) / UINT16_MAX;
     pulse_width_tics = timer_pulse(timer, pulse_width_tics);
-    if (pulse_width_tics < total_load_10) return 0;
-    pulse_width_tics -= total_load_10;
-    if (pulse_width_tics > total_load_10) return UINT16_MAX;
-    return (UINT16_MAX * (uint64_t)pulse_width_tics) / total_load_10;
+    if (pulse_width_tics < total_load_20) return 0;
+    pulse_width_tics -= total_load_20;
+    if (pulse_width_tics > total_load_20) return UINT16_MAX;
+    return (UINT16_MAX * (uint64_t)pulse_width_tics) / total_load_20;
 }
 
 uint32_t timer_default_pulse(uint8_t iotimer, uint32_t pulse_width_tics)
@@ -399,87 +313,13 @@ uint16_t timer_default_pulse_RC(uint8_t iotimer, uint16_t pulse_width_RC)
     return timer_pulse_RC(&default_timers[iotimer], pulse_width_RC);
 }
 
-void timer_generate_pulse_percent(float percent)
-{
-
-}
-
-void timer_generate_pulse(uint32_t pulse_width)
-{
-    uint64_t total_load;
-    uint64_t total_match;
-    uint32_t prescaler_match;
-    uint32_t match;
-
-    uint8_t i;
-    for (i=TIMER_OUTPUT_1; i<=TIMER_OUTPUT_8; ++i) {
-        total_load = timer_default_get_total_load(i);
-
-        if (pulse_width > total_load) total_match = 0;
-        else if (pulse_width == 0) total_match = total_load - 1;
-        else total_match = total_load - pulse_width;
-
-        timer_default_calc_ps_timer_from_total(i, &prescaler_match, &match, total_match);
-
-        TimerPrescaleMatchSet(timer_bases[default_timers[i].timer_base_ind],
-                              timer_sels[default_timers[i].timer_sel_ind],
-                              prescaler_match);
-        TimerMatchSet(timer_bases[default_timers[i].timer_base_ind],
-                      timer_sels[default_timers[i].timer_sel_ind],
-                      match);
-    }
-}
-
-static void timer_capture_int_handler0(void)
-{
-    timer_capture_int_handler(0);
-}
-
-static void timer_capture_int_handler1(void)
-{
-    timer_capture_int_handler(1);
-}
-
-static void timer_capture_int_handler2(void)
-{
-    timer_capture_int_handler(2);
-}
-
-static void timer_capture_int_handler3(void)
-{
-    timer_capture_int_handler(3);
-}
-
-static void timer_capture_int_handler4(void)
-{
-    timer_capture_int_handler(4);
-}
-
-static void timer_capture_int_handler5(void)
-{
-    timer_capture_int_handler(5);
-}
-
-static void timer_capture_int_handler6(void)
-{
-    timer_capture_int_handler(6);
-}
-
-static void timer_capture_int_handler7(void)
-{
-    timer_capture_int_handler(7);
-}
-
-static void timer_capture_int_handler8(void)
-{
-    timer_capture_int_handler(8);
-}
-
 static void timer_capture_int_handler(int num)
 {
 //    static uint8_t msg[30];
-    // XXX: cannot use the same lastTime for every timer, need to change this
-    static uint64_t lastTime = UINT64_MAX;
+    static uint64_t lastTime[TIMER_INPUT_8 + 1] = {UINT64_MAX, UINT64_MAX, UINT64_MAX,
+                                                   UINT64_MAX, UINT64_MAX, UINT64_MAX,
+                                                   UINT64_MAX, UINT64_MAX};
+
     uint32_t timer_base = timer_bases[default_timers[num].timer_base_ind];
     uint32_t timer_sel = timer_sels[default_timers[num].timer_sel_ind];
     uint32_t timer_int = timer_sel_to_int_cap_event(&default_timers[num]);
@@ -493,14 +333,184 @@ static void timer_capture_int_handler(int num)
     time = TimerValueGet(timer_base, timer_sel);
     total_load = timer_default_get_total_load(num);
 
-    if (lastTime < UINT64_MAX) {
+    if (lastTime[num] < UINT64_MAX) {
         uint32_t delta;
-        if(lastTime < time) delta = lastTime + total_load - time;
-        else delta = lastTime - time;
+        if(lastTime[num] < time) delta = lastTime[num] + total_load - time;
+        else delta = lastTime[num] - time;
 
         // GPIO level low means we have caught a falling edge
-        if (gpio_level == 0) default_timers[num].timer_val = delta;
+        if (gpio_level == 0) {
+            default_timers[num].timer_val = delta;
+            timer_default_pulse(num + TIMER_OUTPUT_1, delta);
+        }
         //usb_comms_write(msg, snprintf((char*)msg, 30, "%lu\r\n", delta/80));
     }
-    lastTime = time;
+    lastTime[num] = time;
+}
+
+// XXX: make more functions like this to clean up the initializer
+static uint32_t timer_sel_to_int_cap_event(timer_cap_gen_t *timer)
+{
+    switch (timer->timer_sel_ind) {
+        case TIMERA:
+            return TIMER_CAPA_EVENT;
+        case TIMERB:
+            return TIMER_CAPB_EVENT;
+        default:
+            return 0;
+    }
+}
+
+static uint64_t timer_get_total_load(timer_cap_gen_t *timer)
+{
+    uint32_t prescaler = TimerPrescaleGet(timer_bases[timer->timer_base_ind],
+                                          timer_sels[timer->timer_sel_ind]);
+    uint32_t load = TimerLoadGet(timer_bases[timer->timer_base_ind],
+                                 timer_sels[timer->timer_sel_ind]);
+
+    if (timer->timer_base_ind <= TIMER5) { // 16 bit timer with 8 bit prescaler
+        return ((prescaler << 16) & 0x00FF0000) | (load & 0x0000FFFF);
+    } else { // 32 bit timer with 16 bit prescaler
+        return ((((uint64_t)prescaler) << 32) & 0x0000FFFF00000000) | (load & 0x00000000FFFFFFFF);
+    }
+}
+
+uint64_t timer_default_get_total_load(uint8_t iotimer)
+{
+    return timer_get_total_load(&default_timers[iotimer]);
+}
+
+static void timer_calc_ps_timer_from_total(timer_cap_gen_t *timer, uint32_t *prescale,
+                                           uint32_t *load, uint64_t total)
+{
+    if (timer->timer_base_ind <= TIMER5) { // 16 bit timer with 8 bit prescaler
+        *prescale = (total >> 16) & 0x0000FFFF;
+        if (*prescale > 0x000000FF) while (1);
+        *load = total & 0x0000FFFF;
+    } else { // 32 bit timer with 16 bit prescaler
+        *prescale = (total >> 32) & 0x00000000FFFFFFFF;
+        if (*prescale > 0x0000FFFF) while (1);
+        *load = total & 0x00000000FFFFFFFF;
+    }
+}
+
+void timer_default_calc_ps_timer_from_total(uint8_t iotimer, uint32_t *prescale,
+                                            uint32_t *load, uint64_t total)
+{
+    timer_calc_ps_timer_from_total(&default_timers[iotimer], prescale, load, total);
+}
+
+static void timer_default_setup(void)
+{
+    default_timers[TIMER_INPUT_1]  = (timer_cap_gen_t){GPIO_PD3_WT3CCP1, OVERFLOW_60MS,
+                                                       GPIO_PD, GPIO_PIN_3,
+                                                       WTIMER3, TIMERB, CAPGEN_MODE_CAP_RF_EDGE};
+
+    default_timers[TIMER_INPUT_2]  = (timer_cap_gen_t){GPIO_PD2_WT3CCP0, OVERFLOW_60MS,
+                                                       GPIO_PD, GPIO_PIN_2,
+                                                       WTIMER3, TIMERA, CAPGEN_MODE_CAP_RF_EDGE};
+
+    default_timers[TIMER_INPUT_3]  = (timer_cap_gen_t){GPIO_PD1_WT2CCP1, OVERFLOW_60MS,
+                                                       GPIO_PD, GPIO_PIN_1,
+                                                       WTIMER2, TIMERB, CAPGEN_MODE_CAP_RF_EDGE};
+
+    default_timers[TIMER_INPUT_4]  = (timer_cap_gen_t){GPIO_PB6_T0CCP0, OVERFLOW_60MS,
+                                                       GPIO_PB, GPIO_PIN_6,
+                                                       TIMER0, TIMERA, CAPGEN_MODE_CAP_RF_EDGE};
+
+    default_timers[TIMER_INPUT_5]  = (timer_cap_gen_t){GPIO_PB4_T1CCP0, OVERFLOW_60MS,
+                                                       GPIO_PB, GPIO_PIN_4,
+                                                       TIMER1, TIMERA, CAPGEN_MODE_CAP_RF_EDGE};
+
+    default_timers[TIMER_INPUT_6]  = (timer_cap_gen_t){GPIO_PB5_T1CCP1, OVERFLOW_60MS,
+                                                       GPIO_PB, GPIO_PIN_5,
+                                                       TIMER1, TIMERB, CAPGEN_MODE_CAP_RF_EDGE};
+
+    default_timers[TIMER_INPUT_7]  = (timer_cap_gen_t){GPIO_PD6_WT5CCP0, OVERFLOW_60MS,
+                                                       GPIO_PD, GPIO_PIN_6,
+                                                       WTIMER5, TIMERA, CAPGEN_MODE_CAP_RF_EDGE};
+
+    default_timers[TIMER_INPUT_8]  = (timer_cap_gen_t){GPIO_PB3_T3CCP1, OVERFLOW_60MS,
+                                                       GPIO_PB, GPIO_PIN_3,
+                                                       TIMER3, TIMERB, CAPGEN_MODE_CAP_RF_EDGE};
+
+    default_timers[TIMER_INPUT_9]  = (timer_cap_gen_t){GPIO_PB2_T3CCP0, OVERFLOW_60MS,
+                                                       GPIO_PB, GPIO_PIN_2,
+                                                       TIMER3, TIMERA, CAPGEN_MODE_CAP_RF_EDGE};
+
+    default_timers[TIMER_OUTPUT_1] = (timer_cap_gen_t){GPIO_PG1_T4CCP1, OVERFLOW_20MS,
+                                                       GPIO_PG, GPIO_PIN_4,
+                                                       TIMER4, TIMERB, CAPGEN_MODE_GEN_PWM};
+
+    default_timers[TIMER_OUTPUT_2] = (timer_cap_gen_t){GPIO_PG2_T5CCP0, OVERFLOW_20MS,
+                                                       GPIO_PG, GPIO_PIN_2,
+                                                       TIMER5, TIMERA, CAPGEN_MODE_GEN_PWM};
+
+    default_timers[TIMER_OUTPUT_3] = (timer_cap_gen_t){GPIO_PG3_T5CCP1, OVERFLOW_20MS,
+                                                       GPIO_PG, GPIO_PIN_3,
+                                                       TIMER5, TIMERB, CAPGEN_MODE_GEN_PWM};
+
+    default_timers[TIMER_OUTPUT_4] = (timer_cap_gen_t){GPIO_PC4_WT0CCP0, OVERFLOW_20MS,
+                                                       GPIO_PC, GPIO_PIN_4,
+                                                       WTIMER0, TIMERA, CAPGEN_MODE_GEN_PWM};
+
+    default_timers[TIMER_OUTPUT_5] = (timer_cap_gen_t){GPIO_PC5_WT0CCP1, OVERFLOW_20MS,
+                                                       GPIO_PC, GPIO_PIN_5,
+                                                       WTIMER0, TIMERB, CAPGEN_MODE_GEN_PWM};
+
+    default_timers[TIMER_OUTPUT_6] = (timer_cap_gen_t){GPIO_PC6_WT1CCP0, OVERFLOW_20MS,
+                                                       GPIO_PC, GPIO_PIN_6,
+                                                       WTIMER1, TIMERA, CAPGEN_MODE_GEN_PWM};
+
+    default_timers[TIMER_OUTPUT_7] = (timer_cap_gen_t){GPIO_PC7_WT1CCP1, OVERFLOW_20MS,
+                                                       GPIO_PC, GPIO_PIN_7,
+                                                       WTIMER1, TIMERB, CAPGEN_MODE_GEN_PWM};
+
+    default_timers[TIMER_OUTPUT_8] = (timer_cap_gen_t){GPIO_PB7_T0CCP1, OVERFLOW_20MS,
+                                                       GPIO_PB, GPIO_PIN_7,
+                                                       TIMER0, TIMERB, CAPGEN_MODE_GEN_PWM};
+
+    default_timers[TIMER_OUTPUT_9] = (timer_cap_gen_t){GPIO_PG0_T4CCP0, OVERFLOW_20MS,
+                                                       GPIO_PG, GPIO_PIN_0,
+                                                       TIMER4, TIMERA, CAPGEN_MODE_GEN_PPM};
+}
+
+static void timer_capture_int_handler1(void)
+{
+    timer_capture_int_handler(TIMER_INPUT_1);
+}
+
+static void timer_capture_int_handler2(void)
+{
+    timer_capture_int_handler(TIMER_INPUT_2);
+}
+
+static void timer_capture_int_handler3(void)
+{
+    timer_capture_int_handler(TIMER_INPUT_3);
+}
+
+static void timer_capture_int_handler4(void)
+{
+    timer_capture_int_handler(TIMER_INPUT_4);
+}
+
+static void timer_capture_int_handler5(void)
+{
+    timer_capture_int_handler(TIMER_INPUT_5);
+}
+
+static void timer_capture_int_handler6(void)
+{
+    timer_capture_int_handler(TIMER_INPUT_6);
+}
+
+static void timer_capture_int_handler7(void)
+{
+    timer_capture_int_handler(TIMER_INPUT_7);
+}
+
+static void timer_capture_int_handler8(void)
+{
+    timer_capture_int_handler(TIMER_INPUT_8);
 }
