@@ -24,4 +24,21 @@
 		<nature>org.eclipse.cdt.core.ccnature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>usblib</name>
+			<type>2</type>
+			<locationURI>$%7BBLOCKS_HOME%7D/c/src/arch/tiva/usblib</locationURI>
+		</link>
+		<link>
+			<name>Debug/usblib.lib</name>
+			<type>1</type>
+			<locationURI>EXTERNAL_BUILD_ARTIFACT</locationURI>
+		</link>
+		<link>
+			<name>Release/usblib.lib</name>
+			<type>1</type>
+			<locationURI>EXTERNAL_BUILD_ARTIFACT</locationURI>
+		</link>
+	</linkedResources>
 </projectDescription>

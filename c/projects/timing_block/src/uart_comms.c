@@ -19,9 +19,9 @@
 
 #include "timer_capture_generate.h"
 #include "usb_comms.h"
-#include "comms.h"
+#include "io/comms.h"
 
-#include "kill_t.h"
+#include "lcmtypes/kill_t.h"
 
 static void uart_comms_up_int_handler(void);
 

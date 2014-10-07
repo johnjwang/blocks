@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "comms.h"
+#include "io/comms.h"
 
 #define START_BYTE1 0xB1
 #define START_BYTE2 0x75
