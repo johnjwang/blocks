@@ -1,4 +1,4 @@
-CFLAGS:=-I${BLOCKS_HOME}/c/include/arch/common/io
+CFLAGS:=-I${BLOCKS_HOME}/c/include/arch/common/
 
 BIN:=${BLOCKS_HOME}/bin/arch/common/io/test/comms_test_linux
 
