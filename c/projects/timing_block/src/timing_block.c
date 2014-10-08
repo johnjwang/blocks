@@ -14,6 +14,7 @@
 #include "driverlib/interrupt.h"
 #include "driverlib/rom.h"
 
+#include "io/comms.h"
 
 #include "bootloader.h"
 #include "timing_block_util.h"
@@ -21,6 +22,9 @@
 #include "uart_comms.h"
 #include "usb_comms.h"
 #include "timer_capture_generate.h"
+
+#include "lcmtypes/channels_t.h"
+#include "lcmtypes/kill_t.h"
 
 
 #ifdef DEBUG
@@ -71,7 +75,12 @@ int main(void)
     int i = start_idx, next_i = start_idx, j = 1;
     
     uint8_t buf[30];
-    uint32_t buflen = 30;
+    uint16_t buflen = 30;
+    int16_t channel_val[PPM_NUM_CHANNELS];
+
+    comms_t *comms_out = comms_create(256);
+    comms_add_publisher(comms_out, uart_comms_up_write_byte);
+    comms_add_publisher(comms_out, usb_comms_write_byte);
 
     while(1)
     {
@@ -92,14 +101,30 @@ int main(void)
     	{
     		last_utime = utime;
 
-    		uint8_t j;
-    		for (j=0; j<=TIMER_INPUT_9; ++j) {
-                uint32_t strlen = snprintf((char*)buf, buflen, "%lu ",
-                                           timer_tics_to_us(timer_default_pulse(j, 0)));
-                usb_comms_write(buf, strlen);
-    		}
-    		usb_comms_write_byte('\r');
-    		usb_comms_write_byte('\n');
+    		channels_t channel;
+            channel.utime = utime;
+            channel.num_channels = PPM_NUM_CHANNELS;
+            uint8_t j;
+            for (j=0; j<PPM_NUM_CHANNELS; ++j) {
+                channel_val[j] = timer_tics_to_us(timer_default_pulse(ppm_channel_map[j]), 0);
+            }
+            channel.channels = channel_val;
+
+            uint16_t max_len = channel_t_encoded_size(&channel);
+            if(max_len > buflen) while(1);
+            uint16_t len = __channel_t_encode_array(buf, 0, buflen, &channel, 1);
+
+            comms_publish_blocking(comms_out, CHANNEL_KILL, buf, len);
+
+
+//    		uint8_t j;
+//    		for (j=0; j<=TIMER_INPUT_9; ++j) {
+//                uint32_t strlen = snprintf((char*)buf, buflen, "%lu ",
+//                                           timer_tics_to_us(timer_default_pulse(j, 0)));
+//                usb_comms_write(buf, strlen);
+//    		}
+//    		usb_comms_write_byte('\r');
+//    		usb_comms_write_byte('\n');
 		}
 
 		#ifdef DEBUG

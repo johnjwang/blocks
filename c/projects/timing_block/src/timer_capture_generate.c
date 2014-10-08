@@ -68,6 +68,10 @@ static void (*timer_capture_int_handlers[8])(void) = {timer_capture_int_handler1
                                                       timer_capture_int_handler7,
                                                       timer_capture_int_handler8};
 
+const uint8_t ppm_channel_map[PPM_NUM_CHANNELS] = {TIMER_INPUT_8, TIMER_INPUT_7, TIMER_INPUT_6,
+                                                   TIMER_INPUT_5, TIMER_INPUT_4, TIMER_INPUT_3,
+                                                   TIMER_INPUT_2, TIMER_INPUT_1};
+
 static void timer_ppm_int_handler(void);
 
 static void timer_default_setup(void);
@@ -383,11 +387,6 @@ static void timer_ppm_int_handler(void)
 #define START_PULSE 0
 #define END_PULSE 1
 
-    // list inputs in the order they should be muxed into the ppm signal
-    static uint8_t channel_map[PPM_NUM_CHANNELS] = {TIMER_INPUT_8, TIMER_INPUT_7, TIMER_INPUT_6,
-                                                    TIMER_INPUT_5, TIMER_INPUT_4, TIMER_INPUT_3,
-                                                    TIMER_INPUT_2, TIMER_INPUT_1};
-
     uint32_t timer_base = timer_bases[default_timers[TIMER_OUTPUT_9].timer_base_ind];
     uint32_t timer_sel  = timer_sels[default_timers[TIMER_OUTPUT_9].timer_sel_ind];
     uint32_t gpio_port  = gpio_ports[default_timers[TIMER_OUTPUT_9].gpio_port_ind];
@@ -415,7 +414,7 @@ static void timer_ppm_int_handler(void)
             if(channel_num < PPM_NUM_CHANNELS)
             {
                 tics = timer_pwm_to_ppm_RC_convention(
-                        default_timers[channel_map[channel_num]].timer_val);
+                        default_timers[ppm_channel_map[channel_num]].timer_val);
                 us = timer_tics_to_us(tics);
                 ppm_total_period_left_us -= us;
                 ++channel_num;

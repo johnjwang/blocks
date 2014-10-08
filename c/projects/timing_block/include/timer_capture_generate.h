@@ -78,6 +78,9 @@ typedef enum _gpio_port_indices_t {
 #define PPM_START_PULSE_US 300
 #define PPM_TOTAL_PERIOD_US 22500
 
+// list inputs in the order they should be muxed into the ppm signal
+extern const uint8_t ppm_channel_map[];
+
 // Capture / Generate modes, least significant 4 bits is a capture code
 // most significant 4 bits is a generate code (can't be both)
 #define CAPGEN_MODE_CAP_MASK    0x0F
