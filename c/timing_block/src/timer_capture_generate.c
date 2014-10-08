@@ -78,9 +78,6 @@ static uint32_t timer_sel_to_int_timeout_event(timer_cap_gen_t *timer);
 static uint64_t timer_get_total_load(timer_cap_gen_t *timer);
 static void timer_calc_ps_timer_from_total(timer_cap_gen_t *timer, uint32_t *prescale,
                                            uint32_t *load, uint64_t total);
-static uint32_t timer_us_to_tics(uint32_t us);
-static uint32_t timer_tics_to_us(uint32_t tics);
-static uint32_t timer_pwm_to_ppm_RC_convention(uint32_t pwm_tics);
 
 /**
  * Measures or generates a pulse on the given timer.
@@ -247,7 +244,7 @@ static void timer_init(timer_cap_gen_t timers[], uint8_t num,
             if (j<num_int) {
                 TimerIntRegister(timer_bases[timers[i].timer_base_ind],
                                  timer_sels[timers[i].timer_sel_ind],
-                                 input_int_handlers[j]);
+                                 input_int_handlers[j++]);
             }
         } else { // generator mode (and ppm interrupt)
             switch (timers[i].capgen_mode) {
@@ -310,6 +307,7 @@ static uint32_t timer_pulse(timer_cap_gen_t *timer, uint32_t pulse_width_tics)
                               prescaler_match);
         TimerMatchSet(timer_bases[timer->timer_base_ind], timer_sels[timer->timer_sel_ind],
                       load_match);
+        timer->timer_val = pulse_width_tics;
         return pulse_width_tics;
     }
 }
@@ -501,17 +499,17 @@ void timer_default_calc_ps_timer_from_total(uint8_t iotimer, uint32_t *prescale,
     timer_calc_ps_timer_from_total(&default_timers[iotimer], prescale, load, total);
 }
 
-static uint32_t timer_us_to_tics(uint32_t us)
+uint32_t timer_us_to_tics(uint32_t us)
 {
     return ((uint64_t)us * SysCtlClockGet()) / 1000000;
 }
 
-static uint32_t timer_tics_to_us(uint32_t tics)
+uint32_t timer_tics_to_us(uint32_t tics)
 {
     return ((uint64_t)tics * 1000000) / SysCtlClockGet();
 }
 
-static uint32_t timer_pwm_to_ppm_RC_convention(uint32_t pwm_tics)
+uint32_t timer_pwm_to_ppm_RC_convention(uint32_t pwm_tics)
 {
     // need to map [1, 2] ms to [0.7, 1.7] ms
     uint32_t pwm_us = timer_tics_to_us(pwm_tics);

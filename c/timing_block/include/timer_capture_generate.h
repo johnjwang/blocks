@@ -139,5 +139,9 @@ uint64_t timer_default_get_total_load(uint8_t iotimer);
 void timer_default_calc_ps_timer_from_total(uint8_t iotimer, uint32_t *prescale,
                                             uint32_t *load, uint64_t total);
 
+uint32_t timer_us_to_tics(uint32_t us);
+uint32_t timer_tics_to_us(uint32_t tics);
+uint32_t timer_pwm_to_ppm_RC_convention(uint32_t pwm_tics);
+
 
 #endif /* TIMER_CAPTURE_GENERATE_H_ */
