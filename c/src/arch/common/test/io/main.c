@@ -8,7 +8,8 @@ comms_t *stdout_comms;
 
 int main()
 {
-    stdout_comms = comms_create(publish_stdout, 256);
+    stdout_comms = comms_create(256);
+    comms_add_publisher(stdout_comms, publish_stdout);
 
     uint16_t msg_len = 5;
     uint8_t msg[5] = {0,1,2,3,4};
