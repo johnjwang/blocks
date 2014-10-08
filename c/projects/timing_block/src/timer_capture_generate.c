@@ -382,8 +382,11 @@ static void timer_ppm_int_handler(void)
 {
 #define START_PULSE 0
 #define END_PULSE 1
-#define START_PULSE_US 300
-#define TOTAL_PERIOD_US 22500
+
+    // list inputs in the order they should be muxed into the ppm signal
+    static uint8_t channel_map[PPM_NUM_CHANNELS] = {TIMER_INPUT_8, TIMER_INPUT_7, TIMER_INPUT_6,
+                                                    TIMER_INPUT_5, TIMER_INPUT_4, TIMER_INPUT_3,
+                                                    TIMER_INPUT_2, TIMER_INPUT_1};
 
     uint32_t timer_base = timer_bases[default_timers[TIMER_OUTPUT_9].timer_base_ind];
     uint32_t timer_sel  = timer_sels[default_timers[TIMER_OUTPUT_9].timer_sel_ind];
@@ -393,15 +396,15 @@ static void timer_ppm_int_handler(void)
     TimerIntClear(timer_base, timer_sel_to_int_timeout_event(&default_timers[TIMER_OUTPUT_9]));
 
     static uint8_t pulse_state = START_PULSE;
-    static uint8_t channel_num = TIMER_INPUT_1;
-    static uint32_t ppm_total_period_left_us = TOTAL_PERIOD_US;
+    static uint8_t channel_num = 0;
+    static uint32_t ppm_total_period_left_us = PPM_TOTAL_PERIOD_US;
     uint32_t tics;
     uint32_t us;
 
     switch(pulse_state)
     {
         case START_PULSE:
-            us = START_PULSE_US;
+            us = PPM_START_PULSE_US;
             tics = timer_us_to_tics(us);
             ppm_total_period_left_us -= us;
             GPIOPinWrite(gpio_port, gpio_pin, 0);
@@ -411,7 +414,8 @@ static void timer_ppm_int_handler(void)
         case END_PULSE:
             if(channel_num < PPM_NUM_CHANNELS)
             {
-                tics = timer_pwm_to_ppm_RC_convention(default_timers[channel_num].timer_val);
+                tics = timer_pwm_to_ppm_RC_convention(
+                        default_timers[channel_map[channel_num]].timer_val);
                 us = timer_tics_to_us(tics);
                 ppm_total_period_left_us -= us;
                 ++channel_num;
@@ -420,8 +424,8 @@ static void timer_ppm_int_handler(void)
             {
                 us = ppm_total_period_left_us;
                 tics = timer_us_to_tics(us);
-                ppm_total_period_left_us = TOTAL_PERIOD_US;
-                channel_num = TIMER_INPUT_1;
+                ppm_total_period_left_us = PPM_TOTAL_PERIOD_US;
+                channel_num = 0;
             }
             GPIOPinWrite(gpio_port, gpio_pin, gpio_pin);
             pulse_state = START_PULSE;
@@ -438,8 +442,6 @@ static void timer_ppm_int_handler(void)
     TimerLoadSet(timer_base, timer_sel, load);
     TimerEnable(timer_base, timer_sel);
 
-#undef TOTAL_PERIOD_US
-#undef START_PULSE_US
 #undef END_PULSE
 #undef START_PULSE
 }

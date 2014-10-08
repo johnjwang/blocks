@@ -75,6 +75,8 @@ typedef enum _gpio_port_indices_t {
 
 // PPM settings
 #define PPM_NUM_CHANNELS 8
+#define PPM_START_PULSE_US 300
+#define PPM_TOTAL_PERIOD_US 22500
 
 // Capture / Generate modes, least significant 4 bits is a capture code
 // most significant 4 bits is a generate code (can't be both)
