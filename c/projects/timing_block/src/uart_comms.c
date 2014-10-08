@@ -86,7 +86,7 @@ void uart_comms_up_demo(void)
 	    kill_t kill;
 	    kill.reason = 1;
 
-	    uint16_t max_len = kill_t_encoded_size(&kill);
+	    uint16_t max_len = __kill_t_encoded_array_size(&kill);
 	    if(max_len > 20) while(1);
 
         uint8_t buf[20];

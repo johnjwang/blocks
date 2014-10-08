@@ -14,6 +14,7 @@
 #include "driverlib/interrupt.h"
 #include "driverlib/rom.h"
 
+#include "io/comms.h"
 
 #include "bootloader.h"
 #include "timing_block_util.h"
@@ -21,6 +22,9 @@
 #include "uart_comms.h"
 #include "usb_comms.h"
 #include "timer_capture_generate.h"
+
+#include "lcmtypes/channels_t.h"
+#include "lcmtypes/kill_t.h"
 
 
 #ifdef DEBUG
@@ -70,8 +74,13 @@ int main(void)
     static int start_idx = 1;
     int i = start_idx, next_i = start_idx, j = 1;
     
-    uint8_t buf[30];
-    uint32_t buflen = 30;
+    uint8_t buf[40];
+    uint16_t buflen = 40;
+    int16_t channel_val[PPM_NUM_CHANNELS];
+
+    comms_t *comms_out = comms_create(256);
+    comms_add_publisher(comms_out, uart_comms_up_write_byte);
+    comms_add_publisher(comms_out, usb_comms_write_byte);
 
     while(1)
     {
@@ -88,18 +97,35 @@ int main(void)
 
     	uint64_t utime = timestamp_now();
     	static uint64_t last_utime = 0;
-    	if(last_utime + 300000 < utime)
+    	if(last_utime + 100000 < utime)
     	{
     		last_utime = utime;
 
-    		uint8_t j;
-    		for (j=0; j<=TIMER_INPUT_9; ++j) {
-                uint32_t strlen = snprintf((char*)buf, buflen, "%lu ",
-                                           timer_tics_to_us(timer_default_pulse(j, 0)));
-                usb_comms_write(buf, strlen);
-    		}
-    		usb_comms_write_byte('\r');
-    		usb_comms_write_byte('\n');
+    		channels_t channel;
+            channel.utime = utime;
+            channel.num_channels = PPM_NUM_CHANNELS;
+            uint8_t chan_i;
+            for (chan_i=0; chan_i<PPM_NUM_CHANNELS; ++chan_i) {
+                channel_val[chan_i] = timer_tics_to_us(
+                        timer_default_pulse(ppm_channel_map[chan_i], 0));
+            }
+            channel.channels = channel_val;
+
+            uint16_t max_len = __channels_t_encoded_array_size(&channel, 1);
+            if(max_len > buflen) while(1);
+            uint16_t len = __channels_t_encode_array(buf, 0, buflen, &channel, 1);
+
+            comms_publish_blocking(comms_out, CHANNEL_CHANNELS, buf, len);
+
+
+//    		uint8_t j;
+//    		for (j=0; j<=TIMER_INPUT_9; ++j) {
+//                uint32_t strlen = snprintf((char*)buf, buflen, "%lu ",
+//                                           timer_tics_to_us(timer_default_pulse(j, 0)));
+//                usb_comms_write(buf, strlen);
+//    		}
+//    		usb_comms_write_byte('\r');
+//    		usb_comms_write_byte('\n');
 		}
 
 		#ifdef DEBUG
