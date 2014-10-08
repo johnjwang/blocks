@@ -2,7 +2,7 @@
 set -e
 
 if [ -z $BLOCKS_HOME ]; then
-    echo "SKYSPECS_HOME must be defined as an environment variable"
+    echo "BLOCKS_HOME must be defined as an environment variable"
     exit 1
 fi
 
