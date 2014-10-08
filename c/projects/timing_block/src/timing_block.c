@@ -74,8 +74,8 @@ int main(void)
     static int start_idx = 1;
     int i = start_idx, next_i = start_idx, j = 1;
     
-    uint8_t buf[30];
-    uint16_t buflen = 30;
+    uint8_t buf[40];
+    uint16_t buflen = 40;
     int16_t channel_val[PPM_NUM_CHANNELS];
 
     comms_t *comms_out = comms_create(256);
@@ -106,15 +106,15 @@ int main(void)
             channel.num_channels = PPM_NUM_CHANNELS;
             uint8_t j;
             for (j=0; j<PPM_NUM_CHANNELS; ++j) {
-                channel_val[j] = timer_tics_to_us(timer_default_pulse(ppm_channel_map[j]), 0);
+                channel_val[j] = timer_tics_to_us(timer_default_pulse(ppm_channel_map[j], 0));
             }
             channel.channels = channel_val;
 
-            uint16_t max_len = channel_t_encoded_size(&channel);
+            uint16_t max_len = channels_t_encoded_size(&channel);
             if(max_len > buflen) while(1);
-            uint16_t len = __channel_t_encode_array(buf, 0, buflen, &channel, 1);
+            uint16_t len = __channels_t_encode_array(buf, 0, buflen, &channel, 1);
 
-            comms_publish_blocking(comms_out, CHANNEL_KILL, buf, len);
+            comms_publish_blocking(comms_out, CHANNEL_CHANNELS, buf, len);
 
 
 //    		uint8_t j;
