@@ -8,26 +8,26 @@
 #ifndef TIMER_CAPTURE_GENERATE_H_
 #define TIMER_CAPTURE_GENERATE_H_
 
-// Input-Output port numbers
+// Input-Output port numbers XXX: (position comments are for v1 block)
 typedef enum _timer_io_t{
-    TIMER_INPUT_1,  /*D3*/
+    TIMER_INPUT_1,  /*D3*/ /*next to 5V*/
     TIMER_INPUT_2,  /*D2*/
     TIMER_INPUT_3,  /*D1*/
     TIMER_INPUT_4,  /*B6*/
     TIMER_INPUT_5,  /*B4*/
     TIMER_INPUT_6,  /*B5*/
     TIMER_INPUT_7,  /*D6*/
-    TIMER_INPUT_8,  /*B3*/
-    TIMER_INPUT_9,  /*B2*/
-    TIMER_OUTPUT_1, /*G1*/
+    TIMER_INPUT_8,  /*B3*/ /*next to gnd*/
+    TIMER_INPUT_9,  /*B2*/ /*in 3 pin jst*/
+    TIMER_OUTPUT_1, /*G1*/ /*next to 5V*/
     TIMER_OUTPUT_2, /*G2*/
     TIMER_OUTPUT_3, /*G3*/
     TIMER_OUTPUT_4, /*C4*/
     TIMER_OUTPUT_5, /*C5*/
     TIMER_OUTPUT_6, /*C6*/
     TIMER_OUTPUT_7, /*C7*/
-    TIMER_OUTPUT_8, /*B7*/
-    TIMER_OUTPUT_9, /*G0*/
+    TIMER_OUTPUT_8, /*B7*/ /*next to gnd*/
+    TIMER_OUTPUT_9, /*G0*/ /*in 3 pin jst*/
     NUM_TIMERS
 } timer_io_t;
 
@@ -71,6 +71,10 @@ typedef enum _gpio_port_indices_t {
 // Timer Overflow Settings
 #define OVERFLOW_60MS 60000
 #define OVERFLOW_20MS 20000
+#define OVERFLOW_PPM 1
+
+// PPM settings
+#define PPM_NUM_CHANNELS 8
 
 // Capture / Generate modes, least significant 4 bits is a capture code
 // most significant 4 bits is a generate code (can't be both)

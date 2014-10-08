@@ -13,11 +13,11 @@
 #include "inc/hw_memmap.h"
 #include "inc/hw_ints.h"
 
-#include "driverlib/sysctl.h"
-#include "driverlib/timer.h"
-#include "driverlib/gpio.h"
-#include "driverlib/interrupt.h"
 #include "driverlib/pin_map.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/gpio.h"
+#include "driverlib/timer.h"
 
 #include "time_util.h"
 #include "usb_comms.h"
@@ -68,13 +68,19 @@ static void (*timer_capture_int_handlers[8])(void) = {timer_capture_int_handler1
                                                       timer_capture_int_handler7,
                                                       timer_capture_int_handler8};
 
+static void timer_ppm_int_handler(void);
+
 static void timer_default_setup(void);
 static void timer_init(timer_cap_gen_t timers[], uint8_t num,
                        void (*input_int_handlers[])(void), uint8_t num_int);
 static uint32_t timer_sel_to_int_cap_event(timer_cap_gen_t *timer);
+static uint32_t timer_sel_to_int_timeout_event(timer_cap_gen_t *timer);
 static uint64_t timer_get_total_load(timer_cap_gen_t *timer);
 static void timer_calc_ps_timer_from_total(timer_cap_gen_t *timer, uint32_t *prescale,
                                            uint32_t *load, uint64_t total);
+static uint32_t timer_us_to_tics(uint32_t us);
+static uint32_t timer_tics_to_us(uint32_t tics);
+static uint32_t timer_pwm_to_ppm_RC_convention(uint32_t pwm_tics);
 
 /**
  * Measures or generates a pulse on the given timer.
@@ -85,6 +91,7 @@ static void timer_calc_ps_timer_from_total(timer_cap_gen_t *timer, uint32_t *pre
  */
 static uint32_t timer_pulse(timer_cap_gen_t *timer, uint32_t pulse_width_tics);
 
+// XXX need to change this to be a value from 1 ms to 2 ms instead of % duty
 /**
  * Measures or generates a pulse on the given timer using RC standard PWM signals.
  * The pulse width value given maps from [0, UINT16_MAX] to a [05%, 10%] duty cycle
@@ -234,13 +241,17 @@ static void timer_init(timer_cap_gen_t timers[], uint8_t num,
                                  timer_sels[timers[i].timer_sel_ind],
                                  input_int_handlers[j]);
             }
-        } else { // generator mode
+        } else { // generator mode (and ppm interrupt)
             switch (timers[i].capgen_mode) {
                 case CAPGEN_MODE_GEN_PWM:
                     mode = TIMER_UP_LOAD_TIMEOUT | TIMER_UP_MATCH_TIMEOUT;
                     break;
                 case CAPGEN_MODE_GEN_PPM:
                     mode = TIMER_UP_LOAD_IMMEDIATE | TIMER_UP_MATCH_IMMEDIATE;
+                    TimerIntEnable(timer_bases[timers[i].timer_base_ind],
+                                   timer_sel_to_int_timeout_event(&timers[i]));
+                    IntPrioritySet(_TimerIntNumberGet(timer_bases[timers[i].timer_base_ind],
+                                                      timer_sels[timers[i].timer_sel_ind]), 0x20);
                     break;
                 default:
                     while (1);
@@ -342,10 +353,74 @@ static void timer_capture_int_handler(int num)
         if (gpio_level == 0) {
             default_timers[num].timer_val = delta;
             timer_default_pulse(num + TIMER_OUTPUT_1, delta);
+//            usb_comms_write(msg, snprintf((char*)msg, 30, "%lu\r\n", delta/80));
         }
-        //usb_comms_write(msg, snprintf((char*)msg, 30, "%lu\r\n", delta/80));
     }
     lastTime[num] = time;
+}
+
+static void timer_ppm_int_handler(void)
+{
+#define START_PULSE 0
+#define END_PULSE 1
+#define START_PULSE_US 300
+#define TOTAL_PERIOD_US 22500
+
+    uint32_t timer_base = timer_bases[default_timers[TIMER_OUTPUT_9].timer_base_ind];
+    uint32_t timer_sel  = timer_sels[default_timers[TIMER_OUTPUT_9].timer_sel_ind];
+    uint32_t gpio_port  = gpio_ports[default_timers[TIMER_OUTPUT_9].gpio_port_ind];
+    uint8_t  gpio_pin   = default_timers[TIMER_OUTPUT_9].gpio_pin;
+
+    TimerIntClear(timer_base, timer_sel_to_int_timeout_event(&default_timers[TIMER_OUTPUT_9]));
+
+    static uint8_t pulse_state = START_PULSE;
+    static uint8_t channel_num = TIMER_INPUT_1;
+    static const uint32_t ppm_start_pulse_us = START_PULSE_US;
+    static const uint32_t ppm_total_period_us = TOTAL_PERIOD_US;
+    static uint32_t ppm_total_period_left_us = TOTAL_PERIOD_US;
+    static uint32_t tics;
+    static uint32_t us;
+
+    switch(pulse_state)
+    {
+        case START_PULSE:
+            us = ppm_start_pulse_us;
+            tics = timer_us_to_tics(us);
+            ppm_total_period_left_us -= us;
+            GPIOPinWrite(gpio_port, gpio_pin, 0);
+            pulse_state = END_PULSE;
+            break;
+
+        case END_PULSE:
+            if(channel_num < PPM_NUM_CHANNELS)
+            {
+                tics = timer_pwm_to_ppm_RC_convention(default_timers[channel_num].timer_val);
+                us = timer_tics_to_us(tics);
+                ppm_total_period_left_us -= us;
+                ++channel_num;
+            }
+            else
+            {
+                us = ppm_total_period_left_us;
+                tics = timer_us_to_tics(us);
+                ppm_total_period_left_us = ppm_total_period_us;
+                channel_num = TIMER_INPUT_1;
+            }
+            GPIOPinWrite(gpio_port, gpio_pin, gpio_pin);
+            pulse_state = START_PULSE;
+            break;
+
+        default:
+            break;
+    }
+
+    TimerLoadSet(timer_base, timer_sel, tics);
+    TimerEnable(timer_base, timer_sel);
+
+#undef TOTAL_PERIOD_US
+#undef START_PULSE_US
+#undef END_PULSE
+#undef START_PULSE
 }
 
 // XXX: make more functions like this to clean up the initializer
@@ -356,6 +431,18 @@ static uint32_t timer_sel_to_int_cap_event(timer_cap_gen_t *timer)
             return TIMER_CAPA_EVENT;
         case TIMERB:
             return TIMER_CAPB_EVENT;
+        default:
+            return 0;
+    }
+}
+
+static uint32_t timer_sel_to_int_timeout_event(timer_cap_gen_t *timer)
+{
+    switch (timer->timer_sel_ind) {
+        case TIMERA:
+            return TIMER_TIMA_TIMEOUT;
+        case TIMERB:
+            return TIMER_TIMB_TIMEOUT;
         default:
             return 0;
     }
@@ -400,6 +487,27 @@ void timer_default_calc_ps_timer_from_total(uint8_t iotimer, uint32_t *prescale,
     timer_calc_ps_timer_from_total(&default_timers[iotimer], prescale, load, total);
 }
 
+static uint32_t timer_us_to_tics(uint32_t us)
+{
+    return ((uint64_t)us * SysCtlClockGet()) / 1000000;
+}
+
+static uint32_t timer_tics_to_us(uint32_t tics)
+{
+    return ((uint64_t)tics * 1000000) / SysCtlClockGet();
+}
+
+static uint32_t timer_pwm_to_ppm_RC_convention(uint32_t pwm_tics)
+{
+    // need to map [1, 2] ms to [0.7, 1.7] ms
+    uint32_t pwm_us = timer_tics_to_us(pwm_tics);
+    uint32_t ppm_us;
+    if (pwm_us < 1000) ppm_us = 700;
+    else if (pwm_us > 2000) ppm_us = 1700;
+    else ppm_us = pwm_us - 300;
+    return timer_us_to_tics(ppm_us);
+}
+
 static void timer_default_setup(void)
 {
     default_timers[TIMER_INPUT_1]  = (timer_cap_gen_t){GPIO_PD3_WT3CCP1, OVERFLOW_60MS,
@@ -439,7 +547,7 @@ static void timer_default_setup(void)
                                                        TIMER3, TIMERA, CAPGEN_MODE_CAP_RF_EDGE};
 
     default_timers[TIMER_OUTPUT_1] = (timer_cap_gen_t){GPIO_PG1_T4CCP1, OVERFLOW_20MS,
-                                                       GPIO_PG, GPIO_PIN_4,
+                                                       GPIO_PG, GPIO_PIN_1,
                                                        TIMER4, TIMERB, CAPGEN_MODE_GEN_PWM};
 
     default_timers[TIMER_OUTPUT_2] = (timer_cap_gen_t){GPIO_PG2_T5CCP0, OVERFLOW_20MS,
@@ -470,7 +578,7 @@ static void timer_default_setup(void)
                                                        GPIO_PB, GPIO_PIN_7,
                                                        TIMER0, TIMERB, CAPGEN_MODE_GEN_PWM};
 
-    default_timers[TIMER_OUTPUT_9] = (timer_cap_gen_t){GPIO_PG0_T4CCP0, OVERFLOW_20MS,
+    default_timers[TIMER_OUTPUT_9] = (timer_cap_gen_t){GPIO_PG0_T4CCP0, OVERFLOW_PPM,
                                                        GPIO_PG, GPIO_PIN_0,
                                                        TIMER4, TIMERA, CAPGEN_MODE_GEN_PPM};
 }
