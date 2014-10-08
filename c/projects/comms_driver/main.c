@@ -64,7 +64,8 @@ int main()
         exit(1);
     }
 
-    serial_comms = comms_create(publish_serial, 1000);
+    serial_comms = comms_create(1000);
+    comms_add_publisher(serial_comms, publish_serial);
 
     comms_subscribe(serial_comms, CHANNEL_KILL, handler_kill);
 

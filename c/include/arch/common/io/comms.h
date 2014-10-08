@@ -25,13 +25,14 @@ typedef void (*subscriber_t)(uint8_t *msg, uint16_t msg_len);
 
 typedef struct comms_t
 {
-    publisher_t publisher;
-
     uint8_t *decode_buf;
     uint32_t decode_buf_len;
 
-    subscriber_t *subscribers[CHANNEL_NUM_CHANNELS];
-    uint8_t num_subscribers[CHANNEL_NUM_CHANNELS];
+    publisher_t *publishers; // An array of publisher function pointers
+    uint8_t num_publishers;
+
+    subscriber_t *subscribers[CHANNEL_NUM_CHANNELS]; // An array of arrays of
+    uint8_t num_subscribers[CHANNEL_NUM_CHANNELS];   // subscriber function pointers
 
     // Variables to handle decoding
     comms_channel_t decode_channel;
@@ -39,19 +40,28 @@ typedef struct comms_t
     uint16_t decode_num_data_read;
     uint16_t decode_checksum;
     uint8_t  decode_state;
+    uint8_t  decode_id;
     uint8_t checksum_rx1, checksum_rx2;
     uint8_t checksum_tx1, checksum_tx2;
 
 } comms_t;
 
-comms_t* comms_create(publisher_t publisher, int32_t buf_len);
+comms_t* comms_create(int32_t buf_len);
+
+void comms_add_publisher(comms_t *comms, publisher_t publisher);
 
 void comms_subscribe(comms_t *comms, comms_channel_t channel, subscriber_t subscriber);
 
-void comms_publish_blocking(comms_t *comms,
-                            comms_channel_t channel,
-                            uint8_t *msg,
-                            uint16_t msg_len);
+void comms_publish_blocking_id(comms_t *comms,
+                               uint8_t id,
+                               comms_channel_t channel,
+                               uint8_t *msg,
+                               uint16_t msg_len);
+
+inline void comms_publish_blocking(comms_t *comms,
+                                   comms_channel_t channel,
+                                   uint8_t *msg,
+                                   uint16_t msg_len);
 
 void comms_handle(comms_t *comms, uint8_t byte);
 
