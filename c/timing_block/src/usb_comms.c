@@ -267,16 +267,16 @@ RxHandler(void *pvCBData, uint32_t ui32Event, uint32_t ui32MsgValue,
         //
         case USB_EVENT_RX_AVAILABLE:
         {
-            uint8_t data[1];
-            if(USBBufferRead((tUSBBuffer *)&g_sRxBuffer, data, 1))
-            {
-                uint8_t i;
-                for (i=TIMER_OUTPUT_1; i<=TIMER_OUTPUT_8; ++i) {
-                    if ((char)data[0] >= '0' && (char)data[0] <= '9')
-                        timer_default_pulse_RC(i, (   (uint32_t)(((char)data[0] - '0')
-                                                    * (uint32_t)UINT16_MAX)) / 10);
-                }
-            }
+//            uint8_t data[1];
+//            if(USBBufferRead((tUSBBuffer *)&g_sRxBuffer, data, 1))
+//            {
+//                uint8_t i;
+//                for (i=TIMER_OUTPUT_1; i<=TIMER_OUTPUT_8; ++i) {
+//                    if ((char)data[0] >= '0' && (char)data[0] <= '9')
+//                        timer_default_pulse_RC(i, (   (uint32_t)(((char)data[0] - '0')
+//                                                    * (uint32_t)UINT16_MAX)) / 10);
+//                }
+//            }
             break;
         }
 
