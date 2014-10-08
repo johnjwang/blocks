@@ -9,8 +9,9 @@
 #include "io/comms.h"
 #include "io/serial.h"
 
-#include "lcmtypes/kill_t.h"
+#include "lcmtypes/channels_t.h"
 #include "lcmtypes/imu_data_t.h"
+#include "lcmtypes/kill_t.h"
 #include "lcmtypes/rpms_t.h"
 #include "lcmtypes/telemetry_t.h"
 
@@ -30,6 +31,7 @@ static uint64_t timestamp_now(void)
     return (uint64_t) tv.tv_sec * 1000000 + tv.tv_usec;
 }
 static bool publish_serial(uint8_t byte);
+static void handler_channels(uint8_t *msg, uint16_t len);
 static void handler_kill(uint8_t *msg, uint16_t len);
 
 comms_t *serial_comms;
@@ -68,6 +70,7 @@ int main()
     comms_add_publisher(serial_comms, publish_serial);
 
     comms_subscribe(serial_comms, CHANNEL_KILL, handler_kill);
+    comms_subscribe(serial_comms, CHANNEL_CHANNELS, handler_channels);
 
     char data[1];
     while(!done)
@@ -97,6 +100,23 @@ static void handler_kill(uint8_t *msg, uint16_t len)
     __kill_t_decode_array(msg, 0, len, &kill, 1);
     kill_t_publish(lcm, "KILL_RX", &kill);
     kill_t_decode_cleanup(&kill);
+}
+
+static void handler_channels(uint8_t *msg, uint16_t len)
+{
+    verbose_printf("Received message on channels channel: ");
+    uint16_t i;
+    for(i = 0; i < len; ++i)
+    {
+        verbose_printf("%x", msg[i]);
+    }
+    verbose_printf("\n");
+
+    channels_t channels;
+    memset(&channels, 0, sizeof(channels_t));
+    __channels_t_decode_array(msg, 0, len, &channels, 1);
+    channels_t_publish(lcm, "CHANNELS_RX", &channels);
+    channels_t_decode_cleanup(&channels);
 }
 
 static bool publish_serial(uint8_t byte)
