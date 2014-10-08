@@ -1,3 +1,5 @@
+CFLAGS:=-I${BLOCKS_HOME}/c/include/arch/embedded
+
 CPATH:=${CURDIR}
 HPATH:=${BLOCKS_HOME}/c/include/arch/embedded/lcmtypes
 
@@ -15,7 +17,7 @@ debug: CFLAGS+=-g
 debug: all
 
 lcm-gen:
-	lcm-gen -c --c-no-pubsub --cinclude=${HPATH} --c-cpath=${CPATH} --c-hpath=${HPATH} ${BLOCKS_HOME}/lcmtypes/*
+	lcm-gen -c --c-no-pubsub --cinclude=lcmtypes --c-cpath=${CPATH} --c-hpath=${HPATH} ${BLOCKS_HOME}/lcmtypes/*
 
 clean:
 	rm -rf ${CPATH}/*.c
