@@ -8,6 +8,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "driverlib/sysctl.h"
 #include "driverlib/interrupt.h"
@@ -19,8 +20,6 @@
 #include "time_util.h"
 #include "uart_comms.h"
 #include "usb_comms.h"
-#include "gpio_ctl.h"
-#include "ppm.h"
 #include "timer_capture_generate.h"
 
 
@@ -45,8 +44,6 @@ int main(void)
     //****** All user code goes below here ******
 
     uart_comms_up_init();
-//    gpio_ctl_init();
-//    ppm_init();
     timer_default_init();
 
     IntMasterEnable();
@@ -60,14 +57,10 @@ int main(void)
 		debug_init();
 	#endif
 
-//	uint32_t sysclk = SysCtlClockGet();
-
-//	uint32_t pulse_width = 50000;
-//	while(1){
-//		timer_generate_pulse(pulse_width);
-//		SysCtlDelay(SysCtlClockGet() / 3);
-//	}
-
+	uint8_t k;
+	for (k=TIMER_OUTPUT_1; k<=TIMER_OUTPUT_8; ++k) {
+        timer_default_pulse_RC(k, ((uint32_t)(k - TIMER_OUTPUT_1) * (uint32_t)UINT16_MAX) / 10);
+	}
 
 	//
     // Loop forever.
@@ -77,15 +70,8 @@ int main(void)
     static int start_idx = 1;
     int i = start_idx, next_i = start_idx, j = 1;
     
-//    uint8_t buf[30];
-//    uint32_t buflen = 30;
-//    uint32_t outstart = GPIO_INPUT_1;
-//    uint32_t output = outstart;
-//    uint8_t outval = 1;
-
-//    ppm_start();
-
-    timer_generate_pulse(SysCtlClockGet() / 1000);
+    uint8_t buf[30];
+    uint32_t buflen = 30;
 
     while(1)
     {
@@ -100,20 +86,21 @@ int main(void)
 			}
     	}
 
-//    	uint64_t utime = timestamp_now();
-//    	static uint64_t last_utime = 0;
-//    	if(last_utime + 300000 < utime)
-//    	{
-//    		last_utime = utime;
-//    		gpio_ctl_write(output++, outval);
-//			if (output > GPIO_OUTPUT_9) {
-//				output = outstart;
-//				outval = 1 - outval;
-//			}
-//
-//			uint32_t strlen =gpio_ctl_values_snprintf_no_preread(buf, buflen);
-//			usb_write(buf, strlen);
-//		}
+    	uint64_t utime = timestamp_now();
+    	static uint64_t last_utime = 0;
+    	if(last_utime + 300000 < utime)
+    	{
+    		last_utime = utime;
+
+    		uint8_t j;
+    		for (j=0; j<=TIMER_INPUT_9; ++j) {
+                uint32_t strlen = snprintf((char*)buf, buflen, "%lu ",
+                                           timer_tics_to_us(timer_default_pulse(j, 0)));
+                usb_comms_write(buf, strlen);
+    		}
+    		usb_comms_write_byte('\r');
+    		usb_comms_write_byte('\n');
+		}
 
 		#ifdef DEBUG
 			debug();

@@ -34,6 +34,7 @@ void uart_comms_up_init(void)
 	GPIOPinConfigure(GPIO_PG5_U2TX);
 
 	GPIOPinTypeUART(GPIO_PORTG_BASE, GPIO_PIN_4 | GPIO_PIN_5);
+    GPIOPadConfigSet(GPIO_PORTG_BASE, GPIO_PIN_4, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPD);
 
     UARTConfigSetExpClk(UART2_BASE, SysCtlClockGet(), 9600,
                         (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
@@ -109,6 +110,11 @@ static void uart_comms_up_int_handler(void)
 	{
 	    uint32_t data = UARTCharGet(UART2_BASE);
 	    usb_comms_write_byte((char)data);
-	    timer_generate_pulse_percent(((char)data - '0') / 10.0);
+//	    uint8_t i;
+//	    for (i=TIMER_OUTPUT_1; i<=TIMER_OUTPUT_8; ++i) {
+//	        if ((char)data >= '0' && (char)data <= '9')
+//	            timer_default_pulse_RC(i, (   (uint32_t)(((char)data - '0')
+//	                                        * (uint32_t)UINT16_MAX)) / 10);
+//	    }
 	}
 }

@@ -84,8 +84,6 @@ void ppm_start(void)
 
 static void ppm_interrupt_handler(void)
 {
-#define NUM_STATES
-
 #define START_PULSE 0
 #define END_PULSE 1
 
@@ -128,6 +126,4 @@ static void ppm_interrupt_handler(void)
 
 #undef END_PULSE
 #undef START_PULSE
-
-#undef NUM_STATES
 }
