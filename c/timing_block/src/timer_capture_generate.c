@@ -424,7 +424,11 @@ static void timer_ppm_int_handler(void)
             break;
     }
 
-    TimerLoadSet(timer_base, timer_sel, tics);
+    uint32_t prescale;
+    uint32_t load;
+    timer_default_calc_ps_timer_from_total(TIMER_OUTPUT_9, &prescale, &load, tics);
+    TimerPrescaleSet(timer_base, timer_sel, prescale);
+    TimerLoadSet(timer_base, timer_sel, load);
     TimerEnable(timer_base, timer_sel);
 
 #undef TOTAL_PERIOD_US
