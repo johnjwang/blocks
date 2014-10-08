@@ -79,7 +79,8 @@ bool uart_comms_up_write(uint8_t *msg, uint32_t dataLen)
 
 void uart_comms_up_demo(void)
 {
-    comms_t *uart_comms_up = comms_create(uart_comms_up_write_byte, 256);
+    comms_t *uart_comms_up = comms_create(256);
+    comms_add_publisher(uart_comms_up, uart_comms_up_write_byte);
 	while(1)
 	{
 	    kill_t kill;
