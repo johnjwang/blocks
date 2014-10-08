@@ -75,6 +75,7 @@ static void timer_init(timer_cap_gen_t timers[], uint8_t num,
                        void (*input_int_handlers[])(void), uint8_t num_int);
 static uint32_t timer_sel_to_int_cap_event(timer_cap_gen_t *timer);
 static uint32_t timer_sel_to_int_timeout_event(timer_cap_gen_t *timer);
+static uint32_t timer_sel_to_int_match_event(timer_cap_gen_t *timer);
 static uint64_t timer_get_total_load(timer_cap_gen_t *timer);
 static void timer_calc_ps_timer_from_total(timer_cap_gen_t *timer, uint32_t *prescale,
                                            uint32_t *load, uint64_t total);
@@ -166,7 +167,7 @@ static void timer_init(timer_cap_gen_t timers[], uint8_t num,
                         timer_cfg[timers[i].timer_base_ind] |= TIMER_CFG_SPLIT_PAIR | TIMER_CFG_A_PWM;
                         break;
                     case CAPGEN_MODE_GEN_PPM:
-                        timer_cfg[timers[i].timer_base_ind] |= TIMER_CFG_SPLIT_PAIR | TIMER_CFG_A_ONE_SHOT;
+                        timer_cfg[timers[i].timer_base_ind] |= TIMER_CFG_SPLIT_PAIR | TIMER_CFG_A_ONE_SHOT_UP;
                         break;
                     default:
                         break;
@@ -183,7 +184,7 @@ static void timer_init(timer_cap_gen_t timers[], uint8_t num,
                         timer_cfg[timers[i].timer_base_ind] |= TIMER_CFG_SPLIT_PAIR | TIMER_CFG_B_PWM;
                         break;
                     case CAPGEN_MODE_GEN_PPM:
-                        timer_cfg[timers[i].timer_base_ind] |= TIMER_CFG_SPLIT_PAIR | TIMER_CFG_B_ONE_SHOT;
+                        timer_cfg[timers[i].timer_base_ind] |= TIMER_CFG_SPLIT_PAIR | TIMER_CFG_B_ONE_SHOT_UP;
                         break;
                     default:
                         break;
@@ -271,10 +272,18 @@ static void timer_init(timer_cap_gen_t timers[], uint8_t num,
         }
     }
 
+    // Get outputs ready
+    // XXX: handling PPM a bit weird right now
     for (i=0; i<=num; ++i) {
         switch (timers[i].capgen_mode) {
             case CAPGEN_MODE_GEN_PWM:
                 timer_pulse(&timers[i], 0);
+                break;
+            case CAPGEN_MODE_GEN_PPM:
+                TimerLoadSet(timer_bases[timers[i].timer_base_ind],
+                             timer_sels[timers[i].timer_sel_ind], 1);
+                TimerPrescaleSet(timer_bases[timers[i].timer_base_ind],
+                                 timer_sels[timers[i].timer_sel_ind], 0);
                 break;
             default:
                 break;
