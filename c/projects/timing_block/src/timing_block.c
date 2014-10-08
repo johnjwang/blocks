@@ -97,20 +97,21 @@ int main(void)
 
     	uint64_t utime = timestamp_now();
     	static uint64_t last_utime = 0;
-    	if(last_utime + 300000 < utime)
+    	if(last_utime + 100000 < utime)
     	{
     		last_utime = utime;
 
     		channels_t channel;
             channel.utime = utime;
             channel.num_channels = PPM_NUM_CHANNELS;
-            uint8_t j;
-            for (j=0; j<PPM_NUM_CHANNELS; ++j) {
-                channel_val[j] = timer_tics_to_us(timer_default_pulse(ppm_channel_map[j], 0));
+            uint8_t chan_i;
+            for (chan_i=0; chan_i<PPM_NUM_CHANNELS; ++chan_i) {
+                channel_val[chan_i] = timer_tics_to_us(
+                        timer_default_pulse(ppm_channel_map[chan_i], 0));
             }
             channel.channels = channel_val;
 
-            uint16_t max_len = channels_t_encoded_size(&channel);
+            uint16_t max_len = __channels_t_encoded_array_size(&channel, 1);
             if(max_len > buflen) while(1);
             uint16_t len = __channels_t_encode_array(buf, 0, buflen, &channel, 1);
 
