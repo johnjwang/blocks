@@ -136,8 +136,16 @@ static void timer_init(timer_cap_gen_t timers[], uint8_t num,
 
     // Configure GPIOs
     for (i=0; i<num; ++i) {
-        GPIOPinConfigure(timers[i].gpio_pin_config);
-        GPIOPinTypeTimer(gpio_ports[timers[i].gpio_port_ind], timers[i].gpio_pin);
+        // XXX: This is a kinda hacky fix but it works for the defaults
+        if (timers[i].gpio_pin_config) {
+            GPIOPinConfigure(timers[i].gpio_pin_config);
+            GPIOPinTypeTimer(gpio_ports[timers[i].gpio_port_ind], timers[i].gpio_pin);
+        } else {
+            GPIODirModeSet(gpio_ports[timers[i].gpio_port_ind], timers[i].gpio_pin,
+                           GPIO_DIR_MODE_OUT);
+            GPIOPadConfigSet(gpio_ports[timers[i].gpio_port_ind], timers[i].gpio_pin,
+                             GPIO_STRENGTH_4MA, GPIO_PIN_TYPE_STD_WPU);
+        }
     }
     for (i=0; i<num; ++i) {
         if (timers[i].capgen_mode & CAPGEN_MODE_CAP_MASK) {
@@ -252,6 +260,10 @@ static void timer_init(timer_cap_gen_t timers[], uint8_t num,
                                    timer_sel_to_int_timeout_event(&timers[i]));
                     IntPrioritySet(_TimerIntNumberGet(timer_bases[timers[i].timer_base_ind],
                                                       timer_sels[timers[i].timer_sel_ind]), 0x20);
+                    // XXX: right now always using ppm interrupt here
+                    TimerIntRegister(timer_bases[timers[i].timer_base_ind],
+                                     timer_sels[timers[i].timer_sel_ind],
+                                     timer_ppm_int_handler);
                     break;
                 default:
                     while (1);
@@ -375,16 +387,14 @@ static void timer_ppm_int_handler(void)
 
     static uint8_t pulse_state = START_PULSE;
     static uint8_t channel_num = TIMER_INPUT_1;
-    static const uint32_t ppm_start_pulse_us = START_PULSE_US;
-    static const uint32_t ppm_total_period_us = TOTAL_PERIOD_US;
     static uint32_t ppm_total_period_left_us = TOTAL_PERIOD_US;
-    static uint32_t tics;
-    static uint32_t us;
+    uint32_t tics;
+    uint32_t us;
 
     switch(pulse_state)
     {
         case START_PULSE:
-            us = ppm_start_pulse_us;
+            us = START_PULSE_US;
             tics = timer_us_to_tics(us);
             ppm_total_period_left_us -= us;
             GPIOPinWrite(gpio_port, gpio_pin, 0);
@@ -403,7 +413,7 @@ static void timer_ppm_int_handler(void)
             {
                 us = ppm_total_period_left_us;
                 tics = timer_us_to_tics(us);
-                ppm_total_period_left_us = ppm_total_period_us;
+                ppm_total_period_left_us = TOTAL_PERIOD_US;
                 channel_num = TIMER_INPUT_1;
             }
             GPIOPinWrite(gpio_port, gpio_pin, gpio_pin);
@@ -578,7 +588,8 @@ static void timer_default_setup(void)
                                                        GPIO_PB, GPIO_PIN_7,
                                                        TIMER0, TIMERB, CAPGEN_MODE_GEN_PWM};
 
-    default_timers[TIMER_OUTPUT_9] = (timer_cap_gen_t){GPIO_PG0_T4CCP0, OVERFLOW_PPM,
+//    default_timers[TIMER_OUTPUT_9] = (timer_cap_gen_t){GPIO_PG0_T4CCP0, OVERFLOW_PPM,
+    default_timers[TIMER_OUTPUT_9] = (timer_cap_gen_t){0, OVERFLOW_PPM,
                                                        GPIO_PG, GPIO_PIN_0,
                                                        TIMER4, TIMERA, CAPGEN_MODE_GEN_PPM};
 }
