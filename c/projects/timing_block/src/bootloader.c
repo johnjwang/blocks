@@ -21,6 +21,9 @@
 #include "timing_block_util.h"
 #include "bootloader.h"
 
+// XXX add another bit to EEPROM that is "ignore bootload" to make boots fast if you have to
+//     restart due to watchdogs
+
 #define ROM_UpdateUSB\
         ((void (*)(uint8_t *pui8DescriptorInfo))ROM_USBTABLE[58])
 
