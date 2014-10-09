@@ -62,11 +62,6 @@ int main(void)
 		debug_init();
 	#endif
 
-//	uint8_t k;
-//	for (k=TIMER_OUTPUT_1; k<=TIMER_OUTPUT_8; ++k) {
-//        timer_default_pulse_RC(k, ((uint32_t)(k - TIMER_OUTPUT_1) * (uint32_t)UINT16_MAX) / 10);
-//	}
-
 	//
     // Loop forever.
     //
