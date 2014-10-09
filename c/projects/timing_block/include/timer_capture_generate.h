@@ -93,7 +93,8 @@ extern const uint8_t ppm_channel_map[];
 
 // Note, these are initialized with initializer syntax in default setup
 // so don't change the order of the data
-typedef struct _timer_cap_gen_t
+typedef struct timer_cap_gen_t timer_cap_gen_t;
+struct timer_cap_gen_t
 {
     uint32_t gpio_pin_config;      // GPIO_Pcx_TxCCPx, GPIO_Pcx_WTxCCPx
 
@@ -103,6 +104,8 @@ typedef struct _timer_cap_gen_t
                                    // load value and prescaler can be calculated. Use OVERFLOW_xxMS
                                    // defines.
 
+    timer_cap_gen_t *linked_output;// If *this is an input, output the same pulse to the output
+
     uint8_t  gpio_port_ind;        // GPIO_Pc
     uint8_t  gpio_pin;             // GPIO_PIN_x
 
@@ -110,8 +113,7 @@ typedef struct _timer_cap_gen_t
     uint8_t  timer_sel_ind;        // TIMERA, TIMERB
 
     uint8_t  capgen_mode;          // CAPGEN_MODE_?????
-
-} timer_cap_gen_t;
+};
 
 /**
  * Initializes the default set of timers for the TIVA TM4C1232xx chip on the timing block board.
@@ -120,11 +122,30 @@ typedef struct _timer_cap_gen_t
 void timer_default_init(void);
 
 /**
+ * Connects the given input to the given output using the default timer array. Used to pass
+ * through PWMs.
+ * \param input (timer_io_t) input timer label
+ * \param output (timer_io_t) output timer label
+ */
+void timer_default_connect(uint8_t input, uint8_t output);
+
+/**
+ * Disconnects the given input timer from its output
+ * \param input (timer_io_t) input timer label
+ */
+void timer_default_disconnect(uint8_t input);
+
+/**
+ * Disconnnects all default timers from their outputs
+ */
+void timer_default_disconnect_all(void);
+
+/**
  * Measures or generates a pulse on the given io timer.
  * \param iotimer (timer_io_t) if an input, reads value of pwm pulse, if output, writes pulse
  * \param pulse_width_tics number of tics that make up the pulse width of the signal.
  *                         arg not used when reading an input-timer value
- * \returns the measured or generated pulse width.
+ * \return the measured or generated pulse width.
  */
 uint32_t timer_default_pulse(uint8_t iotimer, uint32_t pulse_width_tics);
 
@@ -135,9 +156,23 @@ uint32_t timer_default_pulse(uint8_t iotimer, uint32_t pulse_width_tics);
  * \param iotimer (timer_io_t) if an input, reads value of pwm pulse, if output, writes pulse
  * \param pulse_width_RC number [0, UINT16_MAX] which mapes to [10%, 20%] duty cycle of the PWM
  *                              arg not used when reading an input-timer value
- * \returns the measured or generated pulse width.
+ * \return the measured or generated pulse width.
  */
 uint16_t timer_default_pulse_RC(uint8_t iotimer, uint16_t pulse_width_RC);
+
+/**
+ * Generates the given pulse on all pwm output lines in the default timer array
+ * \param pulse_width_tics number of tics that make up the pulse width of the signal.
+ * \returns the generated pulse width.
+ */
+uint32_t timer_default_pulse_allpwm(uint32_t pulse_width_tics);
+
+/**
+ * Reads the pulse width of the given io timer
+ * \param iotimer (timer_io_t) reads value of pwm pulse on this timer
+ * \return the measured or generated pulse width.
+ */
+uint32_t timer_default_read_pulse(uint8_t iotimer);
 
 uint64_t timer_default_get_total_load(uint8_t iotimer);
 

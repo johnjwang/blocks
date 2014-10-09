@@ -18,10 +18,12 @@
 #include "driverlib/uart.h"
 
 #include "timer_capture_generate.h"
-#include "usb_comms.h"
+#include "uart_comms.h"
 #include "io/comms.h"
 
 #include "lcmtypes/kill_t.h"
+
+comms_t *uart_comms = NULL;
 
 static void uart_comms_up_int_handler(void);
 
@@ -54,6 +56,9 @@ void uart_comms_up_init(void)
 		UARTCharGetNonBlocking(UART2_BASE);
 	}
 
+	uart_comms = comms_create(256);
+	comms_add_publisher(uart_comms, uart_comms_up_write_byte);
+
     // Enable the SSI peripheral interrupts.
     UARTIntRegister(UART2_BASE, uart_comms_up_int_handler);
     UARTIntEnable(UART2_BASE, UART_INT_RX | UART_INT_RT);
@@ -75,6 +80,16 @@ bool uart_comms_up_write(uint8_t *msg, uint32_t dataLen)
 		uart_comms_up_write_byte(msg[i]);
 	}
 	return true;
+}
+
+void uart_comms_up_publish_blocking(comms_channel_t channel, uint8_t *msg, uint16_t msg_len)
+{
+    comms_publish_blocking(uart_comms, channel, msg, msg_len);
+}
+
+void uart_comms_up_subscribe(comms_channel_t channel, subscriber_t subscriber)
+{
+    comms_subscribe(uart_comms, channel, subscriber);
 }
 
 void uart_comms_up_demo(void)
@@ -109,13 +124,7 @@ static void uart_comms_up_int_handler(void)
 
 	while(UARTCharsAvail(UART2_BASE))
 	{
-	    uint32_t data = UARTCharGet(UART2_BASE);
-	    usb_comms_write_byte((char)data);
-//	    uint8_t i;
-//	    for (i=TIMER_OUTPUT_1; i<=TIMER_OUTPUT_8; ++i) {
-//	        if ((char)data >= '0' && (char)data <= '9')
-//	            timer_default_pulse_RC(i, (   (uint32_t)(((char)data - '0')
-//	                                        * (uint32_t)UINT16_MAX)) / 10);
-//	    }
+	    uint8_t data = UARTCharGet(UART2_BASE);
+	    comms_handle(uart_comms, data);
 	}
 }
