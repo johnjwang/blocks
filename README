@@ -77,6 +77,8 @@ Todo list:
 - watchdog the signals
 - watchdog the device itself
 - make bootload faster
+	- add another bit to EEPROM that is "ignore bootload"
+	  use when rebooting because of watchdogs
 - kill listener
 - hardcode a manual/autonomous switch line
 - board side comms
@@ -86,4 +88,3 @@ Todo list:
 - touch base with Ella, remind her that she needs USB hubs
 - test flight
 - detect if an xbee is plugged in above it
-- any comms that comes in on one line should be broadcast on the other lines (uart, usb)
