@@ -22,7 +22,8 @@ public class LCMPublisher
         }
 
         //broadcastTelemetry();
-        broadcastKill();
+        //broadcastKill();
+        broadcastChannels();
     }
 
     private void broadcastTelemetry()
@@ -60,6 +61,29 @@ public class LCMPublisher
         lcm.publish("KILL_TX", kill);
     }
 
+    private void broadcastChannels()
+    {
+        channels_t channels = new channels_t();
+        channels.utime = TimeUtil.utime();
+        channels.num_channels = 8;
+        channels.channels = new short[8];
+
+        short currVal = 1150;
+        int dir = 1;
+
+        while(true)
+        {
+            currVal += dir * 4;
+            for(int i = 0; i < 8; i++)
+            {
+                channels.channels[i] = (short) currVal;
+            }
+            if(currVal > 1400 || currVal < 1150) dir = -dir;
+            lcm.publish("CHANNELS_TX", channels);
+            try{ Thread.sleep(50); } catch(Exception e) {}
+        }
+    }
+
     public static void main(String args[])
     {
         String lcm_url = null;
@@ -67,7 +91,7 @@ public class LCMPublisher
         GetOpt gopt = new GetOpt();
         gopt.addBoolean('h', "help", false, "Show this help");
         gopt.addString('u', "lcm-url", lcm_url, "lcm url to broadcast on. (Null for default)");
-        //gopt.addDouble('v', "voltage", 25.0, "Voltage to broadcast");
+        //gopt.addInt('c', "channels", 1000, "Channels to broadcast");
 
         if (!gopt.parse(args) || gopt.getBoolean("help")) {
             gopt.doHelp();
