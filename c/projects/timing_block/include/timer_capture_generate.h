@@ -33,18 +33,19 @@ typedef enum _timer_io_t{
 
 // Timer Base index values
 typedef enum _timer_base_indices_t {
-     TIMER0,
-     TIMER1,
-     TIMER2,
-     TIMER3,
-     TIMER4,
-     TIMER5,
-    WTIMER0,
-    WTIMER1,
-    WTIMER2,
-    WTIMER3,
-    WTIMER4,
-    WTIMER5,
+// Assignment:     TimerA         TimerB
+     TIMER0,   /*    B6    */ /*    B7    */
+     TIMER1,   /*    B4    */ /*    B5    */
+     TIMER2,   /*sigtimeout*/ /*          */
+     TIMER3,   /*    B2    */ /*    B3    */
+     TIMER4,   /*    G0    */ /*    G1    */
+     TIMER5,   /*    G2    */ /*    G3    */
+    WTIMER0,   /*    C4    */ /*    C5    */
+    WTIMER1,   /*    C6    */ /*    C7    */
+    WTIMER2,   /*          */ /*    D1    */
+    WTIMER3,   /*    D2    */ /*    D3    */
+    WTIMER4,   /*   leds   */ /* timestamp*/
+    WTIMER5,   /*    D6    */ /*          */
     NUM_TIMER_BASES
 } timer_base_indices_t;
 
@@ -72,6 +73,11 @@ typedef enum _gpio_port_indices_t {
 #define OVERFLOW_60MS 60000
 #define OVERFLOW_20MS 20000
 #define OVERFLOW_PPM 1
+// XXX: make throttle enums like 1000 us and 2000 us for RC mode
+
+// Timer Lifetime Settings
+#define TIMER_LIFETIMES_10 10
+#define TIMER_LIFETIMES_INF -1
 
 // PPM settings
 #define PPM_NUM_CHANNELS 8
@@ -113,6 +119,10 @@ struct timer_cap_gen_t
     uint8_t  timer_sel_ind;        // TIMERA, TIMERB
 
     uint8_t  capgen_mode;          // CAPGEN_MODE_?????
+    int8_t   lifetimes_total;      // number of lifetimes of the sigtimeout timer before this
+                                   // timer's signal is set to zero, negative to ignore
+    int8_t   lifetimes_left;       // lifetimes left before this timer expires
+
 };
 
 /**
@@ -176,7 +186,7 @@ uint32_t timer_default_read_pulse(uint8_t iotimer);
 
 uint64_t timer_default_get_total_load(uint8_t iotimer);
 
-void timer_default_calc_ps_timer_from_total(uint8_t iotimer, uint32_t *prescale,
+void timer_default_calc_ps_load_from_total(uint8_t iotimer, uint32_t *prescale,
                                             uint32_t *load, uint64_t total);
 
 uint32_t timer_us_to_tics(uint32_t us);
