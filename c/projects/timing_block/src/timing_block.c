@@ -31,6 +31,7 @@
 	#include "timing_block/debug.h"
 #endif
 
+static void main_kill_msg_handler(uint8_t *msg, uint16_t msg_len);
 
 int main(void)
 {
@@ -78,9 +79,11 @@ int main(void)
     uint16_t buflen = 40;
     int16_t channel_val[PPM_NUM_CHANNELS];
 
-    comms_t *comms_out = comms_create(256);
+    comms_t *comms_out = comms_create(0);
     comms_add_publisher(comms_out, uart_comms_up_write_byte);
     comms_add_publisher(comms_out, usb_comms_write_byte);
+
+    uart_comms_up_subscribe(CHANNEL_KILL, main_kill_msg_handler);
 
     while(1)
     {
@@ -107,7 +110,7 @@ int main(void)
             uint8_t chan_i;
             for (chan_i=0; chan_i<PPM_NUM_CHANNELS; ++chan_i) {
                 channel_val[chan_i] = timer_tics_to_us(
-                        timer_default_pulse(ppm_channel_map[chan_i], 0));
+                        timer_default_read_pulse(ppm_channel_map[chan_i]));
             }
             channel.channels = channel_val;
 
@@ -132,4 +135,15 @@ int main(void)
 			debug();
 		#endif
     }
+}
+
+static void main_kill_msg_handler(uint8_t *msg, uint16_t msg_len)
+{
+    kill_t kill;
+    memset(&kill, 0, sizeof(kill));
+    if (__kill_t_decode_array(msg, 0, msg_len, &kill, 1) >= 0) {
+        timer_default_disconnect_all();
+        timer_default_pulse_allpwm(timer_us_to_tics(1000));
+    }
+    __kill_t_decode_array_cleanup(&kill, 1);
 }

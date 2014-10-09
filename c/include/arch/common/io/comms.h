@@ -48,6 +48,7 @@ typedef struct comms_t
 
 } comms_t;
 
+// XXX: change this to a uint32_t and all related buffers
 comms_t* comms_create(int32_t buf_len);
 
 void comms_add_publisher(comms_t *comms, publisher_t publisher);
