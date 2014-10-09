@@ -7,6 +7,7 @@ all:
 	gcc -c comms.c ${CFLAGS} -o ${BUILD_DIR}/comms.o
 
 debug: CFLAGS+= -g
+debug: all
 
 clean:
 	rm -f ${BUILD_DIR}/*.o
