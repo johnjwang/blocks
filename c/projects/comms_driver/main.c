@@ -16,7 +16,7 @@
 #include "lcmtypes/rpms_t.h"
 #include "lcmtypes/telemetry_t.h"
 
-static bool verbose = true;
+static bool verbose = false;
 
 #define verbose_printf(...) \
     do{\
@@ -37,9 +37,8 @@ static bool publish_xbee(uint8_t byte);
 static bool publish_usb(uint8_t byte);
 static void handler_channels(uint8_t *msg, uint16_t len);
 static void handler_kill(uint8_t *msg, uint16_t len);
-
-pthread_cond_t exit_cond;
-pthread_mutex_t exit_lock;
+static void handler_kill_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
+                             const kill_t *msg, void *user);
 
 pthread_t xbee_thread;
 comms_t *xbee_comms;
@@ -54,10 +53,17 @@ lcm_t *lcm;
 volatile bool done = false;
 void interrupt(int sig)
 {
-    pthread_mutex_lock(&exit_lock);
-        done = true;
-        pthread_cond_broadcast(&exit_cond);
-    pthread_mutex_unlock(&exit_lock);
+    static int8_t num_exit_attempts = 0;
+    num_exit_attempts++;
+    if(num_exit_attempts == 1)
+        fprintf(stderr, "Caught ctrl+c and signalling exit to driver\n");
+    if(num_exit_attempts == 3)
+    {
+        fprintf(stderr, "Force quitting\n");
+        exit(1);
+    }
+
+    done = true;
 }
 
 
@@ -65,9 +71,6 @@ int main(int argc, char *argv[])
 {
     (void) signal(SIGINT, interrupt);
     (void) signal(SIGTERM, interrupt);
-
-    pthread_cond_init(&exit_cond, NULL);
-    pthread_mutex_init(&exit_lock, NULL);
 
     lcm = lcm_create(NULL);
     while(lcm == NULL)
@@ -92,11 +95,11 @@ int main(int argc, char *argv[])
     char *usb_dev_name = "/dev/stack";
     if(argc > 2)
         usb_dev_name = argv[2];
-    else
-        fprintf(stdout, "Usb device successfully opened at %s\n", usb_dev_name);
     usb = serial_create(usb_dev_name, B115200);
     if(usb == NULL)
         fprintf(stderr, "Usb device does not exist at 115200 baud on %s\n", usb_dev_name);
+    else
+        fprintf(stdout, "Usb device successfully opened at %s\n", usb_dev_name);
 
 
     // If no open comm ports, quit.
@@ -127,20 +130,46 @@ int main(int argc, char *argv[])
         pthread_create(&usb_thread, NULL, usb_run, NULL);
     }
 
-    pthread_mutex_lock(&exit_lock);
-        while(!done) pthread_cond_wait(&exit_cond, &exit_lock);
-    pthread_mutex_unlock(&exit_lock);
+    kill_t_subscription_t *kill_subs = kill_t_subscribe(lcm, "KILL_TX", handler_kill_lcm, NULL);
+
+    while(!done)
+    {
+        // Set up timeout on lcm_handle to prevent blocking at program exit
+        int lcm_fd = lcm_get_fileno(lcm);
+        fd_set fds;
+        FD_ZERO(&fds);
+        FD_SET(lcm_fd, &fds);
+
+        struct timeval timeout = { 0, 100000 }; // wait 100ms
+        int status = select(lcm_fd + 1, &fds, NULL, NULL, &timeout);
+
+        if(done) break;
+
+        if(status != 0 && FD_ISSET(lcm_fd, &fds)) {
+            if ( lcm_handle(lcm) ) {
+                fprintf( stderr, "LCM handle error, aborting\n" );
+                done = true;
+            }
+        }
+    }
+    fprintf(stdout, "Lcm driver destroyed.\n");
+
+    kill_t_unsubscribe(lcm, kill_subs);
 
     if(xbee)
     {
+        pthread_cancel(xbee_thread);
         comms_destroy(xbee_comms);
         serial_destroy(xbee);
+        fprintf(stdout, "Xbee driver destroyed.\n");
     }
 
     if(usb)
     {
+        pthread_cancel(usb_thread);
         comms_destroy(usb_comms);
         serial_destroy(usb);
+        fprintf(stdout, "Usb driver destroyed.\n");
     }
 
     lcm_destroy(lcm);
@@ -189,7 +218,7 @@ static bool publish_usb(uint8_t byte)
 
 static void handler_kill(uint8_t *msg, uint16_t len)
 {
-    verbose_printf("Received message on kill channel: ");
+    verbose_printf("Kill: ");
     uint16_t i;
     for(i = 0; i < len; ++i)
     {
@@ -204,9 +233,20 @@ static void handler_kill(uint8_t *msg, uint16_t len)
     kill_t_decode_cleanup(&kill);
 }
 
+static void handler_kill_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
+                             const kill_t *msg, void *user)
+{
+    uint32_t maxlen = __kill_t_encoded_array_size(msg, 1);
+    uint8_t *buf = (uint8_t *) malloc(sizeof(uint8_t) * maxlen);
+    uint32_t len = __kill_t_encode_array(buf, 0, maxlen, msg, 1);
+    if(usb)  comms_publish_blocking( usb_comms, CHANNEL_KILL, buf, len);
+    if(xbee) comms_publish_blocking(xbee_comms, CHANNEL_KILL, buf, len);
+    free(buf);
+}
+
 static void handler_channels(uint8_t *msg, uint16_t len)
 {
-    verbose_printf("Received message on channels channel: ");
+    verbose_printf("Channels: ");
     uint16_t i;
     for(i = 0; i < len; ++i)
     {
@@ -218,5 +258,5 @@ static void handler_channels(uint8_t *msg, uint16_t len)
     memset(&channels, 0, sizeof(channels_t));
     __channels_t_decode_array(msg, 0, len, &channels, 1);
     channels_t_publish(lcm, "CHANNELS_RX", &channels);
-    channels_t_decode_cleanup(&channels);
+    __channels_t_decode_array_cleanup(&channels, 1);
 }

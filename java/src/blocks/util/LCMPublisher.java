@@ -21,7 +21,8 @@ public class LCMPublisher
             System.exit(1);
         }
 
-        broadcastTelemetry();
+        //broadcastTelemetry();
+        broadcastKill();
     }
 
     private void broadcastTelemetry()
@@ -50,6 +51,13 @@ public class LCMPublisher
             lcm.publish("TELEMETRY", msg);
             try{ Thread.sleep(20); }catch(Exception e){}
         }
+    }
+
+    private void broadcastKill()
+    {
+        kill_t kill = new kill_t();
+        kill.reason = kill_t.KILL_T_REASON_UNKNOWN;
+        lcm.publish("KILL_TX", kill);
     }
 
     public static void main(String args[])

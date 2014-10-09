@@ -7,6 +7,7 @@ all:
 	gcc -c ${CFLAGS} serial.c -o ${BUILD_DIR}/serial.o
 
 debug: CFLAGS+= -g
+debug: all
 
 clean:
 	rm -f ${BUILD_DIR}/*.o
