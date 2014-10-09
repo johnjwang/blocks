@@ -78,7 +78,7 @@ static void timer_ppm_int_handler(void);
 static uint8_t  sigtimeout_timer_base_ind    = TIMER2;
 static uint8_t  sigtimeout_timer_sel_ind     = TIMERA;
 static uint32_t sigtimeout_timer_cfg         = TIMER_CFG_SPLIT_PAIR | TIMER_CFG_A_PERIODIC_UP;
-static uint32_t sigtimeout_timer_overflow_us = OVERFLOW_20MS;
+static uint32_t sigtimeout_timer_overflow_us = OVERFLOW_SIGTIMEOUT;
 static void sigtimeout_timer_int_handler(void);
 
 static void timer_default_setup(void);
@@ -675,95 +675,95 @@ uint32_t timer_pwm_to_ppm_RC_convention(uint32_t pwm_tics)
 
 static void timer_default_setup(void)
 {
-    default_timers[TIMER_INPUT_1]  = (timer_cap_gen_t){GPIO_PD3_WT3CCP1, OVERFLOW_60MS,
+    default_timers[TIMER_INPUT_1]  = (timer_cap_gen_t){GPIO_PD3_WT3CCP1, OVERFLOW_PWM_CAP,
                                                        &default_timers[TIMER_OUTPUT_1],
                                                        GPIO_PD, GPIO_PIN_3,
                                                        WTIMER3, TIMERB, CAPGEN_MODE_CAP_RF_EDGE,
                                                        TIMER_LIFETIMES_10, TIMER_LIFETIMES_10};
 
-    default_timers[TIMER_INPUT_2]  = (timer_cap_gen_t){GPIO_PD2_WT3CCP0, OVERFLOW_60MS,
+    default_timers[TIMER_INPUT_2]  = (timer_cap_gen_t){GPIO_PD2_WT3CCP0, OVERFLOW_PWM_CAP,
                                                        &default_timers[TIMER_OUTPUT_2],
                                                        GPIO_PD, GPIO_PIN_2,
                                                        WTIMER3, TIMERA, CAPGEN_MODE_CAP_RF_EDGE,
                                                        TIMER_LIFETIMES_10, TIMER_LIFETIMES_10};
 
-    default_timers[TIMER_INPUT_3]  = (timer_cap_gen_t){GPIO_PD1_WT2CCP1, OVERFLOW_60MS,
+    default_timers[TIMER_INPUT_3]  = (timer_cap_gen_t){GPIO_PD1_WT2CCP1, OVERFLOW_PWM_CAP,
                                                        &default_timers[TIMER_OUTPUT_3],
                                                        GPIO_PD, GPIO_PIN_1,
                                                        WTIMER2, TIMERB, CAPGEN_MODE_CAP_RF_EDGE,
                                                        TIMER_LIFETIMES_10, TIMER_LIFETIMES_10};
 
-    default_timers[TIMER_INPUT_4]  = (timer_cap_gen_t){GPIO_PB6_T0CCP0, OVERFLOW_60MS,
+    default_timers[TIMER_INPUT_4]  = (timer_cap_gen_t){GPIO_PB6_T0CCP0, OVERFLOW_PWM_CAP,
                                                        &default_timers[TIMER_OUTPUT_4],
                                                        GPIO_PB, GPIO_PIN_6,
                                                        TIMER0, TIMERA, CAPGEN_MODE_CAP_RF_EDGE,
                                                        TIMER_LIFETIMES_10, TIMER_LIFETIMES_10};
 
-    default_timers[TIMER_INPUT_5]  = (timer_cap_gen_t){GPIO_PB4_T1CCP0, OVERFLOW_60MS,
+    default_timers[TIMER_INPUT_5]  = (timer_cap_gen_t){GPIO_PB4_T1CCP0, OVERFLOW_PWM_CAP,
                                                        &default_timers[TIMER_OUTPUT_5],
                                                        GPIO_PB, GPIO_PIN_4,
                                                        TIMER1, TIMERA, CAPGEN_MODE_CAP_RF_EDGE,
                                                        TIMER_LIFETIMES_10, TIMER_LIFETIMES_10};
 
-    default_timers[TIMER_INPUT_6]  = (timer_cap_gen_t){GPIO_PB5_T1CCP1, OVERFLOW_60MS,
+    default_timers[TIMER_INPUT_6]  = (timer_cap_gen_t){GPIO_PB5_T1CCP1, OVERFLOW_PWM_CAP,
                                                        &default_timers[TIMER_OUTPUT_6],
                                                        GPIO_PB, GPIO_PIN_5,
                                                        TIMER1, TIMERB, CAPGEN_MODE_CAP_RF_EDGE,
                                                        TIMER_LIFETIMES_10, TIMER_LIFETIMES_10};
 
-    default_timers[TIMER_INPUT_7]  = (timer_cap_gen_t){GPIO_PD6_WT5CCP0, OVERFLOW_60MS,
+    default_timers[TIMER_INPUT_7]  = (timer_cap_gen_t){GPIO_PD6_WT5CCP0, OVERFLOW_PWM_CAP,
                                                        &default_timers[TIMER_OUTPUT_7],
                                                        GPIO_PD, GPIO_PIN_6,
                                                        WTIMER5, TIMERA, CAPGEN_MODE_CAP_RF_EDGE,
                                                        TIMER_LIFETIMES_10, TIMER_LIFETIMES_10};
 
-    default_timers[TIMER_INPUT_8]  = (timer_cap_gen_t){GPIO_PB3_T3CCP1, OVERFLOW_60MS,
+    default_timers[TIMER_INPUT_8]  = (timer_cap_gen_t){GPIO_PB3_T3CCP1, OVERFLOW_PWM_CAP,
                                                        &default_timers[TIMER_OUTPUT_8],
                                                        GPIO_PB, GPIO_PIN_3,
                                                        TIMER3, TIMERB, CAPGEN_MODE_CAP_RF_EDGE,
                                                        TIMER_LIFETIMES_10, TIMER_LIFETIMES_10};
 
-    default_timers[TIMER_INPUT_9]  = (timer_cap_gen_t){GPIO_PB2_T3CCP0, OVERFLOW_60MS, NULL,
+    default_timers[TIMER_INPUT_9]  = (timer_cap_gen_t){GPIO_PB2_T3CCP0, OVERFLOW_PWM_CAP, NULL,
                                                        GPIO_PB, GPIO_PIN_2,
                                                        TIMER3, TIMERA, CAPGEN_MODE_CAP_RF_EDGE,
                                                        TIMER_LIFETIMES_10, TIMER_LIFETIMES_10};
 
-    default_timers[TIMER_OUTPUT_1] = (timer_cap_gen_t){GPIO_PG1_T4CCP1, OVERFLOW_025MS, NULL,
+    default_timers[TIMER_OUTPUT_1] = (timer_cap_gen_t){GPIO_PG1_T4CCP1, OVERFLOW_PWM_GEN, NULL,
                                                        GPIO_PG, GPIO_PIN_1,
                                                        TIMER4, TIMERB, CAPGEN_MODE_GEN_PWM,
                                                        TIMER_LIFETIMES_10, TIMER_LIFETIMES_10};
 
-    default_timers[TIMER_OUTPUT_2] = (timer_cap_gen_t){GPIO_PG2_T5CCP0, OVERFLOW_025MS, NULL,
+    default_timers[TIMER_OUTPUT_2] = (timer_cap_gen_t){GPIO_PG2_T5CCP0, OVERFLOW_PWM_GEN, NULL,
                                                        GPIO_PG, GPIO_PIN_2,
                                                        TIMER5, TIMERA, CAPGEN_MODE_GEN_PWM,
                                                        TIMER_LIFETIMES_10, TIMER_LIFETIMES_10};
 
-    default_timers[TIMER_OUTPUT_3] = (timer_cap_gen_t){GPIO_PG3_T5CCP1, OVERFLOW_025MS, NULL,
+    default_timers[TIMER_OUTPUT_3] = (timer_cap_gen_t){GPIO_PG3_T5CCP1, OVERFLOW_PWM_GEN, NULL,
                                                        GPIO_PG, GPIO_PIN_3,
                                                        TIMER5, TIMERB, CAPGEN_MODE_GEN_PWM,
                                                        TIMER_LIFETIMES_10, TIMER_LIFETIMES_10};
 
-    default_timers[TIMER_OUTPUT_4] = (timer_cap_gen_t){GPIO_PC4_WT0CCP0, OVERFLOW_025MS, NULL,
+    default_timers[TIMER_OUTPUT_4] = (timer_cap_gen_t){GPIO_PC4_WT0CCP0, OVERFLOW_PWM_GEN, NULL,
                                                        GPIO_PC, GPIO_PIN_4,
                                                        WTIMER0, TIMERA, CAPGEN_MODE_GEN_PWM,
                                                        TIMER_LIFETIMES_10, TIMER_LIFETIMES_10};
 
-    default_timers[TIMER_OUTPUT_5] = (timer_cap_gen_t){GPIO_PC5_WT0CCP1, OVERFLOW_025MS, NULL,
+    default_timers[TIMER_OUTPUT_5] = (timer_cap_gen_t){GPIO_PC5_WT0CCP1, OVERFLOW_PWM_GEN, NULL,
                                                        GPIO_PC, GPIO_PIN_5,
                                                        WTIMER0, TIMERB, CAPGEN_MODE_GEN_PWM,
                                                        TIMER_LIFETIMES_10, TIMER_LIFETIMES_10};
 
-    default_timers[TIMER_OUTPUT_6] = (timer_cap_gen_t){GPIO_PC6_WT1CCP0, OVERFLOW_025MS, NULL,
+    default_timers[TIMER_OUTPUT_6] = (timer_cap_gen_t){GPIO_PC6_WT1CCP0, OVERFLOW_PWM_GEN, NULL,
                                                        GPIO_PC, GPIO_PIN_6,
                                                        WTIMER1, TIMERA, CAPGEN_MODE_GEN_PWM,
                                                        TIMER_LIFETIMES_10, TIMER_LIFETIMES_10};
 
-    default_timers[TIMER_OUTPUT_7] = (timer_cap_gen_t){GPIO_PC7_WT1CCP1, OVERFLOW_025MS, NULL,
+    default_timers[TIMER_OUTPUT_7] = (timer_cap_gen_t){GPIO_PC7_WT1CCP1, OVERFLOW_PWM_GEN, NULL,
                                                        GPIO_PC, GPIO_PIN_7,
                                                        WTIMER1, TIMERB, CAPGEN_MODE_GEN_PWM,
                                                        TIMER_LIFETIMES_10, TIMER_LIFETIMES_10};
 
-    default_timers[TIMER_OUTPUT_8] = (timer_cap_gen_t){GPIO_PB7_T0CCP1, OVERFLOW_025MS, NULL,
+    default_timers[TIMER_OUTPUT_8] = (timer_cap_gen_t){GPIO_PB7_T0CCP1, OVERFLOW_PWM_GEN, NULL,
                                                        GPIO_PB, GPIO_PIN_7,
                                                        TIMER0, TIMERB, CAPGEN_MODE_GEN_PWM,
                                                        TIMER_LIFETIMES_10, TIMER_LIFETIMES_10};

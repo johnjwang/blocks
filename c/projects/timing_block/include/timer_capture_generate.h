@@ -70,10 +70,12 @@ typedef enum _gpio_port_indices_t {
 } gpio_port_indices_t;
 
 // Timer Overflow Settings
-#define OVERFLOW_60MS 60000
-#define OVERFLOW_20MS 20000
-#define OVERFLOW_025MS 2500
+
+#define OVERFLOW_PWM_CAP 60000
+//#define OVERFLOW_PWM_GEN 20000
+#define OVERFLOW_PWM_GEN  2500
 #define OVERFLOW_PPM 1
+#define OVERFLOW_SIGTIMEOUT 20000
 // XXX: make throttle enums like 1000 us and 2000 us for RC mode
 
 // Timer Lifetime Settings
