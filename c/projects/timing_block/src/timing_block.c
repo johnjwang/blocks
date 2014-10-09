@@ -31,7 +31,10 @@
 	#include "timing_block/debug.h"
 #endif
 
+static uint8_t killed = 0;
+
 static void main_kill_msg_handler(uint8_t *msg, uint16_t msg_len);
+static void main_channels_msg_handler(uint8_t *msg, uint16_t msg_len);
 
 int main(void)
 {
@@ -79,6 +82,7 @@ int main(void)
     comms_add_publisher(comms_out, usb_comms_write_byte);
 
     uart_comms_up_subscribe(CHANNEL_KILL, main_kill_msg_handler);
+    uart_comms_up_subscribe(CHANNEL_CHANNELS, main_channels_msg_handler);
 
     while(1)
     {
@@ -99,6 +103,7 @@ int main(void)
     	{
     		last_utime = utime;
 
+    		// XXX: Need to send ALL channels (inputs and outputs)
     		channels_t channel;
             channel.utime = utime;
             channel.num_channels = PPM_NUM_CHANNELS;
@@ -139,6 +144,25 @@ static void main_kill_msg_handler(uint8_t *msg, uint16_t msg_len)
     if (__kill_t_decode_array(msg, 0, msg_len, &kill, 1) >= 0) {
         timer_default_disconnect_all();
         timer_default_pulse_allpwm(timer_us_to_tics(1000));
+        killed = 1;
     }
     __kill_t_decode_array_cleanup(&kill, 1);
+}
+
+static void main_channels_msg_handler(uint8_t *msg, uint16_t msg_len)
+{
+    channels_t channels;
+    memset(&channels, 0, sizeof(channels));
+    if (__channels_t_decode_array(msg, 0, msg_len, &channels, 1) >= 0) {
+        timer_default_disconnect_all();
+
+        // XXX: right now assuming you get 8 channels which are the outputs in order
+        if (killed == 0) {
+            uint8_t i;
+            for (i=0; i<channels.num_channels; ++i) {
+                timer_default_pulse(i + TIMER_OUTPUT_1, timer_us_to_tics(channels.channels[i]));
+            }
+        }
+    }
+    __channels_t_decode_array_cleanup(&channels, 1);
 }
