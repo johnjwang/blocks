@@ -25,6 +25,7 @@
 #include "uart_comms.h"
 #include "usb_comms.h"
 #include "timer_capture_generate.h"
+#include "watchdog.h"
 
 #include "lcmtypes/channels_t.h"
 #include "lcmtypes/kill_t.h"
@@ -65,6 +66,7 @@ int main(void)
     IntMasterEnable();
 
     usb_comms_init();
+    watchdog_init(SysCtlClockGet() / 10);
 
 //	uart_comms_up_demo();
 //	usb_demo();
@@ -98,6 +100,7 @@ int main(void)
 
     while(1)
     {
+        watchdog_feed();
     	if(!is_blinking(i))
     	{
     		i = next_i;

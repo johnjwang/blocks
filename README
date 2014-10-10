@@ -80,7 +80,7 @@ x watchdog the signals
 	- add another bit to EEPROM that is "ignore bootload"
 	  use when rebooting because of watchdogs
 x kill listener
-- hardcode a manual/autonomous switch line
+x hardcode a manual/autonomous switch line
 - board side comms
 - linux side comms
 - linux side kill program
