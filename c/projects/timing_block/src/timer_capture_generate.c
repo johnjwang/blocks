@@ -100,7 +100,6 @@ static uint32_t timer_sel_ind_to_int_cap_event(uint8_t timer_sel_ind);
 static uint32_t timer_sel_to_int_cap_event(timer_cap_gen_t *timer);
 static uint32_t timer_sel_ind_to_int_timeout_event(uint8_t timer_sel_ind);
 static uint32_t timer_sel_to_int_timeout_event(timer_cap_gen_t *timer);
-static uint32_t timer_sel_to_int_match_event(timer_cap_gen_t *timer);
 static uint64_t timer_get_total_load(timer_cap_gen_t *timer);
 static void timer_base_ind_calc_ps_load_from_total(uint8_t timer_base_ind, uint32_t *prescale,
                                                    uint32_t *load, uint64_t total);
@@ -118,12 +117,6 @@ static void timer_connect(timer_cap_gen_t *input, timer_cap_gen_t *output);
  * \param input input timer
  */
 static void timer_disconnect(timer_cap_gen_t *input);
-
-/**
- * Reconnects the given input timer to its default output
- * \param input input timer
- */
-static void timer_reconnect(timer_cap_gen_t *input);
 
 /**
  * Measures or generates a pulse on the given timer.
@@ -390,11 +383,6 @@ static void timer_disconnect(timer_cap_gen_t *input)
     input->linked_output = NULL;
 }
 
-static void timer_reconnect(timer_cap_gen_t *input)
-{
-    input->linked_output = timer_get_default(output_links[input->timer_base_ind]);
-}
-
 void timer_default_connect(uint8_t input, uint8_t output)
 {
     timer_connect(&default_timers[input], &default_timers[output]);
@@ -413,13 +401,13 @@ void timer_default_disconnect_all(void)
 
 void timer_default_reconnect(uint8_t input)
 {
-    timer_reconnect(&default_timers[input]);
+    default_timers[input].linked_output = timer_get_default(output_links[input]);
 }
 
 void timer_default_reconnect_all(void)
 {
     uint8_t i;
-    for (i=TIMER_INPUT_1; i<=TIMER_INPUT_9; ++i) timer_reconnect(&default_timers[i]);
+    for (i=TIMER_INPUT_1; i<=TIMER_INPUT_9; ++i) timer_default_reconnect(i);
 }
 
 static uint32_t timer_pulse(timer_cap_gen_t *timer, uint32_t pulse_width_tics)

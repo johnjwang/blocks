@@ -164,6 +164,8 @@ static void main_kill_msg_handler(uint8_t *msg, uint16_t msg_len)
     memset(&kill, 0, sizeof(kill));
     if (__kill_t_decode_array(msg, 0, msg_len, &kill, 1) >= 0) {
         timer_default_disconnect_all();
+        // XXX: this will actually flatline after 200 ms due to sigtimeout, may need to check
+        //      if that is safe
         timer_default_pulse_allpwm(timer_us_to_tics(1000));
         killed = 1;
     }
