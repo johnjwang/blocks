@@ -74,14 +74,6 @@ int main(void)
     // Loop forever.
     //
 
-    static const int num_blinks = 3, num_leds = 2;
-    static int start_idx = 1;
-    int i = start_idx, next_i = start_idx, j = 1;
-    
-    uint8_t buf[40];
-    uint16_t buflen = 40;
-    int16_t channel_val[PPM_NUM_CHANNELS];
-
     comms_t *comms_out = comms_create(0);
     comms_add_publisher(comms_out, uart_comms_up_write_byte);
     comms_add_publisher(comms_out, usb_comms_write_byte);
@@ -92,6 +84,14 @@ int main(void)
     usb_comms_subscribe(CHANNEL_CHANNELS, main_channels_msg_handler);
 
     timer_register_switch_monitor(main_manual_auto_switch_handler);
+
+    static const int num_blinks = 3, num_leds = 2;
+    static int start_idx = 1;
+    int i = start_idx, next_i = start_idx, j = 1;
+
+    uint8_t buf[50];
+    uint16_t buflen = 50;
+    int16_t channel_val[NUM_TIMERS - 2];
 
     while(1)
     {
@@ -115,11 +115,14 @@ int main(void)
     		// XXX: Need to send ALL channels (inputs and outputs)
     		channels_t channel;
             channel.utime = utime;
-            channel.num_channels = PPM_NUM_CHANNELS;
-            uint8_t chan_i;
-            for (chan_i=0; chan_i<PPM_NUM_CHANNELS; ++chan_i) {
+            channel.num_channels = NUM_TIMERS - 2;
+            uint8_t chan_i, timer_ind;
+            for (chan_i=0; chan_i<channel.num_channels; ++chan_i) {
+                if (chan_i <= TIMER_INPUT_8) timer_ind = chan_i;
+                else                         timer_ind = chan_i - TIMER_INPUT_8 + TIMER_OUTPUT_1;
+
                 channel_val[chan_i] = timer_tics_to_us(
-                        timer_default_read_pulse(ppm_channel_map[chan_i]));
+                        timer_default_read_pulse(timer_ind));
             }
             channel.channels = channel_val;
 
