@@ -10,6 +10,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "inc/hw_memmap.h"
+#include "inc/hw_ints.h"
+
 #include "driverlib/sysctl.h"
 #include "driverlib/interrupt.h"
 #include "driverlib/rom.h"
@@ -125,6 +128,12 @@ int main(void)
                         timer_default_read_pulse(timer_ind));
             }
             channel.channels = channel_val;
+            // XXX: had a very weird but where receiving too much or something basically
+            //      broke all of the channels, I think it was because we were receiving
+            //      on both the Xbee and the USB on the same time
+            // XXX: Every now and then sometimes get a randome signal value on an output that
+            //      is not receiving anything from the autonomy. I think it might be a leak
+            //      through of the values from the input pins
 
             uint16_t max_len = __channels_t_encoded_array_size(&channel, 1);
             if(max_len > buflen) while(1);
