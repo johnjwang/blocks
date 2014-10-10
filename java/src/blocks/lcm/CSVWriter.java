@@ -1,8 +1,12 @@
 package blocks.lcm;
 
+import org.apache.commons.collections.iterators.ArrayIterator;
+
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.Iterator;
+import java.util.Arrays;
 
 import lcm.lcm.*;
 import lcm.logging.*;
@@ -19,11 +23,15 @@ public class CSVWriter implements LCMSubscriber
     private String outputFileName;
     PrintWriter output;
     Log log;
+    boolean verbose = false;
 
-    public CSVWriter(Log log, PrintWriter output)
+    public CSVWriter(Log log, PrintWriter output, PrintWriter boolean verbose)
     {
         this.log = log;
         this.output = output;
+        this.verbose = verbose;
+        if(this.verbose) System.out.println("Debugging information turned on");
+        handlers = new LCMTypeDatabase();
         if(logFileName == null)
         {
             LCM.getSingleton().subscribeAll(this);
@@ -33,11 +41,21 @@ public class CSVWriter implements LCMSubscriber
         {
             System.out.println("Generating csv from logfile");
         }
-        handlers = new LCMTypeDatabase();
+    }
+
+    private void verbosePrintln(String str)
+    {
+        if(verbose) System.out.println(str);
+    }
+
+    private void verbosePrint(String str)
+    {
+        if(verbose) System.out.print(str);
     }
 
     public void messageReceived(LCM lcm, String channel, LCMDataInputStream dins)
     {
+        verbosePrintln(channel);
         try {
             int msgSize = dins.available();
             long fingerprint = (msgSize >= 8) ? dins.readLong() : -1;
@@ -47,25 +65,83 @@ public class CSVWriter implements LCMSubscriber
 
             Object o = cls.getConstructor(DataInput.class).newInstance(dins);
 
-            output.print(channel + ";");
-            Field fields[] = cls.getFields();
-            for(Field field : fields)
-            {
-                String name = field.getName();
-                if(name.startsWith("LCM_FINGERPRINT"))
-                    continue;
-                Object value = field.get(o);
-                output.print(name + ",");
-                output.print(value + ";");
-            }
+            output.print(channel + "\t");
+            printLcmType(o);
             output.println("");
             output.flush();
+
         }
         catch (Exception e)
         {
             System.err.println("Encountered error while decoding " + channel + " lcm type");
             e.printStackTrace();
         }
+    }
+
+    private void printArray(Object o)
+    {
+        for (ArrayIterator it = new ArrayIterator(o); it.hasNext();)
+        {
+            Object item = it.next();
+            if (item.getClass().isArray()) printLcmType(item);
+            else output.print(item + ",");
+        }
+    }
+
+    private void printLcmType(Object o)
+    {
+        Field fields[] = o.getClass().getFields();
+        verbosePrint("Found fields: ");
+        boolean isLcmType = false;
+        for(Field field : fields)
+        {
+            String name = field.getName();
+            // The first field should always be the fingerprint
+            if(name == "LCM_FINGERPRINT")
+            {
+                isLcmType = true;
+                verbosePrintln("Found lcm fingerprint");
+                break;
+            }
+        }
+
+        if(isLcmType == false)
+        {
+            verbosePrintln("Found no lcm fingerprint. Attempting to print value");
+            if(o.getClass().isArray())
+            {
+                printArray(o);
+            }
+            else
+            {
+                output.print(o + ";");
+            }
+            return;
+        }
+
+        for(Field field : fields)
+        {
+            String name = field.getName();
+            verbosePrintln(name);
+
+            // Dont want to print out the fingerprint
+            if(name.startsWith("LCM_FINGERPRINT"))
+                continue;
+
+            Object value = null;
+            try {
+                value = field.get(o);
+            }
+            catch(IllegalAccessException e)
+            {
+                System.err.println("Catastrophic error. Shoudln't be able to get here");
+                System.exit(1);
+            }
+            output.print(name + ",");
+            verbosePrintln("Attempting to print next lcmtype " + name);
+            printLcmType(value);
+        }
+        output.flush();
     }
 
     public void run()
@@ -96,6 +172,7 @@ public class CSVWriter implements LCMSubscriber
 
         GetOpt gopt = new GetOpt();
         gopt.addBoolean('h', "help", false, "Show this help");
+        gopt.addBoolean('v', "verbose", true, "Turn on debugging output");
         gopt.addString('l', "log", null, "Run on log file <logfile.log>");
         gopt.addString('o', "output", null, "Output csv to file <log.csv>");
 
@@ -131,6 +208,6 @@ public class CSVWriter implements LCMSubscriber
             }
         }
 
-        new CSVWriter(log, output).run();
+        new CSVWriter(log, output, gopt.getBoolean("verbose")).run();
     }
 }
