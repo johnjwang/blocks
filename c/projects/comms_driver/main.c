@@ -16,8 +16,8 @@
 #include "lcmtypes/rpms_t.h"
 #include "lcmtypes/telemetry_t.h"
 
-static bool verbose = true;
-//static bool verbose = false;
+//static bool verbose = true;
+static bool verbose = false;
 
 #define verbose_printf(...) \
     do{\
@@ -100,9 +100,9 @@ int main(int argc, char *argv[])
         usb_dev_name = argv[2];
     usb = serial_create(usb_dev_name, B9600);
     if(usb == NULL)
-        fprintf(stderr, "Usb device does not exist at 115200 baud on %s\n", usb_dev_name);
+        fprintf(stderr, "Usb device does not exist at %s\n", usb_dev_name);
     else
-        fprintf(stdout, "Usb device successfully opened at %s\n", usb_dev_name);
+        fprintf(stdout, "Usb device successfully opened at 115200 baud on %s\n", usb_dev_name);
 
 
     // If no open comm ports, quit.
@@ -205,12 +205,12 @@ static bool publish_xbee(uint8_t byte)
 
 static void* usb_run(void* arg)
 {
-    verbose_printf("Starting usb receive thread\n");
+    fprintf(stdout, "Starting usb receive thread\n");
     char data[1];
     while(!done)
     {
         serial_read(usb, data, 1);
-        //comms_handle(usb_comms, data[0]);
+        comms_handle(usb_comms, data[0]);
     }
     return NULL;
 }
