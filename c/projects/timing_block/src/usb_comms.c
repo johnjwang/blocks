@@ -282,7 +282,7 @@ RxHandler(void *pvCBData, uint32_t ui32Event, uint32_t ui32MsgValue,
         case USB_EVENT_RX_AVAILABLE:
         {
             uint8_t data[1];
-            if(USBBufferRead((tUSBBuffer *)&g_sRxBuffer, data, 1)) {
+            while (USBBufferRead((tUSBBuffer *)&g_sRxBuffer, data, 1)) {
                 comms_handle(usb_comms, data[0]);
             }
             break;

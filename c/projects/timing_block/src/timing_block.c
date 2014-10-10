@@ -119,7 +119,7 @@ int main(void)
             uint8_t chan_i, timer_ind;
             for (chan_i=0; chan_i<channel.num_channels; ++chan_i) {
                 if (chan_i <= TIMER_INPUT_8) timer_ind = chan_i;
-                else                         timer_ind = chan_i - TIMER_INPUT_8 + TIMER_OUTPUT_1;
+                else                         timer_ind = chan_i - (TIMER_INPUT_8 + 1) + TIMER_OUTPUT_1;
 
                 channel_val[chan_i] = timer_tics_to_us(
                         timer_default_read_pulse(timer_ind));
