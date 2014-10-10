@@ -1,13 +1,11 @@
 package blocks.lcm;
 
 import java.io.*;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
 import lcm.lcm.*;
+import lcm.logging.*;
 import lcm.spy.*;
 
 import april.util.GetOpt;
@@ -15,19 +13,31 @@ import april.util.TimeUtil;
 
 public class CSVWriter implements LCMSubscriber
 {
-    private LCM lcm;
     private LCMTypeDatabase handlers;
 
-    public CSVWriter(LCM lcm)
+    private String logFileName;
+    private String outputFileName;
+    PrintWriter output;
+    Log log;
+
+    public CSVWriter(Log log, PrintWriter output)
     {
-        this.lcm = lcm;
+        this.log = log;
+        this.output = output;
+        if(logFileName == null)
+        {
+            LCM.getSingleton().subscribeAll(this);
+            System.out.println("Generating csv from live lcm data");
+        }
+        else
+        {
+            System.out.println("Generating csv from logfile");
+        }
         handlers = new LCMTypeDatabase();
-        this.lcm.subscribeAll(this);
     }
 
     public void messageReceived(LCM lcm, String channel, LCMDataInputStream dins)
     {
-
         try {
             int msgSize = dins.available();
             long fingerprint = (msgSize >= 8) ? dins.readLong() : -1;
@@ -37,7 +47,7 @@ public class CSVWriter implements LCMSubscriber
 
             Object o = cls.getConstructor(DataInput.class).newInstance(dins);
 
-            System.out.print(channel + ": ");
+            output.print(channel + ";");
             Field fields[] = cls.getFields();
             for(Field field : fields)
             {
@@ -45,10 +55,11 @@ public class CSVWriter implements LCMSubscriber
                 if(name.startsWith("LCM_FINGERPRINT"))
                     continue;
                 Object value = field.get(o);
-                System.out.print(name + ": ");
-                System.out.print(value + "\t");
+                output.print(name + ",");
+                output.print(value + ";");
             }
-            System.out.println("");
+            output.println("");
+            output.flush();
         }
         catch (Exception e)
         {
@@ -59,9 +70,23 @@ public class CSVWriter implements LCMSubscriber
 
     public void run()
     {
-        while(true)
+        if(log == null)
+            while(true) { try{Thread.sleep(1000);}catch(Exception e){} }
+        else
         {
-            try{Thread.sleep(1000);}catch(Exception e){}
+            boolean done = false;
+            while(!done)
+            {
+                try {
+                    Log.Event ev = log.readNext();
+                    messageReceived(null, ev.channel,  new LCMDataInputStream(ev.data, 0, ev.data.length));
+                } catch (EOFException ex) {
+                    System.out.println("Done reading log file");
+                    done = true;
+                } catch (IOException e) {
+                    System.err.println("Unable to decode lcmtype entry in log file");
+                }
+            }
         }
     }
 
@@ -71,12 +96,41 @@ public class CSVWriter implements LCMSubscriber
 
         GetOpt gopt = new GetOpt();
         gopt.addBoolean('h', "help", false, "Show this help");
+        gopt.addString('l', "log", null, "Run on log file <logfile.log>");
+        gopt.addString('o', "output", null, "Output csv to file <log.csv>");
 
-        if (!gopt.parse(args) || gopt.getBoolean("help")) {
+        if (!gopt.parse(args)
+                || gopt.getBoolean("help")
+                || (gopt.getString("output") == null)) {
             gopt.doHelp();
             return;
         }
 
-        new CSVWriter(LCM.getSingleton()).run();
+        PrintWriter output = null;
+        try
+        {
+            output = new PrintWriter(gopt.getString("output"), "UTF-8");
+        }
+        catch(Exception e)
+        {
+            System.err.println("Unable to open " + gopt.getString("output"));
+            System.exit(1);
+        }
+
+        Log log = null;
+        if(gopt.getString("log") != null)
+        {
+            try
+            {
+                log = new Log(gopt.getString("log"), "r");
+            }
+            catch(Exception e)
+            {
+                System.err.println("Unable to open " + gopt.getString("log"));
+                System.exit(1);
+            }
+        }
+
+        new CSVWriter(log, output).run();
     }
 }
