@@ -33,6 +33,11 @@
 
 static uint8_t killed = 0;
 
+#define AUTONOMY_CMD_TIMEOUT_US 200000
+static uint8_t autonomous_ready = 0;
+static uint64_t last_autonomy_cmd_utime = 0;
+
+static void main_manual_auto_switch_handler(uint32_t pulse_us);
 static void main_kill_msg_handler(uint8_t *msg, uint16_t msg_len);
 static void main_channels_msg_handler(uint8_t *msg, uint16_t msg_len);
 
@@ -83,6 +88,10 @@ int main(void)
 
     uart_comms_up_subscribe(CHANNEL_KILL, main_kill_msg_handler);
     uart_comms_up_subscribe(CHANNEL_CHANNELS, main_channels_msg_handler);
+    usb_comms_subscribe(CHANNEL_KILL, main_kill_msg_handler);
+    usb_comms_subscribe(CHANNEL_CHANNELS, main_channels_msg_handler);
+
+    timer_register_switch_monitor(main_manual_auto_switch_handler);
 
     while(1)
     {
@@ -119,21 +128,30 @@ int main(void)
             uint16_t len = __channels_t_encode_array(buf, 0, buflen, &channel, 1);
 
             comms_publish_blocking(comms_out, CHANNEL_CHANNELS, buf, len);
-
-
-//    		uint8_t j;
-//    		for (j=0; j<=TIMER_INPUT_9; ++j) {
-//                uint32_t strlen = snprintf((char*)buf, buflen, "%lu ",
-//                                           timer_tics_to_us(timer_default_pulse(j, 0)));
-//                usb_comms_write(buf, strlen);
-//    		}
-//    		usb_comms_write_byte('\r');
-//    		usb_comms_write_byte('\n');
 		}
 
 		#ifdef DEBUG
 			debug();
 		#endif
+    }
+}
+
+static void main_manual_auto_switch_handler(uint32_t pulse_us)
+{
+    uint64_t utime = timestamp_now();
+
+    // Autonomous cmds have timed out
+    if (utime - last_autonomy_cmd_utime >= AUTONOMY_CMD_TIMEOUT_US) {
+        if (autonomous_ready == 1 && killed != 1) timer_default_reconnect_all();
+        autonomous_ready = 0;
+        return;
+    }
+
+    if (pulse_us <= 1500) {
+        if (autonomous_ready == 1 && killed != 1) timer_default_reconnect_all();
+        autonomous_ready = 0;
+    } else {
+        autonomous_ready = 1;
     }
 }
 
@@ -154,13 +172,18 @@ static void main_channels_msg_handler(uint8_t *msg, uint16_t msg_len)
     channels_t channels;
     memset(&channels, 0, sizeof(channels));
     if (__channels_t_decode_array(msg, 0, msg_len, &channels, 1) >= 0) {
-        timer_default_disconnect_all();
 
-        // XXX: right now assuming you get 8 channels which are the outputs in order
-        if (killed == 0) {
-            uint8_t i;
-            for (i=0; i<channels.num_channels; ++i) {
-                timer_default_pulse(i + TIMER_OUTPUT_1, timer_us_to_tics(channels.channels[i]));
+        // Ensure we are autonomous enabled
+        last_autonomy_cmd_utime = timestamp_now();
+        if (autonomous_ready == 1) {
+            timer_default_disconnect_all();
+
+            // XXX: right now assuming you get 8 channels which are the outputs in order
+            if (killed == 0) {
+                uint8_t i;
+                for (i=0; i<channels.num_channels; ++i) {
+                    timer_default_pulse(i + TIMER_OUTPUT_1, timer_us_to_tics(channels.channels[i]));
+                }
             }
         }
     }

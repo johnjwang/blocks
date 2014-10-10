@@ -23,7 +23,7 @@
 
 #include "lcmtypes/kill_t.h"
 
-comms_t *uart_comms = NULL;
+static comms_t *uart_comms = NULL;
 
 static void uart_comms_up_int_handler(void);
 

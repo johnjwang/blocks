@@ -24,10 +24,12 @@
 #include "driverlib/sysctl.h"
 #include "driverlib/gpio.h"
 
+#include "io/comms.h"
+
 #include "timer_capture_generate.h"
 
 static bool usb_configured = false;
-
+static comms_t *usb_comms = NULL;
 
 void usb_comms_init(void)
 {
@@ -54,6 +56,8 @@ void usb_comms_init(void)
     //
     USBDCDCInit(0, &g_sCDCDevice);
 
+    usb_comms = comms_create(256);
+    comms_add_publisher(usb_comms, usb_comms_write_byte);
 }
 
 bool usb_comms_write_byte(uint8_t data)
@@ -71,6 +75,16 @@ bool usb_comms_write(uint8_t *msg, uint32_t datalen)
     } else {
     	return false;
 	}
+}
+
+void usb_comms_publish_blocking(comms_channel_t channel, uint8_t *msg, uint16_t msg_len)
+{
+    comms_publish_blocking(usb_comms, channel, msg, msg_len);
+}
+
+void usb_comms_subscribe(comms_channel_t channel, subscriber_t subscriber)
+{
+    comms_subscribe(usb_comms, channel, subscriber);
 }
 
 void usb_comms_demo()
@@ -267,16 +281,10 @@ RxHandler(void *pvCBData, uint32_t ui32Event, uint32_t ui32MsgValue,
         //
         case USB_EVENT_RX_AVAILABLE:
         {
-//            uint8_t data[1];
-//            if(USBBufferRead((tUSBBuffer *)&g_sRxBuffer, data, 1))
-//            {
-//                uint8_t i;
-//                for (i=TIMER_OUTPUT_1; i<=TIMER_OUTPUT_8; ++i) {
-//                    if ((char)data[0] >= '0' && (char)data[0] <= '9')
-//                        timer_default_pulse_RC(i, (   (uint32_t)(((char)data[0] - '0')
-//                                                    * (uint32_t)UINT16_MAX)) / 10);
-//                }
-//            }
+            uint8_t data[1];
+            if(USBBufferRead((tUSBBuffer *)&g_sRxBuffer, data, 1)) {
+                comms_handle(usb_comms, data[0]);
+            }
             break;
         }
 
