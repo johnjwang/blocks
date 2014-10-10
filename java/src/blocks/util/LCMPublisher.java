@@ -22,8 +22,8 @@ public class LCMPublisher
         }
 
         //broadcastTelemetry();
-        //broadcastKill();
-        broadcastChannels();
+        broadcastKill();
+        //broadcastChannels();
     }
 
     private void broadcastTelemetry()
@@ -68,17 +68,18 @@ public class LCMPublisher
         channels.num_channels = 8;
         channels.channels = new short[8];
 
-        short currVal = 1150;
+        short currVal = 0;
+        short startVal = 1150;
+        short endVal = 1450;
         int dir = 1;
 
         while(true)
         {
             currVal += dir * 4;
             for(int i = 0; i < 8; i++)
-            {
-                channels.channels[i] = (short) currVal;
-            }
-            if(currVal > 1400 || currVal < 1150) dir = -dir;
+                channels.channels[i] = (short) (currVal + startVal);
+
+            if(currVal + startVal > endVal || currVal < 0) dir = -dir;
             lcm.publish("CHANNELS_TX", channels);
             try{ Thread.sleep(50); } catch(Exception e) {}
         }
