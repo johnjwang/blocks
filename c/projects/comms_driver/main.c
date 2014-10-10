@@ -16,7 +16,8 @@
 #include "lcmtypes/rpms_t.h"
 #include "lcmtypes/telemetry_t.h"
 
-static bool verbose = false;
+static bool verbose = true;
+//static bool verbose = false;
 
 #define verbose_printf(...) \
     do{\
@@ -97,7 +98,7 @@ int main(int argc, char *argv[])
     char *usb_dev_name = "/dev/stack";
     if(argc > 2)
         usb_dev_name = argv[2];
-    usb = serial_create(usb_dev_name, B115200);
+    usb = serial_create(usb_dev_name, B9600);
     if(usb == NULL)
         fprintf(stderr, "Usb device does not exist at 115200 baud on %s\n", usb_dev_name);
     else
@@ -196,6 +197,7 @@ static void* xbee_run(void* arg)
 
 static bool publish_xbee(uint8_t byte)
 {
+    verbose_printf("TX UART: %x\n", byte);
     static uint8_t buf[1];
     buf[0] = byte;
     return serial_write(xbee, buf, 1);
@@ -203,18 +205,19 @@ static bool publish_xbee(uint8_t byte)
 
 static void* usb_run(void* arg)
 {
-    fprintf(stdout, "Starting usb receive thread\n");
+    verbose_printf("Starting usb receive thread\n");
     char data[1];
     while(!done)
     {
         serial_read(usb, data, 1);
-        comms_handle(usb_comms, data[0]);
+        //comms_handle(usb_comms, data[0]);
     }
     return NULL;
 }
 
 static bool publish_usb(uint8_t byte)
 {
+    verbose_printf("TX USB: %x\n", byte);
     static uint8_t buf[1];
     buf[0] = byte;
     return serial_write(usb, buf, 1);
@@ -222,7 +225,7 @@ static bool publish_usb(uint8_t byte)
 
 static void handler_kill(uint8_t *msg, uint16_t len)
 {
-    verbose_printf("Kill: ");
+    verbose_printf("Kill RX: ");
     uint16_t i;
     for(i = 0; i < len; ++i)
     {
@@ -250,7 +253,7 @@ static void handler_kill_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
 
 static void handler_channels(uint8_t *msg, uint16_t len)
 {
-    verbose_printf("Channels: ");
+    verbose_printf("Channels RX: ");
     uint16_t i;
     for(i = 0; i < len; ++i)
     {
