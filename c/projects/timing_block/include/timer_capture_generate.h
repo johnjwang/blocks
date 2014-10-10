@@ -49,7 +49,6 @@ typedef enum _timer_base_indices_t {
     NUM_TIMER_BASES
 } timer_base_indices_t;
 
-
 // Timer selection index values
 typedef enum _timer_select_indices_t {
     TIMERA,
@@ -70,10 +69,12 @@ typedef enum _gpio_port_indices_t {
 } gpio_port_indices_t;
 
 // Timer Overflow Settings
-#define OVERFLOW_60MS 60000
-#define OVERFLOW_20MS 20000
-#define OVERFLOW_025MS 2500
+
+#define OVERFLOW_PWM_CAP 60000
+//#define OVERFLOW_PWM_GEN 20000
+#define OVERFLOW_PWM_GEN  2500
 #define OVERFLOW_PPM 1
+#define OVERFLOW_SIGTIMEOUT 20000
 // XXX: make throttle enums like 1000 us and 2000 us for RC mode
 
 // Timer Lifetime Settings
@@ -133,6 +134,13 @@ struct timer_cap_gen_t
 void timer_default_init(void);
 
 /**
+ * Registers the given function as the callback when a pulse is detected on the
+ * switch monitoring line.
+ *
+ */
+void timer_register_switch_monitor(void (*switch_handler)(uint32_t));
+
+/**
  * Connects the given input to the given output using the default timer array. Used to pass
  * through PWMs.
  * \param input (timer_io_t) input timer label
@@ -150,6 +158,17 @@ void timer_default_disconnect(uint8_t input);
  * Disconnnects all default timers from their outputs
  */
 void timer_default_disconnect_all(void);
+
+/**
+ * Reconnects a timer to its default output
+ * \param input (timer_io_t) input timer label
+ */
+void timer_default_reconnect(uint8_t input);
+
+/**
+ * Reconnects all default timers to their default outputs
+ */
+void timer_default_reconnect_all(void);
 
 /**
  * Measures or generates a pulse on the given io timer.

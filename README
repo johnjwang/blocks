@@ -74,12 +74,12 @@ Import driverlib and usblib in ccs:
 
 ---------------------------------------------------------------------------------
 Todo list:
-- watchdog the signals
+x watchdog the signals
 - watchdog the device itself
 - make bootload faster
 	- add another bit to EEPROM that is "ignore bootload"
 	  use when rebooting because of watchdogs
-- kill listener
+x kill listener
 - hardcode a manual/autonomous switch line
 - board side comms
 - linux side comms
@@ -88,3 +88,4 @@ Todo list:
 - touch base with Ella, remind her that she needs USB hubs
 - test flight
 - detect if an xbee is plugged in above it
+- comms pass through from uart to usb
