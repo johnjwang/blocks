@@ -30,6 +30,7 @@
 
 #include "lcmtypes/channels_t.h"
 #include "lcmtypes/kill_t.h"
+#include "lcmtypes/usb_serial_num_t.h"
 
 
 #ifdef DEBUG
@@ -45,6 +46,7 @@ static uint64_t last_autonomy_cmd_utime = 0;
 static void main_manual_auto_switch_handler(uint32_t pulse_us);
 static void main_kill_msg_handler(uint8_t *msg, uint16_t msg_len);
 static void main_channels_msg_handler(uint8_t *msg, uint16_t msg_len);
+static void main_usb_sn_msg_handler(uint8_t *msg, uint16_t msg_len);
 
 int main(void)
 {
@@ -67,18 +69,6 @@ int main(void)
 
     IntMasterEnable();
 
-    // write usb serial number out of eeprom
-//    uint8_t serial_num[8] = {'7', '1', '7', '7', '1', '3', '5', '5'};
-//    eeprom_write_word(EEPROM_USB_SN_UPPER_ADDR,   (((uint32_t)serial_num[0]) << 24)
-//                                                | (((uint32_t)serial_num[1]) << 16)
-//                                                | (((uint32_t)serial_num[2]) <<  8)
-//                                                | (((uint32_t)serial_num[3]) <<  0));
-//
-//    eeprom_write_word(EEPROM_USB_SN_LOWER_ADDR,   (((uint32_t)serial_num[4]) << 24)
-//                                                | (((uint32_t)serial_num[5]) << 16)
-//                                                | (((uint32_t)serial_num[6]) <<  8)
-//                                                | (((uint32_t)serial_num[7]) <<  0));
-
     usb_comms_init();
     watchdog_init(SysCtlClockGet() / 10);
 
@@ -99,8 +89,10 @@ int main(void)
 
     uart_comms_up_subscribe(CHANNEL_KILL, main_kill_msg_handler);
     uart_comms_up_subscribe(CHANNEL_CHANNELS, main_channels_msg_handler);
+    uart_comms_up_subscribe(CHANNEL_USB_SN, main_usb_sn_msg_handler);
     usb_comms_subscribe(CHANNEL_KILL, main_kill_msg_handler);
     usb_comms_subscribe(CHANNEL_CHANNELS, main_channels_msg_handler);
+    usb_comms_subscribe(CHANNEL_USB_SN, main_usb_sn_msg_handler);
 
     timer_register_switch_monitor(main_manual_auto_switch_handler);
 
@@ -219,4 +211,23 @@ static void main_channels_msg_handler(uint8_t *msg, uint16_t msg_len)
         }
     }
     __channels_t_decode_array_cleanup(&channels, 1);
+}
+
+static void main_usb_sn_msg_handler(uint8_t *msg, uint16_t msg_len)
+{
+    usb_serial_num_t sn;
+    memset(&sn, 0, sizeof(sn));
+    if (__usb_serial_num_t_decode_array(msg, 0, msg_len, &sn, 1) >= 0) {
+        // write usb serial number out of eeprom
+        eeprom_write_word(EEPROM_USB_SN_UPPER_ADDR,   (((uint32_t)sn.sn_chars[0]) << 24)
+                                                    | (((uint32_t)sn.sn_chars[1]) << 16)
+                                                    | (((uint32_t)sn.sn_chars[2]) <<  8)
+                                                    | (((uint32_t)sn.sn_chars[3]) <<  0));
+
+        eeprom_write_word(EEPROM_USB_SN_LOWER_ADDR,   (((uint32_t)sn.sn_chars[4]) << 24)
+                                                    | (((uint32_t)sn.sn_chars[5]) << 16)
+                                                    | (((uint32_t)sn.sn_chars[6]) <<  8)
+                                                    | (((uint32_t)sn.sn_chars[7]) <<  0));
+    }
+    __usb_serial_num_t_decode_array_cleanup(&sn, 1);
 }

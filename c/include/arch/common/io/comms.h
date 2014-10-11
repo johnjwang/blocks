@@ -16,6 +16,7 @@ typedef enum comms_channel_t
     CHANNEL_KILL,
     CHANNEL_CHANNELS,
     CHANNEL_TELEMETRY,
+    CHANNEL_USB_SN,
     CHANNEL_DEBUG,
     CHANNEL_NUM_CHANNELS
 
