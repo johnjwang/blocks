@@ -19,6 +19,7 @@
 
 #include "io/comms.h"
 
+#include "eeprom.h"
 #include "bootloader.h"
 #include "stack.h"
 #include "time_util.h"
@@ -54,6 +55,7 @@ int main(void)
     SysCtlClockSet(SYSCTL_SYSDIV_2_5 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
 
     IntMasterDisable();
+    eeprom_init();
     leds_init();
     time_init();
     stack_enumerate(A, 2, B, 3);
@@ -88,7 +90,7 @@ int main(void)
 
 //    timer_register_switch_monitor(main_manual_auto_switch_handler);
 
-    static const int num_blinks = 3, num_leds = 2;
+    static const int num_blinks = 3, num_leds = 1;
     static int start_idx = 1;
     int i = start_idx, next_i = start_idx, j = 1;
 

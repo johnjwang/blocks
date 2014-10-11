@@ -19,6 +19,7 @@
 #include "driverlib/interrupt.h"
 
 #include "timing_block_util.h"
+#include "eeprom.h"
 #include "bootloader.h"
 
 // XXX add another bit to EEPROM that is "ignore bootload" to make boots fast if you have to
@@ -31,26 +32,26 @@ static void usb_load_new();
 
 void bootloader_check_upload()
 {
-    uint32_t eeprom_data[1];
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_EEPROM0);
-    EEPROMInit();
+    // Check for DFU bit and watchdog bit
+    uint32_t eeprom_data = eeprom_read_word(EEPROM_BOOTOPT_ADDR);
+    uint8_t reprogram_usb = eeprom_data & EEPROM_BOOTOPT_DFU_MASK;
+    uint8_t skip_bootloader = eeprom_data & EEPROM_BOOTOPT_WATCHDOG_MASK;
 
-    // Read first word from eeprom
-    EEPROMRead(eeprom_data, 0, 4);
-    uint32_t reprogram_usb = eeprom_data[0];
+    // Disable DFU bit for next boot
+    eeprom_write_word(EEPROM_BOOTOPT_ADDR, eeprom_data & ~EEPROM_BOOTOPT_DFU_MASK);
 
-    // Write a 0 to first word in eeprom
-    eeprom_data[0] = 0x00;
-    EEPROMProgram(eeprom_data, 0, 4);
+    // Skip bootload if booted from watchdog
+    if (skip_bootloader) {
+        turn_on_led(2);
+        return;
+    }
 
     // If the word we read was a 1, that means someone
     // pushed the reset button and put the board in dfu mode
-    if(reprogram_usb == 1)
-    	usb_load_new();
+    if(reprogram_usb != 0) usb_load_new();
 
-    // Write a 1 to the first word of eeprom
-    eeprom_data[0] = 0x01;
-    EEPROMProgram(eeprom_data, 0, 4);
+    // Prep EEPROM with DFU signal in case of reset
+    eeprom_write_word(EEPROM_BOOTOPT_ADDR, eeprom_data | EEPROM_BOOTOPT_DFU_MASK);
 
     // blink the leds 3 times to indicate window in which
     // pressing reset button would put device into dfu mode
@@ -70,9 +71,8 @@ void bootloader_check_upload()
 	}
     SysCtlDelay(10000000);
 
-	// Write a 0 back to the first word of eeprom
-	eeprom_data[0] = 0x00;
-	EEPROMProgram(eeprom_data, 0, 4);
+	// Wipe the DFU prep bit from the EEPROM to prevent DFU on next boot
+	eeprom_write_word(EEPROM_BOOTOPT_ADDR, eeprom_data & ~EEPROM_BOOTOPT_DFU_MASK);
 
 }
 
