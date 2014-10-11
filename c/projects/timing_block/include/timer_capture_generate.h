@@ -213,5 +213,6 @@ uint32_t timer_us_to_tics(uint32_t us);
 uint32_t timer_tics_to_us(uint32_t tics);
 uint32_t timer_pwm_to_ppm_RC_convention(uint32_t pwm_tics);
 
+void timer_set(uint32_t base, uint32_t timer, uint64_t val, uint8_t num_timer_bits, uint8_t num_prescaler_bits);
 
 #endif /* TIMER_CAPTURE_GENERATE_H_ */

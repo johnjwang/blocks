@@ -20,11 +20,12 @@
 #include "io/comms.h"
 
 #include "bootloader.h"
-#include "timing_block_util.h"
+#include "stack.h"
 #include "time_util.h"
+#include "timer_capture_generate.h"
+#include "timing_block_util.h"
 #include "uart_comms.h"
 #include "usb_comms.h"
-#include "timer_capture_generate.h"
 #include "watchdog.h"
 
 #include "lcmtypes/channels_t.h"
@@ -53,19 +54,16 @@ int main(void)
     SysCtlClockSet(SYSCTL_SYSDIV_2_5 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
 
     IntMasterDisable();
-
     leds_init();
     time_init();
+    stack_enumerate(A, 2, B, 3);
     bootloader_check_upload();
-
-    //****** All user code goes below here ******
-
-    uart_comms_up_init();
-    timer_default_init();
-
     IntMasterEnable();
 
+    //****** All user code dependent on interrupts gets initialzed here *******
     usb_comms_init();
+    uart_comms_up_init();
+//    timer_default_init();
     watchdog_init(SysCtlClockGet() / 10);
 
 //	uart_comms_up_demo();
@@ -88,7 +86,7 @@ int main(void)
     usb_comms_subscribe(CHANNEL_KILL, main_kill_msg_handler);
     usb_comms_subscribe(CHANNEL_CHANNELS, main_channels_msg_handler);
 
-    timer_register_switch_monitor(main_manual_auto_switch_handler);
+//    timer_register_switch_monitor(main_manual_auto_switch_handler);
 
     static const int num_blinks = 3, num_leds = 2;
     static int start_idx = 1;
@@ -127,8 +125,8 @@ int main(void)
                 if (chan_i <= TIMER_INPUT_8) timer_ind = chan_i;
                 else                         timer_ind = chan_i - (TIMER_INPUT_8 + 1) + TIMER_OUTPUT_1;
 
-                channel_val[chan_i] = timer_tics_to_us(
-                        timer_default_read_pulse(timer_ind));
+//                channel_val[chan_i] = timer_tics_to_us(
+//                        timer_default_read_pulse(timer_ind));
             }
             channel.channels = channel_val;
             // XXX: had a very weird but where receiving too much or something basically

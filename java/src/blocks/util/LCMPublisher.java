@@ -21,8 +21,8 @@ public class LCMPublisher
             System.exit(1);
         }
 
-        broadcastTelemetry();
-        //broadcastKill();
+        //broadcastTelemetry();
+        broadcastKill();
         //broadcastChannels();
     }
 
