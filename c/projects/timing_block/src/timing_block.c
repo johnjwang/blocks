@@ -19,6 +19,7 @@
 
 #include "io/comms.h"
 
+#include "eeprom.h"
 #include "bootloader.h"
 #include "timing_block_util.h"
 #include "time_util.h"
@@ -54,6 +55,7 @@ int main(void)
 
     IntMasterDisable();
 
+    eeprom_init();
     leds_init();
     time_init();
     bootloader_check_upload();
@@ -90,7 +92,7 @@ int main(void)
 
     timer_register_switch_monitor(main_manual_auto_switch_handler);
 
-    static const int num_blinks = 3, num_leds = 2;
+    static const int num_blinks = 3, num_leds = 1;
     static int start_idx = 1;
     int i = start_idx, next_i = start_idx, j = 1;
 

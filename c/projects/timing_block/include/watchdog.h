@@ -8,6 +8,7 @@
 #ifndef WATCHDOG_H_
 #define WATCHDOG_H_
 
+// Must initialize EEProm first
 void watchdog_init(uint32_t tics_timeout);
 void watchdog_feed(void);
 
