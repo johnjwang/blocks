@@ -40,6 +40,7 @@ extern uint32_t RxHandler(void *pvCBData, uint32_t ui32Event,
 extern uint32_t TxHandler(void *pvi32CBData, uint32_t ui32Event,
                                uint32_t ui32MsgValue, void *pvMsgData);
 
+extern uint8_t g_pui8SerialNumberString[];
 extern const tUSBBuffer g_sTxBuffer;
 extern const tUSBBuffer g_sRxBuffer;
 extern tUSBDCDCDevice g_sCDCDevice;

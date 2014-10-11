@@ -86,9 +86,9 @@ Import driverlib and usblib in ccs:
 ---------------------------------------------------------------------------------
 Todo list:
 x watchdog the signals
-- watchdog the device itself
-- make bootload faster
-	- add another bit to EEPROM that is "ignore bootload"
+x watchdog the device itself
+x make bootload faster
+	x add another bit to EEPROM that is "ignore bootload"
 	  use when rebooting because of watchdogs
 x kill listener
 x hardcode a manual/autonomous switch line

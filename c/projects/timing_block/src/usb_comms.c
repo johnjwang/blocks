@@ -26,7 +26,7 @@
 
 #include "io/comms.h"
 
-#include "timer_capture_generate.h"
+#include "eeprom.h"
 
 static bool usb_configured = false;
 static comms_t *usb_comms = NULL;
@@ -38,6 +38,17 @@ void usb_comms_init(void)
     //
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
 	GPIOPinTypeUSBAnalog(GPIO_PORTD_BASE, GPIO_PIN_5 | GPIO_PIN_4);
+
+	// Read usb serial number out of eeprom
+	uint64_t serial_num =   ((uint64_t)eeprom_read_word(EEPROM_USB_SN_UPPER_ADDR)) << 32
+	                      | ((uint64_t)eeprom_read_word(EEPROM_USB_SN_LOWER_ADDR));
+	g_pui8SerialNumberString[0] = 2 + (8 * 2); // Size byte
+	g_pui8SerialNumberString[1] = USB_DTYPE_STRING;
+	uint8_t i;
+	for (i=0; i<8; ++i) {
+	    g_pui8SerialNumberString[2*i + 2] = (serial_num >> (8*(7-i))) & 0x00000000000000FF;
+	    g_pui8SerialNumberString[2*i + 3] = 0;
+	}
 
     //
     // Initialize the transmit and receive buffers.

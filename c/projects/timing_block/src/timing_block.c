@@ -67,6 +67,18 @@ int main(void)
 
     IntMasterEnable();
 
+    // write usb serial number out of eeprom
+//    uint8_t serial_num[8] = {'7', '1', '7', '7', '1', '3', '5', '5'};
+//    eeprom_write_word(EEPROM_USB_SN_UPPER_ADDR,   (((uint32_t)serial_num[0]) << 24)
+//                                                | (((uint32_t)serial_num[1]) << 16)
+//                                                | (((uint32_t)serial_num[2]) <<  8)
+//                                                | (((uint32_t)serial_num[3]) <<  0));
+//
+//    eeprom_write_word(EEPROM_USB_SN_LOWER_ADDR,   (((uint32_t)serial_num[4]) << 24)
+//                                                | (((uint32_t)serial_num[5]) << 16)
+//                                                | (((uint32_t)serial_num[6]) <<  8)
+//                                                | (((uint32_t)serial_num[7]) <<  0));
+
     usb_comms_init();
     watchdog_init(SysCtlClockGet() / 10);
 
