@@ -62,7 +62,6 @@ public class GUI extends Thread
 
 	public GUI(String name, ArrayList<GUIObject> _objects)
 	{
-
 		objects = new ArrayList<ObjectContainer>();
 
 		for(GUIObject object : _objects){
@@ -184,7 +183,6 @@ public class GUI extends Thread
 
 	public static void main(String[] args) throws Exception
 	{
-
 		GetOpt gopt = new GetOpt();
         gopt.addBoolean('h', "help", false, "Show this help");
 
@@ -195,7 +193,7 @@ public class GUI extends Thread
             return;
 		}
 
-        GUIObject usbProgrammer = new UsbProgrammerGuiObject();
+        GUIObject usbProgrammer = new UsbProgrammerGuiObject(LCM.getSingleton());
 
         ArrayList<GUIObject> objs = new ArrayList<GUIObject>();
         objs.add(usbProgrammer);

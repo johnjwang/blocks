@@ -8,13 +8,13 @@ import blocks.lcmtypes.*;
 
 public class UsbSerialNumberProgrammer
 {
-    public static void broadcast(LCM lcm, int id, String usbSerial)
+    public static boolean broadcast(LCM lcm, int id, String usbSerial)
     {
         char chars[] = usbSerial.toCharArray();
         if(chars.length > 8)
         {
             System.err.println("usb serial number must be 8 characters");
-            return;
+            return false;
         }
 
         usb_serial_num_t usbnum = new usb_serial_num_t();
@@ -22,6 +22,7 @@ public class UsbSerialNumberProgrammer
             usbnum.sn_chars[i] = (byte) chars[i];
 
         lcm.publish("USB_SERIAL_NUM_" + Integer.toString(id), usbnum);
+        return true;
     }
 
     public static void main(String args[])
