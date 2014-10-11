@@ -2,7 +2,7 @@
 #include "io/comms.h"
 
 bool publish_stdout(uint8_t byte);
-void handle_kill(uint8_t *msg, uint16_t msg_len);
+void handle_kill(uint16_t id, uint8_t *msg, uint16_t msg_len);
 
 comms_t *stdout_comms;
 
@@ -31,9 +31,9 @@ bool publish_stdout(uint8_t byte)
     return true;
 }
 
-void handle_kill(uint8_t *msg, uint16_t msg_len)
+void handle_kill(uint16_t id, uint8_t *msg, uint16_t msg_len)
 {
-    printf("Received message on channel kill: ");
+    printf("Received message with id %d on channel kill: ", id);
     uint8_t i;
     for(i = 0; i < msg_len; ++i)
     {

@@ -83,9 +83,9 @@ inline void comms_publish_blocking(comms_t *comms,
     comms_publish_blocking_id(comms, 0, channel, msg, msg_len);
 }
 
-void comms_publish_blocking_id(comms_t *comms, uint8_t id, comms_channel_t channel, uint8_t *msg, uint16_t msg_len)
+void comms_publish_blocking_id(comms_t *comms, uint16_t id, comms_channel_t channel, uint8_t *msg, uint16_t msg_len)
 {
-#define NUM_METADATA 1+1+1+1+2+2
+#define NUM_METADATA 1+1+2+1+2+2
 
     fletcher_checksum_clear_tx(comms);
 
@@ -95,8 +95,13 @@ void comms_publish_blocking_id(comms_t *comms, uint8_t id, comms_channel_t chann
     fletcher_checksum_add_byte_tx(comms, START_BYTE2);
     publish(comms, START_BYTE2);
 
-    fletcher_checksum_add_byte_tx(comms, id);
-    publish(comms, id);
+    uint8_t id1 = (id & 0xff00) >> 8;
+    fletcher_checksum_add_byte_tx(comms, id1);
+    publish(comms, id1);
+
+    uint8_t id2 = id & 0x00ff;
+    fletcher_checksum_add_byte_tx(comms, id2);
+    publish(comms, id2);
 
     fletcher_checksum_add_byte_tx(comms, channel);
     publish(comms, channel);
@@ -128,13 +133,14 @@ void comms_handle(comms_t *comms, uint8_t byte)
 {
 #define STATE_START1    0
 #define STATE_START2    1
-#define STATE_ID        2
-#define STATE_CHANNEL   3
-#define STATE_DATALEN1  4
-#define STATE_DATALEN2  5
-#define STATE_DATA      6
-#define STATE_CHECKSUM1 7
-#define STATE_CHECKSUM2 8
+#define STATE_ID1       2
+#define STATE_ID2       3
+#define STATE_CHANNEL   4
+#define STATE_DATALEN1  5
+#define STATE_DATALEN2  6
+#define STATE_DATA      7
+#define STATE_CHECKSUM1 8
+#define STATE_CHECKSUM2 9
 
     switch(comms->decode_state)
     {
@@ -149,7 +155,7 @@ void comms_handle(comms_t *comms, uint8_t byte)
         case STATE_START2:
             if(byte == START_BYTE2)
             {
-                comms->decode_state = STATE_ID;
+                comms->decode_state = STATE_ID1;
                 fletcher_checksum_add_byte_rx(comms, byte);
             }
             else
@@ -159,8 +165,14 @@ void comms_handle(comms_t *comms, uint8_t byte)
             }
             break;
 
-        case STATE_ID:
+        case STATE_ID1:
             comms->decode_id = byte;
+            comms->decode_state = STATE_ID2;
+            fletcher_checksum_add_byte_rx(comms, byte);
+            break;
+
+        case STATE_ID2:
+            comms->decode_id = (comms->decode_id << 8) | byte;
             comms->decode_state = STATE_CHANNEL;
             fletcher_checksum_add_byte_rx(comms, byte);
             break;
@@ -222,7 +234,7 @@ void comms_handle(comms_t *comms, uint8_t byte)
                 for(i = 0; i < comms->num_subscribers[comms->decode_channel]; ++i)
                 {
                     subscriber_t sub = comms->subscribers[comms->decode_channel][i];
-                    sub(comms->decode_buf, comms->decode_data_len);
+                    sub(comms->decode_id, comms->decode_buf, comms->decode_data_len);
                 }
             }
             comms->decode_state = STATE_START1;
@@ -232,7 +244,8 @@ void comms_handle(comms_t *comms, uint8_t byte)
 
 #undef STATE_START1
 #undef STATE_START2
-#undef STATE_ID
+#undef STATE_ID1
+#undef STATE_ID2
 #undef STATE_CHANNEL
 #undef STATE_DATALEN1
 #undef STATE_DATALEN2

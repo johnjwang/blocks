@@ -21,7 +21,7 @@ public class UsbSerialNumberProgrammer
         for(int i = 0; i < usbnum.sn_chars.length; i++)
             usbnum.sn_chars[i] = (byte) chars[i];
 
-        lcm.publish("USB_SERIAL_NUM_" + Integer.toString(id), usbnum);
+        lcm.publish("USB_SERIAL_NUM_" + Integer.toString(id) + "_TX", usbnum);
         return true;
     }
 
