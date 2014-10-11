@@ -21,9 +21,10 @@ public class LCMPublisher
             System.exit(1);
         }
 
-        broadcastTelemetry();
+        //broadcastTelemetry();
         //broadcastKill();
         //broadcastChannels();
+        broadcastUsbSerialNum();
     }
 
     private void broadcastTelemetry()
@@ -83,6 +84,20 @@ public class LCMPublisher
             lcm.publish("CHANNELS_TX", channels);
             try{ Thread.sleep(50); } catch(Exception e) {}
         }
+    }
+
+    private void broadcastUsbSerialNum()
+    {
+        usb_serial_num_t usbnum = new usb_serial_num_t();
+        usbnum.sn_chars[0] = 'F';
+        usbnum.sn_chars[1] = '0';
+        usbnum.sn_chars[2] = '0';
+        usbnum.sn_chars[3] = '5';
+        usbnum.sn_chars[4] = 'B';
+        usbnum.sn_chars[5] = 'A';
+        usbnum.sn_chars[6] = '1';
+        usbnum.sn_chars[7] = '1';
+        lcm.publish("USB_SERIAL_NUM", usbnum);
     }
 
     public static void main(String args[])

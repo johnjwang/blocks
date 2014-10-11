@@ -15,9 +15,10 @@
 #include "lcmtypes/kill_t.h"
 #include "lcmtypes/rpms_t.h"
 #include "lcmtypes/telemetry_t.h"
+#include "lcmtypes/usb_serial_num_t.h"
 
-//static bool verbose = true;
-static bool verbose = false;
+static bool verbose = true;
+//static bool verbose = false;
 
 #define verbose_printf(...) \
     do{\
@@ -42,6 +43,8 @@ static void handler_channels_lcm(const lcm_recv_buf_t *rbuf, const char *channel
 static void handler_kill(uint8_t *msg, uint16_t len);
 static void handler_kill_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
                              const kill_t *msg, void *user);
+static void handler_usb_serial_num_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
+                                       const usb_serial_num_t *msg, void *user);
 
 pthread_t xbee_thread;
 comms_t *xbee_comms;
@@ -133,8 +136,9 @@ int main(int argc, char *argv[])
         pthread_create(&usb_thread, NULL, usb_run, NULL);
     }
 
-    kill_t_subscription_t     *kill_subs     = kill_t_subscribe(lcm, "KILL_TX", handler_kill_lcm, NULL);
-    channels_t_subscription_t *channels_subs = channels_t_subscribe(lcm, "CHANNELS_TX", handler_channels_lcm, NULL);
+    kill_t_subscription_t           *kill_subs           = kill_t_subscribe(lcm, "KILL_TX", handler_kill_lcm, NULL);
+    channels_t_subscription_t       *channels_subs       = channels_t_subscribe(lcm, "CHANNELS_TX", handler_channels_lcm, NULL);
+    usb_serial_num_t_subscription_t *usb_serial_num_subs = usb_serial_num_t_subscribe(lcm, "USB_SERIAL_NUM", handler_usb_serial_num_lcm, NULL);
 
     while(!done)
     {
@@ -160,6 +164,7 @@ int main(int argc, char *argv[])
 
     kill_t_unsubscribe(lcm, kill_subs);
     channels_t_unsubscribe(lcm, channels_subs);
+    usb_serial_num_t_unsubscribe(lcm, usb_serial_num_subs);
 
     if(xbee)
     {
@@ -276,5 +281,16 @@ static void handler_channels_lcm(const lcm_recv_buf_t *rbuf, const char *channel
     uint32_t len = __channels_t_encode_array(buf, 0, maxlen, msg, 1);
     if(usb)  comms_publish_blocking( usb_comms, CHANNEL_CHANNELS, buf, len);
     if(xbee) comms_publish_blocking(xbee_comms, CHANNEL_CHANNELS, buf, len);
+    free(buf);
+}
+
+static void handler_usb_serial_num_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
+                                       const usb_serial_num_t *msg, void *user)
+{
+    uint32_t maxlen = __usb_serial_num_t_encoded_array_size(msg, 1);
+    uint8_t *buf = (uint8_t *) malloc(sizeof(uint8_t) * maxlen);
+    uint32_t len = __usb_serial_num_t_encode_array(buf, 0, maxlen, msg, 1);
+    if(usb)  comms_publish_blocking( usb_comms, CHANNEL_USB_SN, buf, len);
+    if(xbee) comms_publish_blocking(xbee_comms, CHANNEL_USB_SN, buf, len);
     free(buf);
 }

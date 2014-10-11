@@ -25,7 +25,7 @@ public class CSVWriter implements LCMSubscriber
     Log log;
     boolean verbose = false;
 
-    public CSVWriter(Log log, PrintWriter output, PrintWriter boolean verbose)
+    public CSVWriter(Log log, PrintWriter output, boolean verbose)
     {
         this.log = log;
         this.output = output;
