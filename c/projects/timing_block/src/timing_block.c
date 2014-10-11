@@ -66,7 +66,7 @@ int main(void)
     usb_comms_init();
     uart_comms_up_init();
 //    timer_default_init();
-    watchdog_init(SysCtlClockGet() / 10);
+//    watchdog_init(SysCtlClockGet() / 10);
 
 //	uart_comms_up_demo();
 //	usb_demo();
@@ -100,7 +100,7 @@ int main(void)
 
     while(1)
     {
-        watchdog_feed();
+//        watchdog_feed();
     	if(!is_blinking(i))
     	{
     		i = next_i;

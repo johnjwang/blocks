@@ -113,6 +113,8 @@ static void enumerate_above(void)
             //Place yourself on the i2c bus with your new address and write your address to the bus here
 
             stack.enumeration_state = STARTED_ENUMERATION;
+            GPIOPinTypeGPIOOutput(stack.gpio_dn_port_base, stack.gpio_dn_pin);
+            GPIOPadConfigSet(stack.gpio_dn_port_base, stack.gpio_dn_pin, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD);
             GPIOPinWrite(stack.gpio_dn_port_base, stack.gpio_dn_pin, stack.gpio_dn_pin);
             GPIOPinWrite(stack.gpio_up_port_base, stack.gpio_up_pin, 0);
             timer_set(TIMER2_BASE, TIMER_B, timer_us_to_tics(100), 16, 8);
@@ -176,4 +178,13 @@ static void still_enumertaing(void)
 static void finish_enumeration(void)
 {
     GPIOIntUnregister(stack.gpio_up_port_base);
+    GPIOIntClear(stack.gpio_dn_port_base, stack.gpio_dn_pin_int);
+
+    TimerDisable(TIMER2_BASE, TIMER_B);
+    TimerIntUnregister(TIMER2_BASE, TIMER_B);
+    TimerIntClear(TIMER2_BASE, TIMER_TIMB_TIMEOUT);
+
+    GPIOPinWrite(stack.gpio_dn_port_base, stack.gpio_dn_pin, 0);
+
+    // Do something
 }
