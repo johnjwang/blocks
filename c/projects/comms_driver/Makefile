@@ -5,7 +5,7 @@ BINDIR:=${BLOCKS_HOME}/bin/projects
 BIN:=${BINDIR}/comms_driver
 
 all:
-	@rm bin
+	@rm -f bin
 	@ln -sf ${BLOCKS_HOME}/bin ./bin
 	@mkdir -p ${BINDIR}
 	gcc main.c ${CFLAGS} ${LDFLAGS} -o ${BIN}
