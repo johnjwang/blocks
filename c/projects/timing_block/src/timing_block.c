@@ -44,9 +44,9 @@ static uint8_t autonomous_ready = 0;
 static uint64_t last_autonomy_cmd_utime = 0;
 
 static void main_manual_auto_switch_handler(uint32_t pulse_us);
-static void main_kill_msg_handler(uint8_t *msg, uint16_t msg_len);
-static void main_channels_msg_handler(uint8_t *msg, uint16_t msg_len);
-static void main_usb_sn_msg_handler(uint8_t *msg, uint16_t msg_len);
+static void main_kill_msg_handler(uint16_t id, uint8_t *msg, uint16_t msg_len);
+static void main_channels_msg_handler(uint16_t id, uint8_t *msg, uint16_t msg_len);
+static void main_usb_sn_msg_handler(uint16_t id, uint8_t *msg, uint16_t msg_len);
 
 int main(void)
 {
@@ -176,58 +176,67 @@ static void main_manual_auto_switch_handler(uint32_t pulse_us)
     }
 }
 
-static void main_kill_msg_handler(uint8_t *msg, uint16_t msg_len)
+static void main_kill_msg_handler(uint16_t id, uint8_t *msg, uint16_t msg_len)
 {
     kill_t kill;
     memset(&kill, 0, sizeof(kill));
     if (__kill_t_decode_array(msg, 0, msg_len, &kill, 1) >= 0) {
-        timer_default_disconnect_all();
-        // XXX: this will actually flatline after 200 ms due to sigtimeout, may need to check
-        //      if that is safe
-        timer_default_pulse_allpwm(timer_us_to_tics(1000));
-        killed = 1;
+        //if((id == 0) || (id == stack.address))
+        //{
+            timer_default_disconnect_all();
+            // XXX: this will actually flatline after 200 ms due to sigtimeout, may need to check
+            //      if that is safe
+            timer_default_pulse_allpwm(timer_us_to_tics(1000));
+            killed = 1;
+        //}
     }
     __kill_t_decode_array_cleanup(&kill, 1);
 }
 
-static void main_channels_msg_handler(uint8_t *msg, uint16_t msg_len)
+static void main_channels_msg_handler(uint16_t id, uint8_t *msg, uint16_t msg_len)
 {
     channels_t channels;
     memset(&channels, 0, sizeof(channels));
     if (__channels_t_decode_array(msg, 0, msg_len, &channels, 1) >= 0) {
 
-        // Ensure we are autonomous enabled
-        last_autonomy_cmd_utime = timestamp_now();
-        if (autonomous_ready == 1) {
-            timer_default_disconnect_all();
+        //if((id == 0) || (id == stack.address))
+        //{
+            // Ensure we are autonomous enabled
+            last_autonomy_cmd_utime = timestamp_now();
+            if (autonomous_ready == 1) {
+                timer_default_disconnect_all();
 
-            // XXX: right now assuming you get 8 channels which are the outputs in order
-            if (killed == 0) {
-                uint8_t i;
-                for (i=0; i<channels.num_channels; ++i) {
-                    timer_default_pulse(i + TIMER_OUTPUT_1, timer_us_to_tics(channels.channels[i]));
+                // XXX: right now assuming you get 8 channels which are the outputs in order
+                if (killed == 0) {
+                    uint8_t i;
+                    for (i=0; i<channels.num_channels; ++i) {
+                        timer_default_pulse(i + TIMER_OUTPUT_1, timer_us_to_tics(channels.channels[i]));
+                    }
                 }
             }
-        }
+        //}
     }
     __channels_t_decode_array_cleanup(&channels, 1);
 }
 
-static void main_usb_sn_msg_handler(uint8_t *msg, uint16_t msg_len)
+static void main_usb_sn_msg_handler(uint16_t id, uint8_t *msg, uint16_t msg_len)
 {
     usb_serial_num_t sn;
     memset(&sn, 0, sizeof(sn));
     if (__usb_serial_num_t_decode_array(msg, 0, msg_len, &sn, 1) >= 0) {
-        // write usb serial number out of eeprom
-        eeprom_write_word(EEPROM_USB_SN_UPPER_ADDR,   (((uint32_t)sn.sn_chars[0]) << 24)
-                                                    | (((uint32_t)sn.sn_chars[1]) << 16)
-                                                    | (((uint32_t)sn.sn_chars[2]) <<  8)
-                                                    | (((uint32_t)sn.sn_chars[3]) <<  0));
+        //if((id == 0) || (id == stack.address))
+        //{
+            // write usb serial number out of eeprom
+            eeprom_write_word(EEPROM_USB_SN_UPPER_ADDR,   (((uint32_t)sn.sn_chars[0]) << 24)
+                                                        | (((uint32_t)sn.sn_chars[1]) << 16)
+                                                        | (((uint32_t)sn.sn_chars[2]) <<  8)
+                                                        | (((uint32_t)sn.sn_chars[3]) <<  0));
 
-        eeprom_write_word(EEPROM_USB_SN_LOWER_ADDR,   (((uint32_t)sn.sn_chars[4]) << 24)
-                                                    | (((uint32_t)sn.sn_chars[5]) << 16)
-                                                    | (((uint32_t)sn.sn_chars[6]) <<  8)
-                                                    | (((uint32_t)sn.sn_chars[7]) <<  0));
+            eeprom_write_word(EEPROM_USB_SN_LOWER_ADDR,   (((uint32_t)sn.sn_chars[4]) << 24)
+                                                        | (((uint32_t)sn.sn_chars[5]) << 16)
+                                                        | (((uint32_t)sn.sn_chars[6]) <<  8)
+                                                        | (((uint32_t)sn.sn_chars[7]) <<  0));
+        //}
     }
     __usb_serial_num_t_decode_array_cleanup(&sn, 1);
 }

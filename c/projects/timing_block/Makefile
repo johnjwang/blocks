@@ -1,4 +1,4 @@
-SUBDIRS = comms_driver driverlib usblib timing_block
+SUBDIRS = Debug Release
 
 .PHONY: all debug clean
 
