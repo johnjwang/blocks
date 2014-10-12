@@ -120,7 +120,11 @@ inline void comms_publish_blocking(comms_t *comms,
     comms_publish_blocking_id(comms, 0, channel, msg, msg_len);
 }
 
-void comms_publish_blocking_id(comms_t *comms, uint16_t id, comms_channel_t channel, uint8_t *msg, uint16_t msg_len)
+void comms_publish_blocking_id(comms_t *comms,
+                               uint16_t id,
+                               comms_channel_t channel,
+                               uint8_t *msg,
+                               uint16_t msg_len)
 {
 #define NUM_METADATA 1+1+2+1+2+2
 
@@ -165,6 +169,27 @@ void comms_publish_blocking_id(comms_t *comms, uint16_t id, comms_channel_t chan
 
 #undef NUM_METADATA
 }
+
+inline void comms_publish_non_blocking(comms_t *comms,
+                                       comms_channel_t channel,
+                                       uint8_t *msg,
+                                       uint16_t msg_len,
+                                       void (*callback)(bool succcess))
+{
+    comms_publish_non_blocking_id(comms, 0, channel, msg, msg_len, callback);
+}
+
+void comms_publish_non_blocking_id(comms_t *comms,
+                                   uint16_t id,
+                                   comms_channel_t channel,
+                                   uint8_t *msg,
+                                   uint16_t msg_len,
+                                   void (*callback)(bool succcess))
+{
+    //XXX Not yet implemented
+    while(1);
+}
+
 
 void comms_handle(comms_t *comms, uint8_t byte)
 {

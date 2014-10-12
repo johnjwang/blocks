@@ -50,6 +50,19 @@ inline void comms_publish_blocking(comms_t *comms,
                                    uint8_t *msg,
                                    uint16_t msg_len);
 
+void comms_publish_non_blocking_id(comms_t *comms,
+                                   uint16_t id,
+                                   comms_channel_t channel,
+                                   uint8_t *msg,
+                                   uint16_t msg_len,
+                                   void (*callback)(bool succcess));
+
+inline void comms_publish_non_blocking(comms_t *comms,
+                                       comms_channel_t channel,
+                                       uint8_t *msg,
+                                       uint16_t msg_len,
+                                       void (*callback)(bool succcess));
+
 void comms_handle(comms_t *comms, uint8_t byte);
 
 void comms_destroy(comms_t *comms);
