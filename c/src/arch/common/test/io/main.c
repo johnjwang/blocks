@@ -2,7 +2,8 @@
 #include "io/comms.h"
 
 bool publish_stdout(uint8_t byte);
-void handle_kill(uint16_t id, uint8_t *msg, uint16_t msg_len);
+void handle_kill(void *usr, uint16_t id, comms_channel_t channel,
+                 uint8_t *msg, uint16_t msg_len);
 
 comms_t *stdout_comms;
 
@@ -15,7 +16,7 @@ int main()
     uint8_t msg[5] = {0,1,2,3,4};
 
 
-    comms_subscribe(stdout_comms, CHANNEL_KILL, handle_kill);
+    comms_subscribe(stdout_comms, CHANNEL_KILL, handle_kill, NULL);
 
     comms_publish_blocking(stdout_comms, CHANNEL_KILL, msg, msg_len);
 
@@ -31,7 +32,8 @@ bool publish_stdout(uint8_t byte)
     return true;
 }
 
-void handle_kill(uint16_t id, uint8_t *msg, uint16_t msg_len)
+void handle_kill(void *usr, uint16_t id, comms_channel_t channel,
+                 uint8_t *msg, uint16_t msg_len)
 {
     printf("Received message with id %d on channel kill: ", id);
     uint8_t i;

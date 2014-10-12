@@ -93,9 +93,9 @@ void usb_comms_publish_blocking(comms_channel_t channel, uint8_t *msg, uint16_t 
     comms_publish_blocking(usb_comms, channel, msg, msg_len);
 }
 
-void usb_comms_subscribe(comms_channel_t channel, subscriber_t subscriber)
+void usb_comms_subscribe(comms_channel_t channel, subscriber_t subscriber, void *usr)
 {
-    comms_subscribe(usb_comms, channel, subscriber);
+    comms_subscribe(usb_comms, channel, subscriber, usr);
 }
 
 void usb_comms_demo()

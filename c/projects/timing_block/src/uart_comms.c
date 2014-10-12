@@ -87,9 +87,9 @@ void uart_comms_up_publish_blocking(comms_channel_t channel, uint8_t *msg, uint1
     comms_publish_blocking(uart_comms, channel, msg, msg_len);
 }
 
-void uart_comms_up_subscribe(comms_channel_t channel, subscriber_t subscriber)
+void uart_comms_up_subscribe(comms_channel_t channel, subscriber_t subscriber, void *usr)
 {
-    comms_subscribe(uart_comms, channel, subscriber);
+    comms_subscribe(uart_comms, channel, subscriber, usr);
 }
 
 void uart_comms_up_demo(void)

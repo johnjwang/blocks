@@ -38,13 +38,16 @@ static void* xbee_run(void*);
 static void* usb_run(void*);
 static bool publish_xbee(uint8_t byte);
 static bool publish_usb(uint8_t byte);
-static void handler_channels(uint16_t id, uint8_t *msg, uint16_t len);
+static void handler_channels(void *usr, uint16_t id, comms_channel_t channel,
+                             uint8_t *msg, uint16_t len);
 static void handler_channels_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
                                  const channels_t *msg, void *user);
-static void handler_kill(uint16_t id, uint8_t *msg, uint16_t len);
+static void handler_kill(void *usr, uint16_t id, comms_channel_t channel,
+                         uint8_t *msg, uint16_t len);
 static void handler_kill_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
                              const kill_t *msg, void *user);
-static void handler_usb_serial_num(uint16_t id, uint8_t *msg, uint16_t len);
+static void handler_usb_serial_num(void *usr, uint16_t id, comms_channel_t channel,
+                                   uint8_t *msg, uint16_t len);
 static void handler_usb_serial_num_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
                                        const usb_serial_num_t *msg, void *user);
 
@@ -158,8 +161,8 @@ int main(int argc, char *argv[])
     {
         xbee_comms = comms_create(1000);
         comms_add_publisher(xbee_comms, publish_xbee);
-        comms_subscribe(xbee_comms, CHANNEL_KILL, handler_kill);
-        comms_subscribe(xbee_comms, CHANNEL_CHANNELS, handler_channels);
+        comms_subscribe(xbee_comms, CHANNEL_KILL, handler_kill, NULL);
+        comms_subscribe(xbee_comms, CHANNEL_CHANNELS, handler_channels, NULL);
         pthread_create(&xbee_thread, NULL, xbee_run, NULL);
     }
 
@@ -168,8 +171,8 @@ int main(int argc, char *argv[])
     {
         usb_comms = comms_create(1000);
         comms_add_publisher(usb_comms, publish_usb);
-        comms_subscribe(usb_comms, CHANNEL_KILL, handler_kill);
-        comms_subscribe(usb_comms, CHANNEL_CHANNELS, handler_channels);
+        comms_subscribe(usb_comms, CHANNEL_KILL, handler_kill, NULL);
+        comms_subscribe(usb_comms, CHANNEL_CHANNELS, handler_channels, NULL);
         pthread_create(&usb_thread, NULL, usb_run, NULL);
     }
 
@@ -300,7 +303,8 @@ static bool publish_usb(uint8_t byte)
     return serial_write(usb, buf, 1);
 }
 
-static void handler_kill(uint16_t id, uint8_t *msg, uint16_t len)
+static void handler_kill(void *usr, uint16_t id, comms_channel_t channel,
+                         uint8_t *msg, uint16_t len)
 {
     char lcm_channel[20];
     snprintf(lcm_channel, 20, "Received KILL_%d_RX", id);
@@ -332,11 +336,12 @@ static void handler_kill_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
     uint32_t len = __kill_t_encode_array(buf, 0, maxlen, msg, 1);
     if(usb)  comms_publish_blocking_id( usb_comms, id, CHANNEL_KILL, buf, len);
     if(xbee) comms_publish_blocking_id(xbee_comms, id, CHANNEL_KILL, buf, len);
-    if(loopback_mode) handler_kill(id, buf, len);
+    if(loopback_mode) handler_kill(NULL, id, CHANNEL_KILL, buf, len);
     free(buf);
 }
 
-static void handler_channels(uint16_t id, uint8_t *msg, uint16_t len)
+static void handler_channels(void *usr, uint16_t id, comms_channel_t channel,
+                             uint8_t *msg, uint16_t len)
 {
     char lcm_channel[20];
     snprintf(lcm_channel, 20, "Received CHANNELS_%d_RX", id);
@@ -368,11 +373,12 @@ static void handler_channels_lcm(const lcm_recv_buf_t *rbuf, const char *channel
     uint32_t len = __channels_t_encode_array(buf, 0, maxlen, msg, 1);
     if(usb)  comms_publish_blocking_id( usb_comms, id, CHANNEL_CHANNELS, buf, len);
     if(xbee) comms_publish_blocking_id(xbee_comms, id, CHANNEL_CHANNELS, buf, len);
-    if(loopback_mode) handler_channels(id, buf, len);
+    if(loopback_mode) handler_channels(NULL, id, CHANNEL_CHANNELS, buf, len);
     free(buf);
 }
 
-static void handler_usb_serial_num(uint16_t id, uint8_t *msg, uint16_t len)
+static void handler_usb_serial_num(void *usr, uint16_t id, comms_channel_t channel,
+                                   uint8_t *msg, uint16_t len)
 {
     char lcm_channel[20];
     snprintf(lcm_channel, 20, "Received USB_SERIAL_NUM_%d_RX", id);
@@ -404,6 +410,6 @@ static void handler_usb_serial_num_lcm(const lcm_recv_buf_t *rbuf, const char *c
     uint32_t len = __usb_serial_num_t_encode_array(buf, 0, maxlen, msg, 1);
     if(usb)  comms_publish_blocking_id( usb_comms, id, CHANNEL_USB_SN, buf, len);
     if(xbee) comms_publish_blocking_id(xbee_comms, id, CHANNEL_USB_SN, buf, len);
-    if(loopback_mode) handler_usb_serial_num(id, buf, len);
+    if(loopback_mode) handler_usb_serial_num(NULL, id, CHANNEL_USB_SN, buf, len);
     free(buf);
 }

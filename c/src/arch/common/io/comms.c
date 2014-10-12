@@ -9,6 +9,40 @@
 
 #include "io/comms.h"
 
+typedef struct subscriber_container_t
+{
+    subscriber_t subs;
+    void *usr;
+
+} subscriber_container_t;
+
+
+struct comms_t
+{
+    uint8_t *decode_buf;
+    uint32_t decode_buf_len;
+
+    publisher_t *publishers; // An array of publisher function pointers
+    uint8_t num_publishers;
+
+    // An array of pointers to arrays of
+    // subscriber containers
+    subscriber_container_t **subscribers[CHANNEL_NUM_CHANNELS];
+    uint8_t num_subscribers[CHANNEL_NUM_CHANNELS];
+
+    // Variables to handle decoding
+    comms_channel_t decode_channel;
+    uint16_t decode_data_len;
+    uint16_t decode_num_data_read;
+    uint16_t decode_checksum;
+    uint16_t decode_id;
+    uint8_t  decode_state;
+    uint8_t  checksum_rx1, checksum_rx2;
+    uint8_t  checksum_tx1, checksum_tx2;
+
+};
+
+
 #define START_BYTE1 0xB1
 #define START_BYTE2 0x75
 
@@ -56,14 +90,17 @@ void comms_add_publisher(comms_t *comms, publisher_t publisher)
     comms->publishers[comms->num_publishers - 1] = publisher;
 }
 
-void comms_subscribe(comms_t *comms, comms_channel_t channel, subscriber_t subscriber)
+void comms_subscribe(comms_t *comms, comms_channel_t channel, subscriber_t subscriber, void *usr)
 {
     if(channel >= CHANNEL_NUM_CHANNELS) while(1);
     comms->num_subscribers[channel]++;
-    comms->subscribers[channel] = (subscriber_t*) realloc(comms->subscribers[channel],
-                                                          comms->num_subscribers[channel] *
-                                                          sizeof(subscriber_t));
-    comms->subscribers[channel][comms->num_subscribers[channel] - 1] = subscriber;
+    comms->subscribers[channel] = (subscriber_container_t**) realloc(comms->subscribers[channel],
+                                                                    comms->num_subscribers[channel] *
+                                                                    sizeof(subscriber_container_t*));
+    comms->subscribers[channel][comms->num_subscribers[channel] - 1] =
+        (subscriber_container_t*) malloc(sizeof(subscriber_container_t));
+    comms->subscribers[channel][comms->num_subscribers[channel] - 1]->subs = subscriber;
+    comms->subscribers[channel][comms->num_subscribers[channel] - 1]->usr  = usr;
 }
 
 static inline void publish(comms_t *comms, uint8_t data)
@@ -233,8 +270,17 @@ void comms_handle(comms_t *comms, uint8_t byte)
                 uint8_t i;
                 for(i = 0; i < comms->num_subscribers[comms->decode_channel]; ++i)
                 {
-                    subscriber_t sub = comms->subscribers[comms->decode_channel][i];
-                    sub(comms->decode_id, comms->decode_buf, comms->decode_data_len);
+                    subscriber_t sub = comms->subscribers[comms->decode_channel][i]->subs;
+                    void *usr = comms->subscribers[comms->decode_channel][i]->usr;
+                    sub(usr, comms->decode_id, comms->decode_channel,
+                        comms->decode_buf, comms->decode_data_len);
+                }
+                for(i = 0; i < comms->num_subscribers[CHANNEL_ALL]; ++i)
+                {
+                    subscriber_t sub = comms->subscribers[comms->decode_channel][i]->subs;
+                    void *usr = comms->subscribers[comms->decode_channel][i]->usr;
+                    sub(usr, comms->decode_id, comms->decode_channel,
+                        comms->decode_buf, comms->decode_data_len);
                 }
             }
             comms->decode_state = STATE_START1;
@@ -256,9 +302,11 @@ void comms_handle(comms_t *comms, uint8_t byte)
 
 void comms_destroy(comms_t *comms)
 {
-    uint8_t i;
+    uint8_t i, j;
     for(i = 0; i < CHANNEL_NUM_CHANNELS; ++i)
     {
+        for(j = 0; j < comms->num_subscribers[i]; ++j)
+            free(comms->subscribers[i][j]);
         free(comms->subscribers[i]);
     }
     free(comms->publishers);
