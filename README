@@ -39,7 +39,7 @@ Import blocks projects
 
 Fix ccs util for building binary files (Linux only)
     Navigate to your ccs installation directory. Ie, ~/ti/ccsv6
-    Open the file utils/tiobj2bin and change the first line from 
+    Open the file utils/tiobj2bin/tiobj2bin and change the first line from 
         #!/bin/sh
         to
         #!/bin/bash
