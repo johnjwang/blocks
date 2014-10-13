@@ -1,7 +1,7 @@
 #include "stdio.h"
 #include "io/comms.h"
 
-bool publish_stdout(uint8_t byte);
+bool publish_stdout(uint8_t *data, uint16_t datalen);
 void handle_kill(void *usr, uint16_t id, comms_channel_t channel,
                  uint8_t *msg, uint16_t msg_len);
 
@@ -9,7 +9,7 @@ comms_t *stdout_comms;
 
 int main()
 {
-    stdout_comms = comms_create(256);
+    stdout_comms = comms_create(256, 256);
     comms_add_publisher(stdout_comms, publish_stdout);
 
     uint16_t msg_len = 5;
@@ -18,17 +18,21 @@ int main()
 
     comms_subscribe(stdout_comms, CHANNEL_KILL, handle_kill, NULL);
 
-    comms_publish_blocking(stdout_comms, CHANNEL_KILL, msg, msg_len);
+    comms_publish(stdout_comms, CHANNEL_KILL, msg, msg_len);
 
     comms_destroy(stdout_comms);
 
     return 0;
 }
 
-bool publish_stdout(uint8_t byte)
+bool publish_stdout(uint8_t *data, uint16_t data_len)
 {
-    printf("Publishing byte: %x\n", byte);
-    comms_handle(stdout_comms, byte);
+    uint16_t i;
+    for(i = 0; i < data_len; ++i)
+    {
+        printf("Publishing byte: %x\n", data[i]);
+        comms_handle(stdout_comms, data[i]);
+    }
     return true;
 }
 
