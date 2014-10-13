@@ -58,7 +58,7 @@ int main(void)
     eeprom_init();
     leds_init();
     time_init();
-    stack_enumerate(A, 2, B, 3);
+    stack_enumerate(E, 1, E, 0);
     bootloader_check_upload();
     IntMasterEnable();
 
