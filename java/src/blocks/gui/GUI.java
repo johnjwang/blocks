@@ -193,11 +193,11 @@ public class GUI extends Thread
             return;
 		}
 
-        GUIObject usbProgrammer = new UsbProgrammerGuiObject(LCM.getSingleton());
+        //GUIObject usbProgrammer = new UsbProgrammerGuiObject(LCM.getSingleton());
         GUIObject kill          = new KillGuiObject(LCM.getSingleton());
 
         ArrayList<GUIObject> objs = new ArrayList<GUIObject>();
-        objs.add(usbProgrammer);
+        //objs.add(usbProgrammer);
         objs.add(kill);
 
         GUI gui = new GUI("GroundStation", objs);
