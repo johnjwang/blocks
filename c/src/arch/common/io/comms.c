@@ -80,6 +80,7 @@ comms_t* comms_create(uint32_t buf_len_rx, uint32_t buf_len_tx)
     ret->decode_id = 0;
     ret->decode_channel = (comms_channel_t) 0;
     ret->decode_data_len = 0;
+    ret->encode_data_len = 0;
     fletcher_checksum_clear_rx(ret);
     fletcher_checksum_clear_tx(ret);
 
