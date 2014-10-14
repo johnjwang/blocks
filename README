@@ -10,13 +10,21 @@ Installing required java packages
     add the jar to your classpath in your mybashrc
         export CLASSPATH:=$CLASSPATH:$BLOCKS_HOME/java/commons-collections-3.2.1.jar
 
-Setting up the CCS Workspace
----------------------------
+Download UniFlash to be able to flash Tiva from command line
+------------------------------------------------------------
+    wget https://dl.dropboxusercontent.com/u/36951037/UNIFLASH2.2.0.00016_linux.tar.gz
+    extract the tar.gz with 'tar -xvaf uniflash.tar.gz'
+    run the uniflash_setup script without sudo permission
+    install into your ti installation directory
+    Once completed navigate to the uniflash installation directory. Ie ~/ti/uniflashv2
+    Run the following command $sudo ./install_scripts/install_drivers.sh
+
+Setting up the CCS Environment for firmware coding
+--------------------------------------------------
 Launch CCS
 Set your ccs workspace to be the workspace in this git repo (not required)
 Open ccs and setup path requirements:
 	Window->Preferences->General->Workspace->Linked Resources
-	Click new and in the "name" section enter 'TIVAWARE' (without quotes) and click folder. Navigate to the installation location of tivaware on your system." Click "Ok"
 	Click new again and then in the "name" section enter 'BLOCKS_HOME' (without quotes) and click folder. Navigate to this directory and click Ok.
     Click Ok again to exit preferences.
 
@@ -43,14 +51,6 @@ Fix ccs util for building binary files (Linux only)
         #!/bin/sh
         to
         #!/bin/bash
-
-Download UniFlash to be able to flash Tiva from command line
-    wget https://dl.dropboxusercontent.com/u/36951037/UNIFLASH2.2.0.00016_linux.tar.gz
-    extract the tar.gz with 'tar -xvaf uniflash.tar.gz'
-    run the uniflash_setup script without sudo permission
-    install into your ti installation directory
-    Once completed navigate to the uniflash installation directory. Ie ~/ti/uniflashv2
-    Run the following command $sudo ./install_scripts/install_drivers.sh
 
 
 
