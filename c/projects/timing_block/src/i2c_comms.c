@@ -21,7 +21,7 @@
 
 static void i2c_comms_int_handler(void);
 
-static comms_t *i2c_comms = NULL;
+comms_t *i2c_comms = NULL;
 
 void i2c_comms_init(void)
 {

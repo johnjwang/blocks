@@ -29,7 +29,7 @@
 #include "eeprom.h"
 
 static bool usb_configured = false;
-static comms_t *usb_comms = NULL;
+comms_t *usb_comms = NULL;
 
 void usb_comms_init(void)
 {

@@ -10,6 +10,8 @@
 
 #include "io/comms.h"
 
+extern comms_t *uart_up_comms;
+
 void uart_up_comms_init(void);
 bool uart_up_comms_write_byte(uint8_t byte);
 bool uart_up_comms_write(uint8_t *msg, uint16_t dataLen);

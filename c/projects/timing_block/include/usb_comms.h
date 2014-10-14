@@ -10,6 +10,8 @@
 
 #include "io/comms.h"
 
+extern comms_t *usb_comms;
+
 void usb_comms_init(void);
 bool usb_comms_write(uint8_t *msg, uint16_t datalen);
 bool usb_comms_write_byte(uint8_t data);

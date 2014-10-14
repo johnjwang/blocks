@@ -13,6 +13,8 @@
 
 #include "io/comms.h"
 
+extern comms_t *i2c_comms;
+
 void i2c_comms_init(void);
 bool i2c_comms_write_byte(uint8_t byte);
 bool i2c_comms_write(uint8_t *msg, uint16_t dataLen);
