@@ -1,13 +1,22 @@
+*************************************************
+*************************************************
+********* Welcome to the blocks repo ************
+*************************************************
+*************************************************
+*************************************************
 
 First defined $BLOCKS_HOME in bash
     ie, export BLOCKS_HOME=/home/<username>/blocks
+    This would be useful to add to your ~/.bashrc
+        echo 'export BLOCKS_HOME=/home/<username>/blocks' >> ~/.bashrc
 
 Installing required java packages
 ----------------------------------
     Download the file at the following link.
     http://apache.osuosl.org//commons/collections/binaries/commons-collections-3.2.1-bin.tar.gz
-    move the commons-collections-3.2.1.jar into your $BLOCKS_HOME/java folder
-    add the jar to your classpath in your mybashrc
+    Extract the tarball
+    Move the commons-collections-3.2.1.jar into your $BLOCKS_HOME/java folder
+    Add the jar to your classpath in your mybashrc
         export CLASSPATH:=$CLASSPATH:$BLOCKS_HOME/java/commons-collections-3.2.1.jar
 
 Download UniFlash to be able to flash Tiva from command line
