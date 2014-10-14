@@ -307,8 +307,8 @@ void comms_handle(comms_t *comms, uint8_t byte)
                 }
                 for(i = 0; i < comms->num_subscribers[CHANNEL_ALL]; ++i)
                 {
-                    subscriber_t sub = comms->subscribers[comms->decode_channel][i]->subs;
-                    void *usr = comms->subscribers[comms->decode_channel][i]->usr;
+                    subscriber_t sub = comms->subscribers[CHANNEL_ALL][i]->subs;
+                    void *usr = comms->subscribers[CHANNEL_ALL][i]->usr;
                     sub(usr, comms->decode_id, comms->decode_channel,
                         comms->buf_rx, comms->decode_data_len);
                 }
