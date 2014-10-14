@@ -13,12 +13,12 @@
 -------------------------------------------------------------------------------
 Bash Environment Setup
 -------------------------------------------------------------------------------
-First defined $BLOCKS_HOME in bash
+First, define $BLOCKS_HOME in bash
     ie, $ export BLOCKS_HOME=/home/<username>/blocks
     This would be useful to add to your ~/.bashrc to make the change persistent
         $ echo 'export BLOCKS_HOME=/home/<username>/blocks' >> ~/.bashrc
 Next we sync our udev rules to work with our physical devices
-    $ $BLOCKS_HOME/setup/sync_udev.sh
+    $ $BLOCKS_HOME/setup/udev/sync_udev.sh
 
 
 -------------------------------------------------------------------------------
@@ -29,10 +29,10 @@ Installing required java packages
     Download all release jars and place them in your $BLOCKS_HOME/java directory
     Add the jars to your classpath in you ~/.bashrc to make the changes persistent
     This only has to be done once. No need to run the following commands more than once
-        $ echo 'export CLASSPATH:=$CLASSPATH:$BLOCKS_HOME/java/commons-collections-3.2.1.jar' >> ~/.bashrc
-        $ echo 'export CLASSPATH:=$CLASSPATH:$BLOCKS_HOME/java/skyspecs.jar' >> ~/.bashrc
-        $ echo 'export CLASSPATH:=$CLASSPATH:$BLOCKS_HOME/java/april.jar' >> ~/.bashrc
-        $ echo 'export CLASSPATH:=$CLASSPATH:$BLOCKS_HOME/java/blocks.jar' >> ~/.bashrc
+        $ echo 'export CLASSPATH=$CLASSPATH:$BLOCKS_HOME/java/commons-collections-3.2.1.jar' >> ~/.bashrc
+        $ echo 'export CLASSPATH=$CLASSPATH:$BLOCKS_HOME/java/skyspecs.jar' >> ~/.bashrc
+        $ echo 'export CLASSPATH=$CLASSPATH:$BLOCKS_HOME/java/april.jar' >> ~/.bashrc
+        $ echo 'export CLASSPATH=$CLASSPATH:$BLOCKS_HOME/java/blocks.jar' >> ~/.bashrc
         
 
 -------------------------------------------------------------------------------
