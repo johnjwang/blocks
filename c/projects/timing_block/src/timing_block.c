@@ -90,12 +90,16 @@ int main(void)
     uart_up_comms_subscribe(CHANNEL_KILL, main_kill_msg_handler, NULL);
     uart_up_comms_subscribe(CHANNEL_CHANNELS, main_channels_msg_handler, NULL);
     uart_up_comms_subscribe(CHANNEL_USB_SN, main_usb_sn_msg_handler, NULL);
-    uart_up_comms_subscribe(CHANNEL_ALL, (subscriber_t)comms_publish_id, usb_comms);
+    // XXX Need to implement functionality to send messages over
+    //     comms protocol from within interrupts
+    // uart_up_comms_subscribe(CHANNEL_ALL, (subscriber_t)comms_publish_id, usb_comms);
 
     usb_comms_subscribe(CHANNEL_KILL, main_kill_msg_handler, NULL);
     usb_comms_subscribe(CHANNEL_CHANNELS, main_channels_msg_handler, NULL);
     usb_comms_subscribe(CHANNEL_USB_SN, main_usb_sn_msg_handler, NULL);
-    usb_comms_subscribe(CHANNEL_ALL, (subscriber_t)comms_publish_id, uart_up_comms);
+    // XXX Need to implement functionality to send messages over
+    //     comms protocol from within interrupts
+    // usb_comms_subscribe(CHANNEL_ALL, (subscriber_t)comms_publish_id, uart_up_comms);
 
     timer_register_switch_monitor(main_manual_auto_switch_handler);
 
@@ -151,7 +155,8 @@ int main(void)
             if(max_len > buflen) while(1);
             uint16_t len = __channels_t_encode_array(buf, 0, buflen, &channel, 1);
 
-            comms_publish(comms_out, CHANNEL_CHANNELS, buf, len);
+            //XXX Id of one should be replaced with stack.address
+            comms_publish_id(comms_out, 1, CHANNEL_CHANNELS, buf, len);
 		}
 
 		#ifdef DEBUG
