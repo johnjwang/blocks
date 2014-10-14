@@ -152,6 +152,7 @@ int main(int argc, char *argv[])
     if(!xbee && !usb && !loopback_mode)
     {
         fprintf(stderr, "Failed to open any comms devices. Exiting...\n");
+        lcm_destroy(lcm);
         exit(1);
     }
 
