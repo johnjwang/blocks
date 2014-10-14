@@ -1,5 +1,5 @@
 /*
- * uart_comms.c
+ * uart_up_comms.c
  *
  *  Created on: Sep 29, 2014
  *      Author: Jonathan
@@ -23,11 +23,11 @@
 
 #include "lcmtypes/kill_t.h"
 
-static comms_t *uart_comms = NULL;
+comms_t *uart_up_comms = NULL;
 
-static void uart_comms_up_int_handler(void);
+static void uart_up_comms_int_handler(void);
 
-void uart_comms_up_init(void)
+void uart_up_comms_init(void)
 {
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOG);
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_UART2);
@@ -56,46 +56,44 @@ void uart_comms_up_init(void)
 		UARTCharGetNonBlocking(UART2_BASE);
 	}
 
-	uart_comms = comms_create(256);
-	comms_add_publisher(uart_comms, uart_comms_up_write_byte);
+	uart_up_comms = comms_create(100, 100);
+	comms_add_publisher(uart_up_comms, uart_up_comms_write);
 
     // Enable the SSI peripheral interrupts.
-    UARTIntRegister(UART2_BASE, uart_comms_up_int_handler);
+    UARTIntRegister(UART2_BASE, uart_up_comms_int_handler);
     UARTIntEnable(UART2_BASE, UART_INT_RX | UART_INT_RT);
     IntPrioritySet(INT_UART2, 0x40);
 	IntEnable(INT_UART2);
 }
 
-bool uart_comms_up_write_byte(uint8_t byte)
+bool uart_up_comms_write_byte(uint8_t byte)
 {
     UARTCharPut(UART2_BASE, byte);
     return true;
 }
 
-bool uart_comms_up_write(uint8_t *msg, uint32_t dataLen)
+bool uart_up_comms_write(uint8_t *msg, uint16_t dataLen)
 {
 	uint32_t i;
 	for(i = 0; i < dataLen; ++i)
 	{
-		uart_comms_up_write_byte(msg[i]);
+		uart_up_comms_write_byte(msg[i]);
 	}
 	return true;
 }
 
-void uart_comms_up_publish_blocking(comms_channel_t channel, uint8_t *msg, uint16_t msg_len)
+void uart_up_comms_publish(comms_channel_t channel, uint8_t *msg, uint16_t msg_len)
 {
-    comms_publish_blocking(uart_comms, channel, msg, msg_len);
+    comms_publish(uart_up_comms, channel, msg, msg_len);
 }
 
-void uart_comms_up_subscribe(comms_channel_t channel, subscriber_t subscriber, void *usr)
+void uart_up_comms_subscribe(comms_channel_t channel, subscriber_t subscriber, void *usr)
 {
-    comms_subscribe(uart_comms, channel, subscriber, usr);
+    comms_subscribe(uart_up_comms, channel, subscriber, usr);
 }
 
-void uart_comms_up_demo(void)
+void uart_up_comms_demo(void)
 {
-    comms_t *uart_comms_up = comms_create(256);
-    comms_add_publisher(uart_comms_up, uart_comms_up_write_byte);
 	while(1)
 	{
 	    kill_t kill;
@@ -108,13 +106,13 @@ void uart_comms_up_demo(void)
 
         uint16_t len = __kill_t_encode_array(buf, 0, 20, &kill, 1);
 
-	    comms_publish_blocking(uart_comms_up, CHANNEL_KILL, buf, len);
+	    comms_publish(uart_up_comms, CHANNEL_KILL, buf, len);
 
 		SysCtlDelay(SysCtlClockGet() / 3);
 	}
 }
 
-static void uart_comms_up_int_handler(void)
+static void uart_up_comms_int_handler(void)
 {
     //
     // Clear the timer interrupt.
@@ -125,6 +123,6 @@ static void uart_comms_up_int_handler(void)
 	while(UARTCharsAvail(UART2_BASE))
 	{
 	    uint8_t data = UARTCharGet(UART2_BASE);
-	    comms_handle(uart_comms, data);
+	    comms_handle(uart_up_comms, data);
 	}
 }

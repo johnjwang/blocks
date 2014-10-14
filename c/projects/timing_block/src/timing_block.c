@@ -64,7 +64,7 @@ int main(void)
 
     //****** All user code goes below here ******
 
-    uart_comms_up_init();
+    uart_up_comms_init();
     timer_default_init();
 
     IntMasterEnable();
@@ -72,7 +72,7 @@ int main(void)
     usb_comms_init();
     watchdog_init(SysCtlClockGet() / 10);
 
-//	uart_comms_up_demo();
+//	uart_up_comms_demo();
 //	usb_demo();
 
 	#ifdef DEBUG
@@ -83,16 +83,19 @@ int main(void)
     // Loop forever.
     //
 
-    comms_t *comms_out = comms_create(0);
-    comms_add_publisher(comms_out, uart_comms_up_write_byte);
-    comms_add_publisher(comms_out, usb_comms_write_byte);
+    comms_t *comms_out = comms_create(0, 100);
+    comms_add_publisher(comms_out, uart_up_comms_write);
+    comms_add_publisher(comms_out, usb_comms_write);
 
-    uart_comms_up_subscribe(CHANNEL_KILL, main_kill_msg_handler, NULL);
-    uart_comms_up_subscribe(CHANNEL_CHANNELS, main_channels_msg_handler, NULL);
-    uart_comms_up_subscribe(CHANNEL_USB_SN, main_usb_sn_msg_handler, NULL);
+    uart_up_comms_subscribe(CHANNEL_KILL, main_kill_msg_handler, NULL);
+    uart_up_comms_subscribe(CHANNEL_CHANNELS, main_channels_msg_handler, NULL);
+    uart_up_comms_subscribe(CHANNEL_USB_SN, main_usb_sn_msg_handler, NULL);
+    uart_up_comms_subscribe(CHANNEL_ALL, (subscriber_t)comms_publish_id, usb_comms);
+
     usb_comms_subscribe(CHANNEL_KILL, main_kill_msg_handler, NULL);
     usb_comms_subscribe(CHANNEL_CHANNELS, main_channels_msg_handler, NULL);
     usb_comms_subscribe(CHANNEL_USB_SN, main_usb_sn_msg_handler, NULL);
+    usb_comms_subscribe(CHANNEL_ALL, (subscriber_t)comms_publish_id, uart_up_comms);
 
     timer_register_switch_monitor(main_manual_auto_switch_handler);
 
@@ -148,7 +151,7 @@ int main(void)
             if(max_len > buflen) while(1);
             uint16_t len = __channels_t_encode_array(buf, 0, buflen, &channel, 1);
 
-            comms_publish_blocking(comms_out, CHANNEL_CHANNELS, buf, len);
+            comms_publish(comms_out, CHANNEL_CHANNELS, buf, len);
 		}
 
 		#ifdef DEBUG

@@ -29,7 +29,7 @@
 #include "eeprom.h"
 
 static bool usb_configured = false;
-static comms_t *usb_comms = NULL;
+comms_t *usb_comms = NULL;
 
 void usb_comms_init(void)
 {
@@ -67,8 +67,8 @@ void usb_comms_init(void)
     //
     USBDCDCInit(0, &g_sCDCDevice);
 
-    usb_comms = comms_create(256);
-    comms_add_publisher(usb_comms, usb_comms_write_byte);
+    usb_comms = comms_create(100, 100);
+    comms_add_publisher(usb_comms, usb_comms_write);
 }
 
 bool usb_comms_write_byte(uint8_t data)
@@ -78,7 +78,7 @@ bool usb_comms_write_byte(uint8_t data)
     return usb_comms_write(msg, 1);
 }
 
-bool usb_comms_write(uint8_t *msg, uint32_t datalen)
+bool usb_comms_write(uint8_t *msg, uint16_t datalen)
 {
     if(usb_configured) {
     	USBBufferWrite((tUSBBuffer *)&g_sTxBuffer, msg, datalen);
@@ -88,9 +88,9 @@ bool usb_comms_write(uint8_t *msg, uint32_t datalen)
 	}
 }
 
-void usb_comms_publish_blocking(comms_channel_t channel, uint8_t *msg, uint16_t msg_len)
+void usb_comms_publish(comms_channel_t channel, uint8_t *msg, uint16_t msg_len)
 {
-    comms_publish_blocking(usb_comms, channel, msg, msg_len);
+    comms_publish(usb_comms, channel, msg, msg_len);
 }
 
 void usb_comms_subscribe(comms_channel_t channel, subscriber_t subscriber, void *usr)
