@@ -307,7 +307,7 @@ static void handler_kill(void *usr, uint16_t id, comms_channel_t channel,
                          uint8_t *msg, uint16_t len)
 {
     char lcm_channel[20];
-    snprintf(lcm_channel, 20, "Received KILL_%d_RX", id);
+    snprintf(lcm_channel, 20, "KILL_%d_RX", id);
 
     verbose_printf("%s: ", lcm_channel);
     uint16_t i;
@@ -344,7 +344,7 @@ static void handler_channels(void *usr, uint16_t id, comms_channel_t channel,
                              uint8_t *msg, uint16_t len)
 {
     char lcm_channel[20];
-    snprintf(lcm_channel, 20, "Received CHANNELS_%d_RX", id);
+    snprintf(lcm_channel, 20, "CHANNELS_%d_RX", id);
 
     verbose_printf("%s: ", lcm_channel);
     uint16_t i;
@@ -381,7 +381,7 @@ static void handler_usb_serial_num(void *usr, uint16_t id, comms_channel_t chann
                                    uint8_t *msg, uint16_t len)
 {
     char lcm_channel[20];
-    snprintf(lcm_channel, 20, "Received USB_SERIAL_NUM_%d_RX", id);
+    snprintf(lcm_channel, 20, "USB_SERIAL_NUM_%d_RX", id);
 
     verbose_printf("%s: ", lcm_channel);
     uint16_t i;
