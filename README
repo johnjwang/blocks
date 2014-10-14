@@ -24,30 +24,16 @@ Next we sync our udev rules to work with our physical devices
 -------------------------------------------------------------------------------
 Installing required java packages
 -------------------------------------------------------------------------------
-    Download the file at the following link.
-        $ wget http://apache.osuosl.org//commons/collections/binaries/commons-collections-3.2.1-bin.tar.gz
-    Extract the tarball
-    Move the commons-collections-3.2.1.jar into your $BLOCKS_HOME/java folder
-    Add the jar to your classpath in your mybashrc
-        $ export CLASSPATH:=$CLASSPATH:$BLOCKS_HOME/java/commons-collections-3.2.1.jar
-    This would be useful to add to your ~/.bashrc to make the change persistent
+    Go to the github page for the blocks repo's releases here:
+        https://github.com/SkySpecs/blocks/releases
+    Download all release jars and place them in your $BLOCKS_HOME/java directory
+    Add the jars to your classpath in you ~/.bashrc to make the changes persistent
+    This only has to be done once. No need to run the following commands more than once
         $ echo 'export CLASSPATH:=$CLASSPATH:$BLOCKS_HOME/java/commons-collections-3.2.1.jar' >> ~/.bashrc
-    Fetch the skyspecs jar and add it to your classpath
-        $ $BLOCKS_HOME/scripts/fetch_skyspecs.sh
-        $ export CLASSPATH:=$CLASSPATH:$BLOCKS_HOME/java/skyspecs/skyspecs.jar
-        This would be useful to add to your ~/.bashrc to make the change persistent
-            $ echo 'export CLASSPATH:=$CLASSPATH:$BLOCKS_HOME/java/skyspecs/skyspecs.jar' >> ~/.bashrc
-    Fetch the april jar and add it to your classpath
-        $ $BLOCKS_HOME/scripts/fetch_april.sh
-        $ export CLASSPATH:=$CLASSPATH:$BLOCKS_HOME/java/april/april.jar
-        This would be useful to add to your ~/.bashrc to make the change persistent
-            $ echo 'export CLASSPATH:=$CLASSPATH:$BLOCKS_HOME/java/april/april.jar' >> ~/.bashrc
-    Add blocks.jar to your classpath
-        $ export CLASSPATH:=$CLASSPATH:$BLOCKS_HOME/java/blocks.jar
-        This would be useful to add to your ~/.bashrc to make the change persistent
-            $ echo 'export CLASSPATH:=$CLASSPATH:$BLOCKS_HOME/java/blocks.jar' >> ~/.bashrc
+        $ echo 'export CLASSPATH:=$CLASSPATH:$BLOCKS_HOME/java/skyspecs.jar' >> ~/.bashrc
+        $ echo 'export CLASSPATH:=$CLASSPATH:$BLOCKS_HOME/java/april.jar' >> ~/.bashrc
+        $ echo 'export CLASSPATH:=$CLASSPATH:$BLOCKS_HOME/java/blocks.jar' >> ~/.bashrc
         
-
 
 -------------------------------------------------------------------------------
 Installing LCM
