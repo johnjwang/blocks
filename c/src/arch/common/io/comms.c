@@ -132,7 +132,7 @@ static void publish(comms_t *comms, uint8_t data)
 {
     comms->buf_tx[comms->encode_data_len++] = data;
 
-    if(comms->encode_data_len >= comms->buf_len_tx)
+    if(comms->encode_data_len == comms->buf_len_tx)
         publish_flush(comms);
 }
 
@@ -268,8 +268,13 @@ void comms_handle(comms_t *comms, uint8_t byte)
             comms->decode_data_len = (comms->decode_data_len << 8) | byte;
             if(comms->decode_data_len < comms->buf_len_rx)
             {
-                comms->decode_state = STATE_DATA;
-                comms->decode_num_data_read = 0;
+                if(comms->decode_data_len == 0)
+                    comms->decode_state = STATE_CHECKSUM1;
+                else
+                {
+                    comms->decode_state = STATE_DATA;
+                    comms->decode_num_data_read = 0;
+                }
                 fletcher_checksum_add_byte_rx(comms, byte);
             }
             else
@@ -280,9 +285,9 @@ void comms_handle(comms_t *comms, uint8_t byte)
             break;
 
         case STATE_DATA:
-            comms->buf_rx[comms->decode_num_data_read++] = byte;
+            comms->buf_rx[comms->decode_num_data_read] = byte;
             fletcher_checksum_add_byte_rx(comms, byte);
-            if(comms->decode_num_data_read == comms->decode_data_len)
+            if(comms->decode_num_data_read++ == comms->decode_data_len)
             {
                 comms->decode_state = STATE_CHECKSUM1;
             }
@@ -295,7 +300,8 @@ void comms_handle(comms_t *comms, uint8_t byte)
 
         case STATE_CHECKSUM2:
             comms->decode_checksum = fletcher_checksum_calculate(comms->decode_checksum, byte);
-            if(comms->decode_checksum == fletcher_checksum_calculate_rx(comms))
+            uint16_t calc_checksum = fletcher_checksum_calculate_rx(comms);
+            if(comms->decode_checksum == calc_checksum)
             {
                 uint8_t i;
                 for(i = 0; i < comms->num_subscribers[comms->decode_channel]; ++i)
