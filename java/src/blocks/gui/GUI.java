@@ -195,10 +195,12 @@ public class GUI extends Thread
 
         //GUIObject usbProgrammer = new UsbProgrammerGuiObject(LCM.getSingleton());
         GUIObject kill          = new KillGuiObject(LCM.getSingleton());
+        GUIObject channels      = new ChannelsGuiObject(LCM.getSingleton());
 
         ArrayList<GUIObject> objs = new ArrayList<GUIObject>();
         //objs.add(usbProgrammer);
         objs.add(kill);
+        objs.add(channels);
 
         GUI gui = new GUI("GroundStation", objs);
         //gui.follow(quadrotor);
