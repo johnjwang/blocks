@@ -86,7 +86,7 @@ public class ChannelsGuiObject extends GUIObject
             {
                 contentsRX += "\tchannel " + String.format("%3d", i) + ": " +
                     String.format("%4d", channelsRX.channels[i]) + "\n";
-                contentsTX += "\n";
+                contentsTX += " \n";
             }
         }
         contentsTX += "\n\nChannels TX\n";
