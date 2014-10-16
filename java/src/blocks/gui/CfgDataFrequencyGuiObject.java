@@ -54,7 +54,7 @@ public class CfgDataFrequencyGuiObject extends GUIObject
     {
         JFrame dataFreqFrame = new JFrame("Data Frequency Programmer");
         dataFreqFrame.setLayout(new BorderLayout());
-        dataFreqFrame.setSize(800,40);
+        dataFreqFrame.setSize(800,80);
 
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));

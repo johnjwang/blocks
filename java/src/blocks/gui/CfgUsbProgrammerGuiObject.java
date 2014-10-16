@@ -55,7 +55,7 @@ public class CfgUsbProgrammerGuiObject extends GUIObject
     {
         JFrame usbFrame = new JFrame("Usb Programmer");
         usbFrame.setLayout(new BorderLayout());
-        usbFrame.setSize(800,40);
+        usbFrame.setSize(800,80);
 
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
