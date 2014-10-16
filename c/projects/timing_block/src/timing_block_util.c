@@ -41,9 +41,9 @@ void leds_init()
     //**Initialize LEDs**//
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
 	SysCtlDelay(1);
-	GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_1);
-	GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_2);
-	GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_3);
+	GPIOPinTypeGPIOOutputOD(GPIO_PORTF_BASE, GPIO_PIN_1);
+	GPIOPinTypeGPIOOutputOD(GPIO_PORTF_BASE, GPIO_PIN_2);
+	GPIOPinTypeGPIOOutputOD(GPIO_PORTF_BASE, GPIO_PIN_3);
 
 
     statuses[1].invert = 1;
