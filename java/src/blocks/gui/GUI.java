@@ -139,7 +139,6 @@ public class GUI extends Thread
 
 	private void redrawGUI()
     {
-
 		VisWorld.Buffer buffer = vw.getBuffer("GUI");
 		for(ObjectContainer obj : objects){
 			buffer.addBack(obj.getGUIObject().contents(obj.get_dt(TimeUtil.utime())));
