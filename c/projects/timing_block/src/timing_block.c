@@ -38,12 +38,12 @@
 	#include "timing_block/debug.h"
 #endif
 
-static uint8_t killed = 0;
-static long send_period_us = 100000;
+static volatile uint8_t killed = 0;
+static volatile long send_period_us = 100000;
 
 #define AUTONOMY_CMD_TIMEOUT_US 200000
-static uint8_t autonomous_ready = 0;
-static uint64_t last_autonomy_cmd_utime = 0;
+static volatile uint8_t autonomous_ready = 0;
+static volatile uint64_t last_autonomy_cmd_utime = 0;
 
 static void main_manual_auto_switch_handler(uint32_t pulse_us);
 static void main_kill_msg_handler(void *usr, uint16_t id,
