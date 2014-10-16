@@ -30,7 +30,8 @@
 
 #include "lcmtypes/channels_t.h"
 #include "lcmtypes/kill_t.h"
-#include "lcmtypes/usb_serial_num_t.h"
+#include "lcmtypes/cfg_data_frequency_t.h"
+#include "lcmtypes/cfg_usb_serial_num_t.h"
 
 
 #ifdef DEBUG
@@ -38,15 +39,25 @@
 #endif
 
 static uint8_t killed = 0;
+static long send_period_us = 100000;
 
 #define AUTONOMY_CMD_TIMEOUT_US 200000
 static uint8_t autonomous_ready = 0;
 static uint64_t last_autonomy_cmd_utime = 0;
 
 static void main_manual_auto_switch_handler(uint32_t pulse_us);
-static void main_kill_msg_handler(void *usr, uint16_t id, comms_channel_t channel, uint8_t *msg, uint16_t msg_len);
-static void main_channels_msg_handler(void *usr, uint16_t id, comms_channel_t channel, uint8_t *msg, uint16_t msg_len);
-static void main_usb_sn_msg_handler(void *usr, uint16_t id, comms_channel_t channel, uint8_t *msg, uint16_t msg_len);
+static void main_kill_msg_handler(void *usr, uint16_t id,
+                                  comms_channel_t channel,
+                                  uint8_t *msg, uint16_t msg_len);
+static void main_channels_msg_handler(void *usr, uint16_t id,
+                                      comms_channel_t channel,
+                                      uint8_t *msg, uint16_t msg_len);
+static void main_cfg_usb_sn_msg_handler(void *usr, uint16_t id,
+                                    comms_channel_t channel,
+                                    uint8_t *msg, uint16_t msg_len);
+static void main_cfg_data_freq_msg_handler(void *usr, uint16_t id,
+                                           comms_channel_t channel,
+                                           uint8_t *msg, uint16_t msg_len);
 
 int main(void)
 {
@@ -89,14 +100,16 @@ int main(void)
 
     uart_up_comms_subscribe(CHANNEL_KILL, main_kill_msg_handler, NULL);
     uart_up_comms_subscribe(CHANNEL_CHANNELS, main_channels_msg_handler, NULL);
-    uart_up_comms_subscribe(CHANNEL_USB_SN, main_usb_sn_msg_handler, NULL);
+    uart_up_comms_subscribe(CHANNEL_CFG_USB_SN, main_cfg_usb_sn_msg_handler, NULL);
+    uart_up_comms_subscribe(CHANNEL_CFG_DATA_FREQUENCY, main_cfg_data_freq_msg_handler, NULL);
     // XXX Need to implement functionality to send messages over
     //     comms protocol from within interrupts
     // uart_up_comms_subscribe(CHANNEL_ALL, (subscriber_t)comms_publish_id, usb_comms);
 
     usb_comms_subscribe(CHANNEL_KILL, main_kill_msg_handler, NULL);
     usb_comms_subscribe(CHANNEL_CHANNELS, main_channels_msg_handler, NULL);
-    usb_comms_subscribe(CHANNEL_USB_SN, main_usb_sn_msg_handler, NULL);
+    usb_comms_subscribe(CHANNEL_CFG_USB_SN, main_cfg_usb_sn_msg_handler, NULL);
+    usb_comms_subscribe(CHANNEL_CFG_DATA_FREQUENCY, main_cfg_data_freq_msg_handler, NULL);
     // XXX Need to implement functionality to send messages over
     //     comms protocol from within interrupts
     // usb_comms_subscribe(CHANNEL_ALL, (subscriber_t)comms_publish_id, uart_up_comms);
@@ -127,7 +140,7 @@ int main(void)
 
     	uint64_t utime = timestamp_now();
     	static uint64_t last_utime = 0;
-    	if(last_utime + 100000 < utime)
+    	if(last_utime + send_period_us < utime)
     	{
     		last_utime = utime;
 
@@ -229,12 +242,12 @@ static void main_channels_msg_handler(void *usr, uint16_t id, comms_channel_t ch
     __channels_t_decode_array_cleanup(&channels, 1);
 }
 
-static void main_usb_sn_msg_handler(void *usr, uint16_t id, comms_channel_t channel,
-                                    uint8_t *msg, uint16_t msg_len)
+static void main_cfg_usb_sn_msg_handler(void *usr, uint16_t id, comms_channel_t channel,
+                                        uint8_t *msg, uint16_t msg_len)
 {
-    usb_serial_num_t sn;
+    cfg_usb_serial_num_t sn;
     memset(&sn, 0, sizeof(sn));
-    if (__usb_serial_num_t_decode_array(msg, 0, msg_len, &sn, 1) >= 0) {
+    if (__cfg_usb_serial_num_t_decode_array(msg, 0, msg_len, &sn, 1) >= 0) {
         //if((id == 0) || (id == stack.address))
         //{
             // write usb serial number out of eeprom
@@ -249,5 +262,19 @@ static void main_usb_sn_msg_handler(void *usr, uint16_t id, comms_channel_t chan
                                                         | (((uint32_t)sn.sn_chars[7]) <<  0));
         //}
     }
-    __usb_serial_num_t_decode_array_cleanup(&sn, 1);
+    __cfg_usb_serial_num_t_decode_array_cleanup(&sn, 1);
+}
+
+static void main_cfg_data_freq_msg_handler(void *usr, uint16_t id, comms_channel_t channel,
+                                           uint8_t *msg, uint16_t msg_len)
+{
+    cfg_data_frequency_t data_freq;
+    memset(&data_freq, 0, sizeof(data_freq));
+    if (__cfg_data_frequency_t_decode_array(msg, 0, msg_len, &data_freq, 1) >= 0) {
+        //if((id == 0) || (id == stack.address))
+        //{
+            send_period_us = 1000000 / data_freq.hz;
+        //}
+    }
+    __cfg_data_frequency_t_decode_array_cleanup(&data_freq, 1);
 }

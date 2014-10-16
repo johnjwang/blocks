@@ -15,7 +15,8 @@
 #include "lcmtypes/kill_t.h"
 #include "lcmtypes/rpms_t.h"
 #include "lcmtypes/telemetry_t.h"
-#include "lcmtypes/usb_serial_num_t.h"
+#include "lcmtypes/cfg_data_frequency_t.h"
+#include "lcmtypes/cfg_usb_serial_num_t.h"
 
 char *USAGE = "Usage: ./comms_driver <-x xbee_dev_path> <-u usb_dev_path>";
 bool loopback_mode = false;
@@ -46,10 +47,14 @@ static void handler_kill(void *usr, uint16_t id, comms_channel_t channel,
                          uint8_t *msg, uint16_t len);
 static void handler_kill_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
                              const kill_t *msg, void *user);
-static void handler_usb_serial_num(void *usr, uint16_t id, comms_channel_t channel,
-                                   uint8_t *msg, uint16_t len);
-static void handler_usb_serial_num_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
-                                       const usb_serial_num_t *msg, void *user);
+static void handler_cfg_usb_serial_num(void *usr, uint16_t id, comms_channel_t channel,
+                                       uint8_t *msg, uint16_t len);
+static void handler_cfg_usb_serial_num_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
+                                           const cfg_usb_serial_num_t *msg, void *user);
+static void handler_cfg_data_frequency(void *usr, uint16_t id, comms_channel_t channel,
+                                       uint8_t *msg, uint16_t len);
+static void handler_cfg_data_frequency_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
+                                           const cfg_data_frequency_t *msg, void *user);
 
 pthread_t xbee_thread;
 comms_t *xbee_comms;
@@ -179,7 +184,8 @@ int main(int argc, char *argv[])
 
     kill_t_subscription_t           *kill_subs           = kill_t_subscribe(lcm, "KILL_.*_TX", handler_kill_lcm, NULL);
     channels_t_subscription_t       *channels_subs       = channels_t_subscribe(lcm, "CHANNELS_.*_TX", handler_channels_lcm, NULL);
-    usb_serial_num_t_subscription_t *usb_serial_num_subs = usb_serial_num_t_subscribe(lcm, "USB_SERIAL_NUM_.*_TX", handler_usb_serial_num_lcm, NULL);
+    cfg_data_frequency_t_subscription_t *data_freq_subs  = cfg_data_frequency_t_subscribe(lcm, "DATA_FREQUENCY_.*_TX", handler_cfg_data_frequency_lcm, NULL);
+    cfg_usb_serial_num_t_subscription_t *usb_serial_num_subs = cfg_usb_serial_num_t_subscribe(lcm, "USB_SERIAL_NUM_.*_TX", handler_cfg_usb_serial_num_lcm, NULL);
 
     while(!done)
     {
@@ -205,7 +211,8 @@ int main(int argc, char *argv[])
 
     kill_t_unsubscribe(lcm, kill_subs);
     channels_t_unsubscribe(lcm, channels_subs);
-    usb_serial_num_t_unsubscribe(lcm, usb_serial_num_subs);
+    cfg_data_frequency_t_unsubscribe(lcm, data_freq_subs);
+    cfg_usb_serial_num_t_unsubscribe(lcm, usb_serial_num_subs);
 
     if(xbee)
     {
@@ -384,7 +391,7 @@ static void handler_channels_lcm(const lcm_recv_buf_t *rbuf, const char *channel
     free(buf);
 }
 
-static void handler_usb_serial_num(void *usr, uint16_t id, comms_channel_t channel,
+static void handler_cfg_usb_serial_num(void *usr, uint16_t id, comms_channel_t channel,
                                    uint8_t *msg, uint16_t len)
 {
     char lcm_channel[20];
@@ -398,25 +405,62 @@ static void handler_usb_serial_num(void *usr, uint16_t id, comms_channel_t chann
     }
     verbose_printf("\n");
 
-    usb_serial_num_t usb_serial_num;
-    memset(&usb_serial_num, 0, sizeof(usb_serial_num_t));
-    __usb_serial_num_t_decode_array(msg, 0, len, &usb_serial_num, 1);
-    usb_serial_num_t_publish(lcm, lcm_channel, &usb_serial_num);
-    __usb_serial_num_t_decode_array_cleanup(&usb_serial_num, 1);
+    cfg_usb_serial_num_t cfg_usb_serial_num;
+    memset(&cfg_usb_serial_num, 0, sizeof(cfg_usb_serial_num_t));
+    __cfg_usb_serial_num_t_decode_array(msg, 0, len, &cfg_usb_serial_num, 1);
+    cfg_usb_serial_num_t_publish(lcm, lcm_channel, &cfg_usb_serial_num);
+    __cfg_usb_serial_num_t_decode_array_cleanup(&cfg_usb_serial_num, 1);
 }
 
-static void handler_usb_serial_num_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
-                                       const usb_serial_num_t *msg, void *user)
+static void handler_cfg_usb_serial_num_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
+                                       const cfg_usb_serial_num_t *msg, void *user)
 {
     uint8_t id = parse_id(channel);
 
     verbose_printf("Received msg on lcm channel %s with id %d\n", channel, id);
 
-    uint32_t maxlen = __usb_serial_num_t_encoded_array_size(msg, 1);
+    uint32_t maxlen = __cfg_usb_serial_num_t_encoded_array_size(msg, 1);
     uint8_t *buf = (uint8_t *) malloc(sizeof(uint8_t) * maxlen);
-    uint32_t len = __usb_serial_num_t_encode_array(buf, 0, maxlen, msg, 1);
-    if(usb)  comms_publish_id( usb_comms, id, CHANNEL_USB_SN, buf, len);
-    if(xbee) comms_publish_id(xbee_comms, id, CHANNEL_USB_SN, buf, len);
-    if(loopback_mode) handler_usb_serial_num(NULL, id, CHANNEL_USB_SN, buf, len);
+    uint32_t len = __cfg_usb_serial_num_t_encode_array(buf, 0, maxlen, msg, 1);
+    if(usb)  comms_publish_id( usb_comms, id, CHANNEL_CFG_USB_SN, buf, len);
+    if(xbee) comms_publish_id(xbee_comms, id, CHANNEL_CFG_USB_SN, buf, len);
+    if(loopback_mode) handler_cfg_usb_serial_num(NULL, id, CHANNEL_CFG_USB_SN, buf, len);
+    free(buf);
+}
+
+static void handler_cfg_data_frequency(void *usr, uint16_t id, comms_channel_t channel,
+                                       uint8_t *msg, uint16_t len)
+{
+    char lcm_channel[20];
+    snprintf(lcm_channel, 20, "DATA_FREQUENCY_%d_RX", id);
+
+    verbose_printf("%s: ", lcm_channel);
+    uint16_t i;
+    for(i = 0; i < len; ++i)
+    {
+        verbose_printf("%x ", msg[i]);
+    }
+    verbose_printf("\n");
+
+    cfg_data_frequency_t cfg_data_frequency;
+    memset(&cfg_data_frequency, 0, sizeof(cfg_data_frequency_t));
+    __cfg_data_frequency_t_decode_array(msg, 0, len, &cfg_data_frequency, 1);
+    cfg_data_frequency_t_publish(lcm, lcm_channel, &cfg_data_frequency);
+    __cfg_data_frequency_t_decode_array_cleanup(&cfg_data_frequency, 1);
+}
+
+static void handler_cfg_data_frequency_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
+                                           const cfg_data_frequency_t *msg, void *user)
+{
+    uint8_t id = parse_id(channel);
+
+    verbose_printf("Received msg on lcm channel %s with id %d\n", channel, id);
+
+    uint32_t maxlen = __cfg_data_frequency_t_encoded_array_size(msg, 1);
+    uint8_t *buf = (uint8_t *) malloc(sizeof(uint8_t) * maxlen);
+    uint32_t len = __cfg_data_frequency_t_encode_array(buf, 0, maxlen, msg, 1);
+    if(usb)  comms_publish_id( usb_comms, id, CHANNEL_CFG_DATA_FREQUENCY, buf, len);
+    if(xbee) comms_publish_id(xbee_comms, id, CHANNEL_CFG_DATA_FREQUENCY, buf, len);
+    if(loopback_mode) handler_cfg_data_frequency(NULL, id, CHANNEL_CFG_DATA_FREQUENCY, buf, len);
     free(buf);
 }

@@ -1,5 +1,0 @@
-struct byte_array_t
-{
-    int16_t num_bytes;
-    int8_t byte_array[num_bytes];
-}
