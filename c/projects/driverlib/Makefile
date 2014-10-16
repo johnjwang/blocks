@@ -1,12 +1,28 @@
-ALL_SUBDIRS = Release
+ALL_SUBDIRS = 
+RELEASE_SUBDIRS = Release
 DEBUG_SUBDIRS = Debug
 
-.PHONY: all debug clean
+.PHONY: all debug clean projects-debug projects
 
-all clean:
+default: all projects
+
+projects:
+	@for dir in $(RELEASE_SUBDIRS) ; do \
+		$(MAKE) $(SILENT) -C $$dir all || exit 2; done
+
+projects-debug:
+	@for dir in $(DEBUG_SUBDIRS) ; do \
+		$(MAKE) $(SILENT) -C $$dir all || exit 2; done
+
+all debug:
 	@for dir in $(ALL_SUBDIRS) ; do \
 		$(MAKE) $(SILENT) -C $$dir $@ || exit 2; done
 
-debug:
+clean:
+	@for dir in $(ALL_SUBDIRS) ; do \
+		$(MAKE) $(SILENT) -C $$dir $@ || exit 2; done
+	@for dir in $(RELEASE_SUBDIRS) ; do \
+		$(MAKE) $(SILENT) -C $$dir $@ || true; done
 	@for dir in $(DEBUG_SUBDIRS) ; do \
-		$(MAKE) $(SILENT) -C $$dir all || exit 2; done
+		$(MAKE) $(SILENT) -C $$dir $@ || true; done
+
