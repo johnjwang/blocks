@@ -11,18 +11,17 @@ import april.vis.*;
 import april.util.ParameterGUI;
 import april.jmat.geom.*;
 
-import blocks.util.UsbSerialNumberProgrammer;
+import blocks.util.CfgDataFrequencyProgrammer;
 
-public class UsbProgrammerGuiObject extends GUIObject
+public class CfgDataFrequencyGuiObject extends GUIObject
 {
     LCM lcm;
-    boolean incrementSerial = true;
 
-    private UsbProgrammerGuiObject()
+    private CfgDataFrequencyGuiObject()
     {
     }
 
-    public UsbProgrammerGuiObject(LCM lcm)
+    public CfgDataFrequencyGuiObject(LCM lcm)
     {
         this.lcm = lcm;
     }
@@ -38,24 +37,24 @@ public class UsbProgrammerGuiObject extends GUIObject
     {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-        JButton showProgrammer = new JButton("Usb Programmer");
+        JButton showProgrammer = new JButton("Data Frequency Programmer");
         panel.add(showProgrammer);
 
         showProgrammer.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e)
             {
-                showUsbProgrammerFrame();
+                showDataFreqFrame();
             }
         });
 
         return panel;
     }
 
-    private void showUsbProgrammerFrame()
+    private void showDataFreqFrame()
     {
-        JFrame usbFrame = new JFrame("Usb Programmer");
-        usbFrame.setLayout(new BorderLayout());
-        usbFrame.setSize(800,40);
+        JFrame dataFreqFrame = new JFrame("Data Frequency Programmer");
+        dataFreqFrame.setLayout(new BorderLayout());
+        dataFreqFrame.setSize(800,40);
 
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
@@ -68,10 +67,8 @@ public class UsbProgrammerGuiObject extends GUIObject
         JLabel idLabelMax = new JLabel("Target ID Max");
         final JTextField idMax = new JTextField("1");
 
-        JLabel serialNumLabel = new JLabel("Serial Number");
-        final JTextField serialNum = new JTextField("00000000");
-
-        JCheckBox incrementSerialChk = new JCheckBox("Increment Serial", incrementSerial);
+        JLabel hzLabel = new JLabel("Frequency (Hz)");
+        final JTextField hz = new JTextField("10");
 
         panel.add(program);
 
@@ -81,10 +78,8 @@ public class UsbProgrammerGuiObject extends GUIObject
         panel.add(idLabelMax);
         panel.add(idMax);
 
-        panel.add(serialNumLabel);
-        panel.add(serialNum);
-
-        panel.add(incrementSerialChk);
+        panel.add(hzLabel);
+        panel.add(hz);
 
         program.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e)
@@ -92,27 +87,21 @@ public class UsbProgrammerGuiObject extends GUIObject
                 int min = Integer.parseInt(idMin.getText());
                 int max = Integer.parseInt(idMax.getText());
 
-                boolean increment = incrementSerial;
-
-                Long num = Long.parseLong(serialNum.getText());
+                int num = Integer.parseInt(hz.getText());
+                if(num > 255)
+                {
+                    System.err.println("Unable to program target with frequency > 255");
+                    return;
+                }
                 for(int i = min; i <= max; ++i)
                 {
-                    String serial = String.format("%08d", num);
-                    UsbSerialNumberProgrammer.broadcast(lcm, i, serial);
-                    if(increment) num++;
+                    CfgDataFrequencyProgrammer.broadcast(lcm, i, (byte)num);
                 }
             }
         });
 
-        incrementSerialChk.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                AbstractButton abstractButton = (AbstractButton) e.getSource();
-                incrementSerial = abstractButton.getModel().isSelected();
-            }
-        });
-
-
-        usbFrame.add(panel, BorderLayout.CENTER);
-        usbFrame.setVisible(true);
+        dataFreqFrame.add(panel, BorderLayout.CENTER);
+        dataFreqFrame.setVisible(true);
     }
 }
+

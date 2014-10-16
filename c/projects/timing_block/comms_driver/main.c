@@ -169,6 +169,8 @@ int main(int argc, char *argv[])
         comms_add_publisher(xbee_comms, publish_xbee);
         comms_subscribe(xbee_comms, CHANNEL_KILL, handler_kill, NULL);
         comms_subscribe(xbee_comms, CHANNEL_CHANNELS, handler_channels, NULL);
+        comms_subscribe(xbee_comms, CHANNEL_CFG_USB_SN, handler_cfg_usb_serial_num, NULL);
+        comms_subscribe(xbee_comms, CHANNEL_CFG_DATA_FREQUENCY, handler_cfg_data_frequency, NULL);
         pthread_create(&xbee_thread, NULL, xbee_run, NULL);
     }
 
@@ -179,13 +181,21 @@ int main(int argc, char *argv[])
         comms_add_publisher(usb_comms, publish_usb);
         comms_subscribe(usb_comms, CHANNEL_KILL, handler_kill, NULL);
         comms_subscribe(usb_comms, CHANNEL_CHANNELS, handler_channels, NULL);
+        comms_subscribe(usb_comms, CHANNEL_CFG_USB_SN, handler_cfg_usb_serial_num, NULL);
+        comms_subscribe(usb_comms, CHANNEL_CFG_DATA_FREQUENCY, handler_cfg_data_frequency, NULL);
         pthread_create(&usb_thread, NULL, usb_run, NULL);
     }
 
-    kill_t_subscription_t           *kill_subs           = kill_t_subscribe(lcm, "KILL_.*_TX", handler_kill_lcm, NULL);
-    channels_t_subscription_t       *channels_subs       = channels_t_subscribe(lcm, "CHANNELS_.*_TX", handler_channels_lcm, NULL);
-    cfg_data_frequency_t_subscription_t *data_freq_subs  = cfg_data_frequency_t_subscribe(lcm, "DATA_FREQUENCY_.*_TX", handler_cfg_data_frequency_lcm, NULL);
-    cfg_usb_serial_num_t_subscription_t *usb_serial_num_subs = cfg_usb_serial_num_t_subscribe(lcm, "USB_SERIAL_NUM_.*_TX", handler_cfg_usb_serial_num_lcm, NULL);
+    kill_t_subscription_t  *kill_subs =
+        kill_t_subscribe(lcm, "KILL_.*_TX", handler_kill_lcm, NULL);
+    channels_t_subscription_t *channels_subs =
+        channels_t_subscribe(lcm, "CHANNELS_.*_TX", handler_channels_lcm, NULL);
+    cfg_data_frequency_t_subscription_t *data_freq_subs =
+        cfg_data_frequency_t_subscribe(lcm, "CFG_DATA_FREQUENCY_.*_TX",
+                                       handler_cfg_data_frequency_lcm, NULL);
+    cfg_usb_serial_num_t_subscription_t *usb_serial_num_subs =
+        cfg_usb_serial_num_t_subscribe(lcm, "CFG_USB_SERIAL_NUM_.*_TX",
+                                       handler_cfg_usb_serial_num_lcm, NULL);
 
     while(!done)
     {
@@ -357,14 +367,14 @@ static void handler_kill_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
 static void handler_channels(void *usr, uint16_t id, comms_channel_t channel,
                              uint8_t *msg, uint16_t len)
 {
-    char lcm_channel[20];
-    snprintf(lcm_channel, 20, "CHANNELS_%d_RX", id);
+    char lcm_channel[40];
+    snprintf(lcm_channel, 40, "CHANNELS_%d_RX", id);
 
     verbose_printf("%s: ", lcm_channel);
     uint16_t i;
     for(i = 0; i < len; ++i)
     {
-        verbose_printf("%x ", msg[i]);
+        verbose_printf("0x%x (%d)", msg[i], msg[i]);
     }
     verbose_printf("\n");
 
@@ -392,16 +402,16 @@ static void handler_channels_lcm(const lcm_recv_buf_t *rbuf, const char *channel
 }
 
 static void handler_cfg_usb_serial_num(void *usr, uint16_t id, comms_channel_t channel,
-                                   uint8_t *msg, uint16_t len)
+                                       uint8_t *msg, uint16_t len)
 {
-    char lcm_channel[20];
-    snprintf(lcm_channel, 20, "USB_SERIAL_NUM_%d_RX", id);
+    char lcm_channel[40];
+    snprintf(lcm_channel, 40, "CFG_USB_SERIAL_NUM_%d_RX", id);
 
     verbose_printf("%s: ", lcm_channel);
     uint16_t i;
     for(i = 0; i < len; ++i)
     {
-        verbose_printf("%x ", msg[i]);
+        verbose_printf("0x%x (%d)", msg[i], msg[i]);
     }
     verbose_printf("\n");
 
@@ -413,7 +423,7 @@ static void handler_cfg_usb_serial_num(void *usr, uint16_t id, comms_channel_t c
 }
 
 static void handler_cfg_usb_serial_num_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
-                                       const cfg_usb_serial_num_t *msg, void *user)
+                                           const cfg_usb_serial_num_t *msg, void *user)
 {
     uint8_t id = parse_id(channel);
 
@@ -431,14 +441,14 @@ static void handler_cfg_usb_serial_num_lcm(const lcm_recv_buf_t *rbuf, const cha
 static void handler_cfg_data_frequency(void *usr, uint16_t id, comms_channel_t channel,
                                        uint8_t *msg, uint16_t len)
 {
-    char lcm_channel[20];
-    snprintf(lcm_channel, 20, "DATA_FREQUENCY_%d_RX", id);
+    char lcm_channel[40];
+    snprintf(lcm_channel, 40, "CFG_DATA_FREQUENCY_%d_RX", id);
 
     verbose_printf("%s: ", lcm_channel);
     uint16_t i;
     for(i = 0; i < len; ++i)
     {
-        verbose_printf("%x ", msg[i]);
+        verbose_printf("0x%x (%d)", msg[i], msg[i]);
     }
     verbose_printf("\n");
 

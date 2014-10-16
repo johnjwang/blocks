@@ -184,6 +184,7 @@ public class GUI extends Thread
 	{
 		GetOpt gopt = new GetOpt();
         gopt.addBoolean('h', "help", false, "Show this help");
+        gopt.addBoolean('a', "admin", false, "Launch with administrative tools");
 
         if (!gopt.parse(args) || gopt.getBoolean("help"))
         {
@@ -192,12 +193,14 @@ public class GUI extends Thread
             return;
 		}
 
-        //GUIObject usbProgrammer = new UsbProgrammerGuiObject(LCM.getSingleton());
+        GUIObject usbProgrammer = new CfgUsbProgrammerGuiObject(LCM.getSingleton());
+        GUIObject dataFreq      = new CfgDataFrequencyGuiObject(LCM.getSingleton());
         GUIObject kill          = new KillGuiObject(LCM.getSingleton());
         GUIObject channels      = new ChannelsGuiObject(LCM.getSingleton());
 
         ArrayList<GUIObject> objs = new ArrayList<GUIObject>();
-        //objs.add(usbProgrammer);
+        if(gopt.getBoolean("admin")) objs.add(usbProgrammer);
+        if(gopt.getBoolean("admin")) objs.add(dataFreq);
         objs.add(kill);
         objs.add(channels);
 

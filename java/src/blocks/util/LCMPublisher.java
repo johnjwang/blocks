@@ -99,7 +99,7 @@ public class LCMPublisher
             return;
         }
 
-        usb_serial_num_t usbnum = new usb_serial_num_t();
+        cfg_usb_serial_num_t usbnum = new cfg_usb_serial_num_t();
         for(int i = 0; i < usbnum.sn_chars.length; i++)
             usbnum.sn_chars[i] = (byte) chars[i];
         lcm.publish("USB_SERIAL_NUM", usbnum);
