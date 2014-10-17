@@ -1,4 +1,6 @@
 eclipse.preferences.version=1
+encoding//Debug/common/datastruct/subdir_rules.mk=UTF-8
+encoding//Debug/common/datastruct/subdir_vars.mk=UTF-8
 encoding//Debug/common/io/subdir_rules.mk=UTF-8
 encoding//Debug/common/io/subdir_vars.mk=UTF-8
 encoding//Debug/common/test/io/subdir_rules.mk=UTF-8
