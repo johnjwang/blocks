@@ -8,7 +8,7 @@ import blocks.lcmtypes.*;
 
 public class CfgDataFrequencyProgrammer
 {
-    public static boolean broadcast(LCM lcm, int id, byte hz)
+    public static boolean broadcast(LCM lcm, int id, short hz)
     {
         cfg_data_frequency_t data_freq = new cfg_data_frequency_t();
         data_freq.hz = hz;

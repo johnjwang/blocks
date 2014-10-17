@@ -88,14 +88,14 @@ public class CfgDataFrequencyGuiObject extends GUIObject
                 int max = Integer.parseInt(idMax.getText());
 
                 int num = Integer.parseInt(hz.getText());
-                if(num > 255)
-                {
-                    System.err.println("Unable to program target with frequency > 255");
-                    return;
-                }
+                //if(num > 255)
+                //{
+                    //System.err.println("Unable to program target with frequency > 255");
+                    //return;
+                //}
                 for(int i = min; i <= max; ++i)
                 {
-                    CfgDataFrequencyProgrammer.broadcast(lcm, i, (byte)num);
+                    CfgDataFrequencyProgrammer.broadcast(lcm, i, (short)num);
                 }
             }
         });
