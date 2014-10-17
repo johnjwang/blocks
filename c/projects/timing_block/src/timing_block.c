@@ -273,7 +273,7 @@ static void main_cfg_data_freq_msg_handler(void *usr, uint16_t id, comms_channel
     if (__cfg_data_frequency_t_decode_array(msg, 0, msg_len, &data_freq, 1) >= 0) {
         //if((id == 0) || (id == stack.address))
         //{
-            send_period_us = 1000000 / data_freq.hz;
+            send_period_us = 1000000 / (uint16_t)data_freq.hz;
         //}
     }
     __cfg_data_frequency_t_decode_array_cleanup(&data_freq, 1);
