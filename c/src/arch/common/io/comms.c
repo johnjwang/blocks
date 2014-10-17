@@ -161,6 +161,9 @@ comms_status_t comms_publish_id(comms_t *comms,
 
     fletcher_checksum_clear_tx(comms);
 
+    if(comms_cfuncs->capacity(comms->buf_tx) - comms_cfuncs->size(comms->buf_tx) < msg_len + NUM_METADATA)
+        return COMMS_STATUS_BUFFER_FULL;
+
     fletcher_checksum_add_byte_tx(comms, START_BYTE1);
     if(publish(comms, START_BYTE1) == COMMS_STATUS_BUFFER_FULL)
         return COMMS_STATUS_BUFFER_FULL;

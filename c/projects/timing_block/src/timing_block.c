@@ -138,11 +138,14 @@ int main(void)
     	static uint64_t last_utime = 0;
     	if(last_utime + send_period_us < utime)
     	{
+    	    long delta = last_utime - utime;
     		last_utime = utime;
 
     		// XXX: Need to send ALL channels (inputs and outputs)
     		channels_t channel;
-            channel.utime = utime;
+//            channel.utime = utime;
+    		// XXX Just a test
+    		channel.utime = delta;
             channel.num_channels = NUM_TIMERS - 2;
             uint8_t chan_i, timer_ind;
             for (chan_i=0; chan_i<channel.num_channels; ++chan_i) {
