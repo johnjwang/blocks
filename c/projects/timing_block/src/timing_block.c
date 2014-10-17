@@ -138,11 +138,14 @@ int main(void)
     	static uint64_t last_utime = 0;
     	if(last_utime + send_period_us < utime)
     	{
+    	    long delta = last_utime - utime;
     		last_utime = utime;
 
     		// XXX: Need to send ALL channels (inputs and outputs)
     		channels_t channel;
-            channel.utime = utime;
+//            channel.utime = utime;
+    		// XXX Just a test
+    		channel.utime = delta;
             channel.num_channels = NUM_TIMERS - 2;
             uint8_t chan_i, timer_ind;
             for (chan_i=0; chan_i<channel.num_channels; ++chan_i) {
@@ -273,7 +276,7 @@ static void main_cfg_data_freq_msg_handler(void *usr, uint16_t id, comms_channel
     if (__cfg_data_frequency_t_decode_array(msg, 0, msg_len, &data_freq, 1) >= 0) {
         //if((id == 0) || (id == stack.address))
         //{
-            send_period_us = 1000000 / data_freq.hz;
+            send_period_us = 1000000 / (uint16_t)data_freq.hz;
         //}
     }
     __cfg_data_frequency_t_decode_array_cleanup(&data_freq, 1);
