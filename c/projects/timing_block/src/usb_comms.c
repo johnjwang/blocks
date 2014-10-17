@@ -75,7 +75,8 @@ void usb_comms_init(void)
 static void usb_comms_publish_non_blocking(container_t *data)
 {
     // While we successfully move a byte into the buffer, keep doing so
-    while(USBBufferWrite((tUSBBuffer *)&g_sTxBuffer,
+    while(!comms_cfuncs->is_empty(data) &&
+            USBBufferWrite((tUSBBuffer *)&g_sTxBuffer,
                          (const uint8_t*)comms_cfuncs->front(data), 1) == 1)
         comms_cfuncs->remove_front(data);
 }

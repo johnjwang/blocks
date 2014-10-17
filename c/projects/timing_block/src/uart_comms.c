@@ -68,7 +68,8 @@ void uart_up_comms_init(void)
 
 static void uart_up_comms_publish_non_blocking(container_t *data)
 {
-    if(UARTCharPutNonBlocking(UART2_BASE, *(const uint8_t*)comms_cfuncs->front(data)))
+    if(!comms_cfuncs->is_empty(data) &&
+            UARTCharPutNonBlocking(UART2_BASE, *(const uint8_t*)comms_cfuncs->front(data)))
         comms_cfuncs->remove_front(data);
 }
 
