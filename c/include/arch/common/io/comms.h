@@ -11,6 +11,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "datastruct/container.h"
+
 typedef enum comms_channel_t
 {
     CHANNEL_ALL,
@@ -24,33 +26,45 @@ typedef enum comms_channel_t
 
 } comms_channel_t;
 
+typedef enum comms_status_t
+{
+    COMMS_STATUS_BUFFER_FULL,
+    COMMS_STATUS_IN_PROGRESS,
+    COMMS_STATUS_DONE,
+    COMMS_STATUS_NUM_STATUSES
+
+} comms_status_t;
+
 typedef struct comms_t comms_t;
 
-typedef bool (*publisher_t)(uint8_t *data, uint16_t data_len);
+extern container_funcs_t *comms_cfuncs;
+
+typedef void (*publisher_t)(container_t *data);
 
 typedef void (*subscriber_t)(void *usr, uint16_t id, comms_channel_t channel,
-                             uint8_t *msg, uint16_t msg_len);
+                             const uint8_t *msg, uint16_t len);
 
 
 
 
-comms_t* comms_create(uint32_t buf_len_rx, uint32_t buf_len_tx);
-
-void comms_add_publisher(comms_t *comms, publisher_t publisher);
+comms_t* comms_create(uint32_t buf_len_rx, uint32_t buf_len_tx,
+                      publisher_t publisher);
 
 void comms_subscribe(comms_t *comms, comms_channel_t channel,
                      subscriber_t subscriber, void *usr);
 
-inline void comms_publish(comms_t *comms,
-                          comms_channel_t channel,
-                          uint8_t *msg,
-                          uint16_t msg_len);
+inline comms_status_t comms_publish(comms_t *comms,
+                                    comms_channel_t channel,
+                                    uint8_t *msg,
+                                    uint16_t msg_len);
 
-void comms_publish_id(comms_t *comms,
-                      uint16_t id,
-                      comms_channel_t channel,
-                      uint8_t *msg,
-                      uint16_t msg_len);
+comms_status_t comms_publish_id(comms_t *comms,
+                                uint16_t id,
+                                comms_channel_t channel,
+                                uint8_t *msg,
+                                uint16_t msg_len);
+
+inline comms_status_t comms_transmit(comms_t *comms);
 
 void comms_handle(comms_t *comms, uint8_t byte);
 

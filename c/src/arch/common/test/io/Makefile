@@ -1,12 +1,15 @@
 CFLAGS:=-I${BLOCKS_HOME}/c/include/arch/common/
 
-BIN:=${BLOCKS_HOME}/bin/arch/common/io/test/comms_test_linux
+LDFLAGS:=${BLOCKS_HOME}/c/lib/arch/libcommon.a 
+
+BIN_DIR:=${BLOCKS_HOME}/bin/arch/common/io/test
+BIN:=${BIN_DIR}/comms_test_linux
 
 all:
 	@rm -f bin
-	@ln -sf ${BLOCKS_HOME}/bin ./bin
+	@ln -sf ${BIN_DIR} ./bin
 	@mkdir -p ${BLOCKS_HOME}/bin/arch/common/io/test
-	gcc main.c ${BLOCKS_HOME}/c/src/arch/common/io/comms.c ${CFLAGS} -o ${BIN}
+	gcc main.c ${LDFLAGS} ${CFLAGS} -o ${BIN}
 
 debug: CFLAGS+=-g
 debug: all

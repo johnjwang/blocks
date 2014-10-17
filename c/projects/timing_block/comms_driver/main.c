@@ -37,22 +37,22 @@ static uint64_t timestamp_now(void)
 
 static void* xbee_run(void*);
 static void* usb_run(void*);
-static bool publish_xbee(uint8_t *data, uint16_t data_len);
-static bool publish_usb (uint8_t *data, uint16_t data_len);
+static void publish_xbee(container_t *data);
+static void publish_usb (container_t *data);
 static void handler_channels(void *usr, uint16_t id, comms_channel_t channel,
-                             uint8_t *msg, uint16_t len);
+                             const uint8_t *msg, uint16_t len);
 static void handler_channels_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
                                  const channels_t *msg, void *user);
 static void handler_kill(void *usr, uint16_t id, comms_channel_t channel,
-                         uint8_t *msg, uint16_t len);
+                         const uint8_t *msg, uint16_t len);
 static void handler_kill_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
                              const kill_t *msg, void *user);
 static void handler_cfg_usb_serial_num(void *usr, uint16_t id, comms_channel_t channel,
-                                       uint8_t *msg, uint16_t len);
+                                       const uint8_t *msg, uint16_t len);
 static void handler_cfg_usb_serial_num_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
                                            const cfg_usb_serial_num_t *msg, void *user);
 static void handler_cfg_data_frequency(void *usr, uint16_t id, comms_channel_t channel,
-                                       uint8_t *msg, uint16_t len);
+                                       const uint8_t *msg, uint16_t len);
 static void handler_cfg_data_frequency_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
                                            const cfg_data_frequency_t *msg, void *user);
 
@@ -165,8 +165,7 @@ int main(int argc, char *argv[])
     // Create comms devices
     if(xbee)
     {
-        xbee_comms = comms_create(1000, 1000);
-        comms_add_publisher(xbee_comms, publish_xbee);
+        xbee_comms = comms_create(1000, 1000, publish_xbee);
         comms_subscribe(xbee_comms, CHANNEL_KILL, handler_kill, NULL);
         comms_subscribe(xbee_comms, CHANNEL_CHANNELS, handler_channels, NULL);
         comms_subscribe(xbee_comms, CHANNEL_CFG_USB_SN, handler_cfg_usb_serial_num, NULL);
@@ -177,8 +176,7 @@ int main(int argc, char *argv[])
     // Create comms devices
     if(usb)
     {
-        usb_comms = comms_create(1000, 1000);
-        comms_add_publisher(usb_comms, publish_usb);
+        usb_comms = comms_create(1000, 1000, publish_usb);
         comms_subscribe(usb_comms, CHANNEL_KILL, handler_kill, NULL);
         comms_subscribe(usb_comms, CHANNEL_CHANNELS, handler_channels, NULL);
         comms_subscribe(usb_comms, CHANNEL_CFG_USB_SN, handler_cfg_usb_serial_num, NULL);
@@ -293,15 +291,19 @@ static void* xbee_run(void* arg)
     return NULL;
 }
 
-static bool publish_xbee(uint8_t *data, uint16_t data_len)
+static void publish_xbee(container_t *data)
 {
     verbose_printf("TX UART: ");
-    uint16_t i;
+    uint16_t i, data_len = comms_cfuncs->size(data);
     for(i = 0; i < data_len; ++i)
-        verbose_printf("%x ", data[i]);
+        verbose_printf("%x ", *(const uint8_t*)comms_cfuncs->at(data,i));
     verbose_printf("\n");
 
-    return serial_write(xbee, data, data_len);
+    while(comms_cfuncs->size(data) > 0)
+    {
+        serial_write(xbee, (const uint8_t*)comms_cfuncs->front(data), 1);
+        comms_cfuncs->remove_front(data);
+    }
 }
 
 static void* usb_run(void* arg)
@@ -316,19 +318,23 @@ static void* usb_run(void* arg)
     return NULL;
 }
 
-static bool publish_usb (uint8_t *data, uint16_t data_len)
+static void publish_usb(container_t *data)
 {
     verbose_printf("TX USB: ");
-    uint16_t i;
+    uint16_t i, data_len = comms_cfuncs->size(data);
     for(i = 0; i < data_len; ++i)
-        verbose_printf("%x ", data[i]);
+        verbose_printf("%x ", *(const uint8_t*)comms_cfuncs->at(data,i));
     verbose_printf("\n");
 
-    return serial_write(usb, data, data_len);
+    while(comms_cfuncs->size(data) > 0)
+    {
+        serial_write(usb, (const uint8_t*)comms_cfuncs->front(data), 1);
+        comms_cfuncs->remove_front(data);
+    }
 }
 
 static void handler_kill(void *usr, uint16_t id, comms_channel_t channel,
-                         uint8_t *msg, uint16_t len)
+                         const uint8_t *msg, uint16_t len)
 {
     char lcm_channel[20];
     snprintf(lcm_channel, 20, "KILL_%d_RX", id);
@@ -365,7 +371,7 @@ static void handler_kill_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
 }
 
 static void handler_channels(void *usr, uint16_t id, comms_channel_t channel,
-                             uint8_t *msg, uint16_t len)
+                             const uint8_t *msg, uint16_t len)
 {
     char lcm_channel[40];
     snprintf(lcm_channel, 40, "CHANNELS_%d_RX", id);
@@ -402,7 +408,7 @@ static void handler_channels_lcm(const lcm_recv_buf_t *rbuf, const char *channel
 }
 
 static void handler_cfg_usb_serial_num(void *usr, uint16_t id, comms_channel_t channel,
-                                       uint8_t *msg, uint16_t len)
+                                       const uint8_t *msg, uint16_t len)
 {
     char lcm_channel[40];
     snprintf(lcm_channel, 40, "CFG_USB_SERIAL_NUM_%d_RX", id);
@@ -439,7 +445,7 @@ static void handler_cfg_usb_serial_num_lcm(const lcm_recv_buf_t *rbuf, const cha
 }
 
 static void handler_cfg_data_frequency(void *usr, uint16_t id, comms_channel_t channel,
-                                       uint8_t *msg, uint16_t len)
+                                       const uint8_t *msg, uint16_t len)
 {
     char lcm_channel[40];
     snprintf(lcm_channel, 40, "CFG_DATA_FREQUENCY_%d_RX", id);
