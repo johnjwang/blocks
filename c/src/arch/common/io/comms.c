@@ -139,6 +139,8 @@ static comms_status_t publish(comms_t *comms, uint8_t data)
 
     if(comms_cfuncs->is_full(comms->buf_tx))
         return publish_flush(comms);
+
+    return COMMS_STATUS_NO_ACTION;
 }
 
 inline comms_status_t comms_publish(comms_t *comms,

@@ -299,7 +299,7 @@ bool circular_remove(container_t *c, const void *elt)
 {
     // circular_remove has not yet been implemented
     while(1);
-    return false;
+//    return false;
 }
 
 const void* circular_at(const container_t *c, uint32_t i)

@@ -2,7 +2,7 @@ SUBDIRS = c java
 
 .PHONY: all clean
 
-all clean:
+all debug projects clean:
 	@echo ""
 	@echo "==============================================================="
 	@echo "=============== Building blocks for '$@' ===================="

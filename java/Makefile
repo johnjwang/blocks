@@ -1,6 +1,6 @@
-.PHONY: all clean
+.PHONY: all debug projects clean
 
-all:
+all debug projects:
 	@echo ""
 	@echo "==============================================================="
 	@echo "================ Building blocks/java for '$@' ==============="

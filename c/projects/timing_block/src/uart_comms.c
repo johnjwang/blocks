@@ -26,6 +26,7 @@
 comms_t *uart_up_comms = NULL;
 
 static void uart_up_comms_int_handler(void);
+static void uart_up_comms_publish_non_blocking(container_t *data);
 
 void uart_up_comms_init(void)
 {
@@ -56,14 +57,19 @@ void uart_up_comms_init(void)
 		UARTCharGetNonBlocking(UART2_BASE);
 	}
 
-	uart_up_comms = comms_create(100, 100);
-	comms_add_publisher(uart_up_comms, uart_up_comms_write);
+	uart_up_comms = comms_create(100, 100, uart_up_comms_publish_non_blocking);
 
     // Enable the SSI peripheral interrupts.
     UARTIntRegister(UART2_BASE, uart_up_comms_int_handler);
     UARTIntEnable(UART2_BASE, UART_INT_RX | UART_INT_RT);
     IntPrioritySet(INT_UART2, 0x40);
 	IntEnable(INT_UART2);
+}
+
+static void uart_up_comms_publish_non_blocking(container_t *data)
+{
+    if(UARTCharPutNonBlocking(UART2_BASE, *(const uint8_t*)comms_cfuncs->front(data)))
+        comms_cfuncs->remove_front(data);
 }
 
 bool uart_up_comms_write_byte(uint8_t byte)
@@ -85,6 +91,17 @@ bool uart_up_comms_write(uint8_t *msg, uint16_t dataLen)
 void uart_up_comms_publish(comms_channel_t channel, uint8_t *msg, uint16_t msg_len)
 {
     comms_publish(uart_up_comms, channel, msg, msg_len);
+}
+
+void uart_up_comms_publish_id(uint16_t id, comms_channel_t channel,
+                              uint8_t *msg, uint16_t msg_len)
+{
+    comms_publish_id(uart_up_comms, id, channel, msg, msg_len);
+}
+
+comms_status_t uart_up_comms_transmit(void)
+{
+    return comms_transmit(uart_up_comms);
 }
 
 void uart_up_comms_subscribe(comms_channel_t channel, subscriber_t subscriber, void *usr)

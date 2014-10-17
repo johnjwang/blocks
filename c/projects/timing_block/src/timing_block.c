@@ -48,16 +48,16 @@ static volatile uint64_t last_autonomy_cmd_utime = 0;
 static void main_manual_auto_switch_handler(uint32_t pulse_us);
 static void main_kill_msg_handler(void *usr, uint16_t id,
                                   comms_channel_t channel,
-                                  uint8_t *msg, uint16_t msg_len);
+                                  const uint8_t *msg, uint16_t msg_len);
 static void main_channels_msg_handler(void *usr, uint16_t id,
                                       comms_channel_t channel,
-                                      uint8_t *msg, uint16_t msg_len);
+                                      const uint8_t *msg, uint16_t msg_len);
 static void main_cfg_usb_sn_msg_handler(void *usr, uint16_t id,
                                     comms_channel_t channel,
-                                    uint8_t *msg, uint16_t msg_len);
+                                    const uint8_t *msg, uint16_t msg_len);
 static void main_cfg_data_freq_msg_handler(void *usr, uint16_t id,
                                            comms_channel_t channel,
-                                           uint8_t *msg, uint16_t msg_len);
+                                           const uint8_t *msg, uint16_t msg_len);
 
 int main(void)
 {
@@ -93,10 +93,6 @@ int main(void)
 	//
     // Loop forever.
     //
-
-    comms_t *comms_out = comms_create(0, 100);
-    comms_add_publisher(comms_out, uart_up_comms_write);
-    comms_add_publisher(comms_out, usb_comms_write);
 
     uart_up_comms_subscribe(CHANNEL_KILL, main_kill_msg_handler, NULL);
     uart_up_comms_subscribe(CHANNEL_CHANNELS, main_channels_msg_handler, NULL);
@@ -169,8 +165,12 @@ int main(void)
             uint16_t len = __channels_t_encode_array(buf, 0, buflen, &channel, 1);
 
             //XXX Id of one should be replaced with stack.address
-            comms_publish_id(comms_out, 1, CHANNEL_CHANNELS, buf, len);
+            usb_comms_publish_id(1, CHANNEL_CHANNELS, buf, len);
+            uart_up_comms_publish_id(1, CHANNEL_CHANNELS, buf, len);
 		}
+
+        usb_comms_transmit();
+        uart_up_comms_transmit();
 
 		#ifdef DEBUG
 			debug();
@@ -198,7 +198,7 @@ static void main_manual_auto_switch_handler(uint32_t pulse_us)
 }
 
 static void main_kill_msg_handler(void *usr, uint16_t id, comms_channel_t channel,
-                                  uint8_t *msg, uint16_t msg_len)
+                                  const uint8_t *msg, uint16_t msg_len)
 {
     kill_t kill;
     memset(&kill, 0, sizeof(kill));
@@ -216,7 +216,7 @@ static void main_kill_msg_handler(void *usr, uint16_t id, comms_channel_t channe
 }
 
 static void main_channels_msg_handler(void *usr, uint16_t id, comms_channel_t channel,
-                                      uint8_t *msg, uint16_t msg_len)
+                                      const uint8_t *msg, uint16_t msg_len)
 {
     channels_t channels;
     memset(&channels, 0, sizeof(channels));
@@ -243,7 +243,7 @@ static void main_channels_msg_handler(void *usr, uint16_t id, comms_channel_t ch
 }
 
 static void main_cfg_usb_sn_msg_handler(void *usr, uint16_t id, comms_channel_t channel,
-                                        uint8_t *msg, uint16_t msg_len)
+                                        const uint8_t *msg, uint16_t msg_len)
 {
     cfg_usb_serial_num_t sn;
     memset(&sn, 0, sizeof(sn));
@@ -266,7 +266,7 @@ static void main_cfg_usb_sn_msg_handler(void *usr, uint16_t id, comms_channel_t 
 }
 
 static void main_cfg_data_freq_msg_handler(void *usr, uint16_t id, comms_channel_t channel,
-                                           uint8_t *msg, uint16_t msg_len)
+                                           const uint8_t *msg, uint16_t msg_len)
 {
     cfg_data_frequency_t data_freq;
     memset(&data_freq, 0, sizeof(data_freq));
