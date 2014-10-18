@@ -24,7 +24,9 @@ struct comms_t
     uint8_t *buf_rx;
     uint16_t buf_rx_len;
 
-    container_t *buf_tx;
+    uint32_t num_tx_msgs;
+    uint32_t curr_tx_msg_num;
+    container_t **buf_tx; // array of tx msg buffers
 
     publisher_t publisher;
 
@@ -51,22 +53,23 @@ struct comms_t
 static void fletcher_checksum_clear_rx(comms_t *comms);
 static void fletcher_checksum_add_byte_rx(comms_t *comms, uint8_t byte);
 static uint16_t fletcher_checksum_calculate_rx(comms_t *comms);
-static void fletcher_checksum_clear_tx(comms_t *comms);
-static void fletcher_checksum_add_byte_tx(comms_t *comms, uint8_t byte);
-static uint16_t fletcher_checksum_calculate_tx(comms_t *comms);
+static void fletcher_checksum_clear_tx(comms_t *comms, uint32_t msg_num);
+static void fletcher_checksum_add_byte_tx(comms_t *comms, uint32_t msg_num, uint8_t byte);
+static uint16_t fletcher_checksum_calculate_tx(comms_t *comms, uint32_t msg_num);
 static inline uint16_t fletcher_checksum_calculate(uint8_t checksum1, uint8_t checksum2);
 
 container_funcs_t *comms_cfuncs;
 
 comms_t* comms_create(uint32_t buf_rx_len, uint32_t buf_tx_len,
-                      publisher_t publisher)
+                      uint32_t num_tx_msgs, publisher_t publisher)
 {
+    if(num_tx_msgs == 0) return NULL;
+
     comms_t *ret = (comms_t*) malloc(sizeof(comms_t));
     if(ret == NULL) return NULL;
     memset(ret, 0.0, sizeof(comms_t));
 
-    circular_funcs_init();
-    comms_cfuncs = &circular_funcs;
+    comms_cfuncs = circular_funcs_init();
 
     ret->buf_rx_len = buf_rx_len;
     ret->buf_rx = (uint8_t*) calloc(ret->buf_rx_len, sizeof(uint8_t));
@@ -78,12 +81,27 @@ comms_t* comms_create(uint32_t buf_rx_len, uint32_t buf_tx_len,
     // This makes our lives easier when handling
     // the buffering of messages to be published
     if(buf_tx_len == 0) buf_tx_len = 1;
-    ret->buf_tx = comms_cfuncs->create(buf_tx_len, sizeof(uint8_t));
+    ret->num_tx_msgs = num_tx_msgs;
+    ret->buf_tx = calloc(ret->num_tx_msgs, comms_cfuncs->size_of());
+    memset(ret->buf_tx, 0.0, ret->num_tx_msgs * comms_cfuncs->size_of());
     if(ret->buf_tx == NULL)
     {
         comms_destroy(ret);
         return NULL;
     }
+    uint32_t i;
+    for(i = 0; i < ret->num_tx_msgs; ++i)
+    {
+        ret->buf_tx[i] = comms_cfuncs->create(buf_tx_len, sizeof(uint8_t));
+        if(ret->buf_tx[i] == NULL)
+        {
+            comms_destroy(ret);
+            return NULL;
+        }
+        fletcher_checksum_clear_tx(ret, i);
+    }
+
+    ret->curr_tx_msg_num = 0;
 
     ret->publisher = publisher;
 
@@ -92,9 +110,7 @@ comms_t* comms_create(uint32_t buf_rx_len, uint32_t buf_tx_len,
     ret->decode_channel = (comms_channel_t) 0;
     ret->decode_data_len = 0;
     fletcher_checksum_clear_rx(ret);
-    fletcher_checksum_clear_tx(ret);
 
-    uint8_t i;
     for(i = 0; i < CHANNEL_NUM_CHANNELS; ++i)
     {
         ret->subscribers[i] = NULL;
@@ -120,25 +136,25 @@ void comms_subscribe(comms_t *comms,
     comms->subscribers[channel][comms->num_subscribers[channel] - 1]->usr  = usr;
 }
 
-static comms_status_t publish_flush(comms_t *comms)
+static comms_status_t publish_flush(comms_t *comms, uint32_t msg_num)
 {
-    if(!comms_cfuncs->is_empty(comms->buf_tx))
-        comms->publisher(comms->buf_tx);
+    if(!comms_cfuncs->is_empty(comms->buf_tx[msg_num]))
+        comms->publisher(comms->buf_tx[msg_num]);
 
-    if(comms_cfuncs->is_empty(comms->buf_tx))
+    if(comms_cfuncs->is_empty(comms->buf_tx[msg_num]))
         return COMMS_STATUS_DONE;
     else
         return COMMS_STATUS_IN_PROGRESS;
 
 }
 
-static comms_status_t publish(comms_t *comms, uint8_t data)
+static comms_status_t publish(comms_t *comms, uint32_t msg_num, uint8_t data)
 {
-    if(!comms_cfuncs->push_back(comms->buf_tx, &data))
+    if(!comms_cfuncs->push_back(comms->buf_tx[msg_num], &data))
         return COMMS_STATUS_BUFFER_FULL;
 
-    if(comms_cfuncs->is_full(comms->buf_tx))
-        return publish_flush(comms);
+    if(comms_cfuncs->is_full(comms->buf_tx[msg_num]))
+        return publish_flush(comms, msg_num);
 
     return COMMS_STATUS_NO_ACTION;
 }
@@ -148,77 +164,80 @@ inline comms_status_t comms_publish(comms_t *comms,
                                    uint8_t *msg,
                                    uint16_t msg_len)
 {
-    return comms_publish_id(comms, 0, channel, msg, msg_len);
+    return comms_publish_id(comms, 0, channel, msg, 0, msg_len);
 }
 
 comms_status_t comms_publish_id(comms_t *comms,
                                uint16_t id,
                                comms_channel_t channel,
                                uint8_t *msg,
+                               uint32_t msg_num,
                                uint16_t msg_len)
 {
 #define NUM_METADATA 1+1+2+1+2+2
+    if(msg_num > comms->num_tx_msgs) return COMMS_STATUS_INVALID_ARGUMENT;
 
-    fletcher_checksum_clear_tx(comms);
+    fletcher_checksum_clear_tx(comms, msg_num);
 
-    if(comms_cfuncs->capacity(comms->buf_tx) - comms_cfuncs->size(comms->buf_tx) < msg_len + NUM_METADATA)
+    fletcher_checksum_add_byte_tx(comms, msg_num, START_BYTE1);
+    if(publish(comms, msg_num, START_BYTE1) == COMMS_STATUS_BUFFER_FULL)
         return COMMS_STATUS_BUFFER_FULL;
 
-    fletcher_checksum_add_byte_tx(comms, START_BYTE1);
-    if(publish(comms, START_BYTE1) == COMMS_STATUS_BUFFER_FULL)
-        return COMMS_STATUS_BUFFER_FULL;
-
-    fletcher_checksum_add_byte_tx(comms, START_BYTE2);
-    if(publish(comms, START_BYTE2) == COMMS_STATUS_BUFFER_FULL)
+    fletcher_checksum_add_byte_tx(comms, msg_num, START_BYTE2);
+    if(publish(comms, msg_num, START_BYTE2) == COMMS_STATUS_BUFFER_FULL)
         return COMMS_STATUS_BUFFER_FULL;
 
     uint8_t id1 = (id & 0xff00) >> 8;
-    fletcher_checksum_add_byte_tx(comms, id1);
-    if(publish(comms, id1) == COMMS_STATUS_BUFFER_FULL)
+    fletcher_checksum_add_byte_tx(comms, msg_num, id1);
+    if(publish(comms, msg_num, id1) == COMMS_STATUS_BUFFER_FULL)
         return COMMS_STATUS_BUFFER_FULL;
 
     uint8_t id2 = id & 0x00ff;
-    fletcher_checksum_add_byte_tx(comms, id2);
-    if(publish(comms, id2) == COMMS_STATUS_BUFFER_FULL)
+    fletcher_checksum_add_byte_tx(comms, msg_num, id2);
+    if(publish(comms, msg_num, id2) == COMMS_STATUS_BUFFER_FULL)
         return COMMS_STATUS_BUFFER_FULL;
 
-    fletcher_checksum_add_byte_tx(comms, channel);
-    if(publish(comms, channel) == COMMS_STATUS_BUFFER_FULL)
+    fletcher_checksum_add_byte_tx(comms, msg_num, channel);
+    if(publish(comms, msg_num, channel) == COMMS_STATUS_BUFFER_FULL)
         return COMMS_STATUS_BUFFER_FULL;
 
     uint8_t len1 = (msg_len & 0xff00) >> 8;
-    fletcher_checksum_add_byte_tx(comms, len1);
-    if(publish(comms, len1) == COMMS_STATUS_BUFFER_FULL)
+    fletcher_checksum_add_byte_tx(comms, msg_num, len1);
+    if(publish(comms, msg_num, len1) == COMMS_STATUS_BUFFER_FULL)
         return COMMS_STATUS_BUFFER_FULL;
 
     uint8_t len2 = msg_len & 0x00ff;
-    fletcher_checksum_add_byte_tx(comms, len2);
-    if(publish(comms, len2) == COMMS_STATUS_BUFFER_FULL)
+    fletcher_checksum_add_byte_tx(comms, msg_num, len2);
+    if(publish(comms, msg_num, len2) == COMMS_STATUS_BUFFER_FULL)
         return COMMS_STATUS_BUFFER_FULL;
 
     uint8_t i;
     for(i = 0; i< msg_len; ++i)
     {
-        fletcher_checksum_add_byte_tx(comms, msg[i]);
-        if(publish(comms, msg[i]) == COMMS_STATUS_BUFFER_FULL)
+        fletcher_checksum_add_byte_tx(comms, msg_num, msg[i]);
+        if(publish(comms, msg_num, msg[i]) == COMMS_STATUS_BUFFER_FULL)
             return COMMS_STATUS_BUFFER_FULL;
     }
 
-    fletcher_checksum_calculate_tx(comms);
+    fletcher_checksum_calculate_tx(comms, msg_num);
 
-    if(publish(comms, comms->checksum_tx1) == COMMS_STATUS_BUFFER_FULL)
+    if(publish(comms, msg_num, comms->checksum_tx1) == COMMS_STATUS_BUFFER_FULL)
         return COMMS_STATUS_BUFFER_FULL;
-    if(publish(comms, comms->checksum_tx2) == COMMS_STATUS_BUFFER_FULL)
+    if(publish(comms, msg_num, comms->checksum_tx2) == COMMS_STATUS_BUFFER_FULL)
         return COMMS_STATUS_BUFFER_FULL;
 
-    return publish_flush(comms);
+    return publish_flush(comms, msg_num);
 
 #undef NUM_METADATA
 }
 
 inline comms_status_t comms_transmit(comms_t *comms)
 {
-    return publish_flush(comms);
+    comms_status_t ret;
+    if(ret = publish_flush(comms, comms->curr_tx_msg_num) == COMMS_STATUS_DONE)
+        if(++comms->curr_tx_msg_num > comms->num_tx_msgs)
+            comms->curr_tx_msg_num = 0;
+    return ret;
 }
 
 void comms_handle(comms_t *comms, uint8_t byte)
@@ -379,7 +398,12 @@ void comms_destroy(comms_t *comms)
     }
 
     if(comms->buf_tx)
-        comms_cfuncs->destroy(comms->buf_tx);
+    {
+        for(i = 0; i < comms->num_tx_msgs; ++i)
+            if(comms->buf_tx[i])
+                comms_cfuncs->destroy(comms->buf_tx[i]);
+        free(comms->buf_tx);
+    }
     if(comms->buf_rx)
         free(comms->buf_rx);
 
@@ -407,19 +431,19 @@ static uint16_t fletcher_checksum_calculate_rx(comms_t *comms)
 }
 
 
-static void fletcher_checksum_clear_tx(comms_t *comms)
+static void fletcher_checksum_clear_tx(comms_t *comms, uint32_t msg_num)
 {
     comms->checksum_tx1 = comms->checksum_tx2 = 0;
 }
 
-static void fletcher_checksum_add_byte_tx(comms_t *comms, uint8_t byte)
+static void fletcher_checksum_add_byte_tx(comms_t *comms, uint32_t msg_num, uint8_t byte)
 {
     // fletcher checksum calc
     comms->checksum_tx1 += byte;
     comms->checksum_tx2 += comms->checksum_tx1;
 }
 
-static uint16_t fletcher_checksum_calculate_tx(comms_t *comms)
+static uint16_t fletcher_checksum_calculate_tx(comms_t *comms, uint32_t msg_num)
 {
     return fletcher_checksum_calculate(comms->checksum_tx1, comms->checksum_tx2);
 }

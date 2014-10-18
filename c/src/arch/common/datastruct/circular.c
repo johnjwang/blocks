@@ -27,8 +27,9 @@ struct circular_t
     uint8_t  *array;
 };
 
-void circular_funcs_init()
+container_funcs_t* circular_funcs_init()
 {
+    circular_funcs.size_of = circular_size_of;
     circular_funcs.is_empty = circular_is_empty;
     circular_funcs.is_full = circular_is_full;
     circular_funcs.size = circular_size;
@@ -49,6 +50,12 @@ void circular_funcs_init()
     circular_funcs.iter_create = circular_iter_create;
     circular_funcs.iter_next = circular_iter_next;
     circular_funcs.iter_destroy = circular_iter_destroy;
+    return &circular_funcs;
+}
+
+uint32_t circular_size_of(void)
+{
+    return sizeof(circular_t);
 }
 
 uint32_t circular_size(const container_t *c)

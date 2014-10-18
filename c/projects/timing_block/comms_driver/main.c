@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
     // Create comms devices
     if(xbee)
     {
-        xbee_comms = comms_create(1000, 1000, publish_xbee);
+        xbee_comms = comms_create(1000, 1000, 1, publish_xbee);
         comms_subscribe(xbee_comms, CHANNEL_KILL, handler_kill, NULL);
         comms_subscribe(xbee_comms, CHANNEL_CHANNELS, handler_channels, NULL);
         comms_subscribe(xbee_comms, CHANNEL_CFG_USB_SN, handler_cfg_usb_serial_num, NULL);
@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
     // Create comms devices
     if(usb)
     {
-        usb_comms = comms_create(1000, 1000, publish_usb);
+        usb_comms = comms_create(1000, 1000, 1, publish_usb);
         comms_subscribe(usb_comms, CHANNEL_KILL, handler_kill, NULL);
         comms_subscribe(usb_comms, CHANNEL_CHANNELS, handler_channels, NULL);
         comms_subscribe(usb_comms, CHANNEL_CFG_USB_SN, handler_cfg_usb_serial_num, NULL);
@@ -364,8 +364,8 @@ static void handler_kill_lcm(const lcm_recv_buf_t *rbuf, const char *channel,
     uint32_t maxlen = __kill_t_encoded_array_size(msg, 1);
     uint8_t *buf = (uint8_t *) malloc(sizeof(uint8_t) * maxlen);
     uint32_t len = __kill_t_encode_array(buf, 0, maxlen, msg, 1);
-    if(usb)  comms_publish_id( usb_comms, id, CHANNEL_KILL, buf, len);
-    if(xbee) comms_publish_id(xbee_comms, id, CHANNEL_KILL, buf, len);
+    if(usb)  comms_publish_id( usb_comms, id, CHANNEL_KILL, buf, 0, len);
+    if(xbee) comms_publish_id(xbee_comms, id, CHANNEL_KILL, buf, 0, len);
     if(loopback_mode) handler_kill(NULL, id, CHANNEL_KILL, buf, len);
     free(buf);
 }
@@ -401,8 +401,8 @@ static void handler_channels_lcm(const lcm_recv_buf_t *rbuf, const char *channel
     uint32_t maxlen = __channels_t_encoded_array_size(msg, 1);
     uint8_t *buf = (uint8_t *) malloc(sizeof(uint8_t) * maxlen);
     uint32_t len = __channels_t_encode_array(buf, 0, maxlen, msg, 1);
-    if(usb)  comms_publish_id( usb_comms, id, CHANNEL_CHANNELS, buf, len);
-    if(xbee) comms_publish_id(xbee_comms, id, CHANNEL_CHANNELS, buf, len);
+    if(usb)  comms_publish_id( usb_comms, id, CHANNEL_CHANNELS, buf, 0, len);
+    if(xbee) comms_publish_id(xbee_comms, id, CHANNEL_CHANNELS, buf, 0, len);
     if(loopback_mode) handler_channels(NULL, id, CHANNEL_CHANNELS, buf, len);
     free(buf);
 }
@@ -438,8 +438,8 @@ static void handler_cfg_usb_serial_num_lcm(const lcm_recv_buf_t *rbuf, const cha
     uint32_t maxlen = __cfg_usb_serial_num_t_encoded_array_size(msg, 1);
     uint8_t *buf = (uint8_t *) malloc(sizeof(uint8_t) * maxlen);
     uint32_t len = __cfg_usb_serial_num_t_encode_array(buf, 0, maxlen, msg, 1);
-    if(usb)  comms_publish_id( usb_comms, id, CHANNEL_CFG_USB_SN, buf, len);
-    if(xbee) comms_publish_id(xbee_comms, id, CHANNEL_CFG_USB_SN, buf, len);
+    if(usb)  comms_publish_id( usb_comms, id, CHANNEL_CFG_USB_SN, buf, 0, len);
+    if(xbee) comms_publish_id(xbee_comms, id, CHANNEL_CFG_USB_SN, buf, 0, len);
     if(loopback_mode) handler_cfg_usb_serial_num(NULL, id, CHANNEL_CFG_USB_SN, buf, len);
     free(buf);
 }
@@ -475,8 +475,8 @@ static void handler_cfg_data_frequency_lcm(const lcm_recv_buf_t *rbuf, const cha
     uint32_t maxlen = __cfg_data_frequency_t_encoded_array_size(msg, 1);
     uint8_t *buf = (uint8_t *) malloc(sizeof(uint8_t) * maxlen);
     uint32_t len = __cfg_data_frequency_t_encode_array(buf, 0, maxlen, msg, 1);
-    if(usb)  comms_publish_id( usb_comms, id, CHANNEL_CFG_DATA_FREQUENCY, buf, len);
-    if(xbee) comms_publish_id(xbee_comms, id, CHANNEL_CFG_DATA_FREQUENCY, buf, len);
+    if(usb)  comms_publish_id( usb_comms, id, CHANNEL_CFG_DATA_FREQUENCY, buf, 0, len);
+    if(xbee) comms_publish_id(xbee_comms, id, CHANNEL_CFG_DATA_FREQUENCY, buf, 0, len);
     if(loopback_mode) handler_cfg_data_frequency(NULL, id, CHANNEL_CFG_DATA_FREQUENCY, buf, len);
     free(buf);
 }

@@ -14,7 +14,8 @@ typedef struct circular_t circular_t;
 
 extern container_funcs_t circular_funcs;
 
-void               circular_funcs_init();
+container_funcs_t* circular_funcs_init();
+uint32_t           circular_size_of(void);
 bool               circular_is_empty(const container_t *c);
 bool               circular_is_full(const container_t *c);
 uint32_t           circular_size(const container_t *c);

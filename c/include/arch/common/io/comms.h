@@ -28,6 +28,7 @@ typedef enum comms_channel_t
 
 typedef enum comms_status_t
 {
+    COMMS_STATUS_INVALID_ARGUMENT,
     COMMS_STATUS_BUFFER_FULL,
     COMMS_STATUS_IN_PROGRESS,
     COMMS_STATUS_NO_ACTION,
@@ -49,7 +50,7 @@ typedef void (*subscriber_t)(void *usr, uint16_t id, comms_channel_t channel,
 
 
 comms_t* comms_create(uint32_t buf_len_rx, uint32_t buf_len_tx,
-                      publisher_t publisher);
+                      uint32_t num_tx_msgs, publisher_t publisher);
 
 void comms_subscribe(comms_t *comms, comms_channel_t channel,
                      subscriber_t subscriber, void *usr);
@@ -63,6 +64,7 @@ comms_status_t comms_publish_id(comms_t *comms,
                                 uint16_t id,
                                 comms_channel_t channel,
                                 uint8_t *msg,
+                                uint32_t msg_num,
                                 uint16_t msg_len);
 
 inline comms_status_t comms_transmit(comms_t *comms);

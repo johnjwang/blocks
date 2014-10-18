@@ -14,6 +14,7 @@ typedef struct container_iter_t container_iter_t;
 typedef struct container_funcs_t container_funcs_t;
 struct container_funcs_t
 {
+    uint32_t          (*size_of)(void);
     bool              (*is_empty)(const container_t *c);
     bool              (*is_full)(const container_t *c);
     uint32_t          (*size)(const container_t *c);

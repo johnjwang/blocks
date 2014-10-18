@@ -1,6 +1,6 @@
 CFLAGS:=-I${BLOCKS_HOME}/c/include/arch/common/
 
-LDFLAGS:=${BLOCKS_HOME}/c/lib/arch/libcommon.a 
+LDFLAGS:=${BLOCKS_HOME}/c/lib/arch/libcommon.a -lpthread
 
 BIN_DIR:=${BLOCKS_HOME}/bin/arch/common/io/test
 BIN:=${BIN_DIR}/comms_test_linux
