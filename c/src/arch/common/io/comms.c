@@ -4,12 +4,15 @@
  *  Created on: Oct 5, 2014
  *      Author: Jonathan
  */
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 
 #include "io/comms.h"
 #include "datastruct/circular.h"
+
+#define MAX(X,Y) (((X) > (Y)) ? (X) : (Y))
 
 typedef struct subscriber_container_t
 {
@@ -49,6 +52,8 @@ struct comms_t
 
 #define START_BYTE1 0xB1
 #define START_BYTE2 0x75
+
+#define SELECTED_MSG_NONE -1
 
 static void fletcher_checksum_clear_rx(comms_t *comms);
 static void fletcher_checksum_add_byte_rx(comms_t *comms, uint8_t byte);
@@ -138,14 +143,21 @@ void comms_subscribe(comms_t *comms,
 
 static comms_status_t publish_flush(comms_t *comms, uint32_t msg_num)
 {
-    if(!comms_cfuncs->is_empty(comms->buf_tx[msg_num]))
-        comms->publisher(comms->buf_tx[msg_num]);
+    if(comms->curr_tx_msg_num == msg_num)
+    {
+        //fprintf(stderr, "msg_num = %d\n", msg_num);
+        if(!comms_cfuncs->is_empty(comms->buf_tx[msg_num]))
+            comms->publisher(comms->buf_tx[msg_num]);
 
-    if(comms_cfuncs->is_empty(comms->buf_tx[msg_num]))
-        return COMMS_STATUS_DONE;
+        if(comms_cfuncs->is_empty(comms->buf_tx[msg_num]))
+            return COMMS_STATUS_DONE;
+        else
+            return COMMS_STATUS_IN_PROGRESS;
+    }
     else
-        return COMMS_STATUS_IN_PROGRESS;
-
+    {
+        return COMMS_STATUS_WAITING;
+    }
 }
 
 static comms_status_t publish(comms_t *comms, uint32_t msg_num, uint8_t data)
@@ -175,68 +187,110 @@ comms_status_t comms_publish_id(comms_t *comms,
                                uint16_t msg_len)
 {
 #define NUM_METADATA 1+1+2+1+2+2
+
+#define PUBLISH_CHECK_FULL_BUFFER(C,N,D,S)\
+    do { \
+        if(publish(C,N,D) == COMMS_STATUS_BUFFER_FULL) \
+        { \
+            uint32_t num_popped = 0; \
+            while(!comms_cfuncs->is_empty(comms->buf_tx[msg_num])) \
+            { \
+                comms_cfuncs->pop_back(comms->buf_tx[msg_num]); \
+                if(++num_popped == S) \
+                    break; \
+            } \
+            return COMMS_STATUS_BUFFER_FULL; \
+        } \
+        ++S; \
+    } while(0)
+
+
     if(msg_num > comms->num_tx_msgs) return COMMS_STATUS_INVALID_ARGUMENT;
+
+    if(comms->curr_tx_msg_num == SELECTED_MSG_NONE)
+        comms->curr_tx_msg_num = msg_num;
+
+/*
+    // XXX This functionality has not yet been built in
+    if(comms->config_flags & COMMS_CONFIG_ACCEPT_FULL_MESSAGES)
+    {
+        // If we wont have room to buffer the whole message
+        if(comms_cfuncs->capacity(comms->buf_tx[msg_num]) -
+                comms_cfuncs->size(comms->buf_tx[msg_num]) < msg_len + NUM_METADATA)
+            return COMMS_STATUS_BUFFER_FULL;
+    }
+*/
+
+    uint32_t num_so_far = 0;
 
     fletcher_checksum_clear_tx(comms, msg_num);
 
     fletcher_checksum_add_byte_tx(comms, msg_num, START_BYTE1);
-    if(publish(comms, msg_num, START_BYTE1) == COMMS_STATUS_BUFFER_FULL)
-        return COMMS_STATUS_BUFFER_FULL;
+    PUBLISH_CHECK_FULL_BUFFER(comms, msg_num, START_BYTE1, num_so_far);
 
     fletcher_checksum_add_byte_tx(comms, msg_num, START_BYTE2);
-    if(publish(comms, msg_num, START_BYTE2) == COMMS_STATUS_BUFFER_FULL)
-        return COMMS_STATUS_BUFFER_FULL;
+    PUBLISH_CHECK_FULL_BUFFER(comms, msg_num, START_BYTE2, num_so_far);
 
     uint8_t id1 = (id & 0xff00) >> 8;
     fletcher_checksum_add_byte_tx(comms, msg_num, id1);
-    if(publish(comms, msg_num, id1) == COMMS_STATUS_BUFFER_FULL)
-        return COMMS_STATUS_BUFFER_FULL;
+    PUBLISH_CHECK_FULL_BUFFER(comms, msg_num, id1, num_so_far);
 
     uint8_t id2 = id & 0x00ff;
     fletcher_checksum_add_byte_tx(comms, msg_num, id2);
-    if(publish(comms, msg_num, id2) == COMMS_STATUS_BUFFER_FULL)
-        return COMMS_STATUS_BUFFER_FULL;
+    PUBLISH_CHECK_FULL_BUFFER(comms, msg_num, id2, num_so_far);
 
     fletcher_checksum_add_byte_tx(comms, msg_num, channel);
-    if(publish(comms, msg_num, channel) == COMMS_STATUS_BUFFER_FULL)
-        return COMMS_STATUS_BUFFER_FULL;
+    PUBLISH_CHECK_FULL_BUFFER(comms, msg_num, channel, num_so_far);
 
     uint8_t len1 = (msg_len & 0xff00) >> 8;
     fletcher_checksum_add_byte_tx(comms, msg_num, len1);
-    if(publish(comms, msg_num, len1) == COMMS_STATUS_BUFFER_FULL)
-        return COMMS_STATUS_BUFFER_FULL;
+    PUBLISH_CHECK_FULL_BUFFER(comms, msg_num, len1, num_so_far);
 
     uint8_t len2 = msg_len & 0x00ff;
     fletcher_checksum_add_byte_tx(comms, msg_num, len2);
-    if(publish(comms, msg_num, len2) == COMMS_STATUS_BUFFER_FULL)
-        return COMMS_STATUS_BUFFER_FULL;
+    PUBLISH_CHECK_FULL_BUFFER(comms, msg_num, len2, num_so_far);
 
     uint8_t i;
     for(i = 0; i< msg_len; ++i)
     {
         fletcher_checksum_add_byte_tx(comms, msg_num, msg[i]);
-        if(publish(comms, msg_num, msg[i]) == COMMS_STATUS_BUFFER_FULL)
-            return COMMS_STATUS_BUFFER_FULL;
+        PUBLISH_CHECK_FULL_BUFFER(comms, msg_num, msg[i], num_so_far);
     }
 
     fletcher_checksum_calculate_tx(comms, msg_num);
 
-    if(publish(comms, msg_num, comms->checksum_tx1) == COMMS_STATUS_BUFFER_FULL)
-        return COMMS_STATUS_BUFFER_FULL;
-    if(publish(comms, msg_num, comms->checksum_tx2) == COMMS_STATUS_BUFFER_FULL)
-        return COMMS_STATUS_BUFFER_FULL;
+    PUBLISH_CHECK_FULL_BUFFER(comms, msg_num, comms->checksum_tx1, num_so_far);
+    PUBLISH_CHECK_FULL_BUFFER(comms, msg_num, comms->checksum_tx2, num_so_far);
 
-    return publish_flush(comms, msg_num);
+    comms_status_t ret = publish_flush(comms, msg_num);
+
+    if((comms->curr_tx_msg_num == msg_num) && (ret == COMMS_STATUS_DONE))
+        comms->curr_tx_msg_num = SELECTED_MSG_NONE;
 
 #undef NUM_METADATA
 }
 
-inline comms_status_t comms_transmit(comms_t *comms)
+comms_status_t comms_transmit(comms_t *comms)
 {
     comms_status_t ret;
-    if(ret = publish_flush(comms, comms->curr_tx_msg_num) == COMMS_STATUS_DONE)
-        if(++comms->curr_tx_msg_num > comms->num_tx_msgs)
+
+    if(comms->num_tx_msgs == 0) return COMMS_STATUS_INVALID_ARGUMENT;
+
+    if(comms->curr_tx_msg_num == SELECTED_MSG_NONE)
+        comms->curr_tx_msg_num = 0;
+
+    uint32_t start_msg_num = comms->curr_tx_msg_num;
+
+    while((ret = publish_flush(comms, comms->curr_tx_msg_num)) == COMMS_STATUS_DONE)
+    {
+        if(++comms->curr_tx_msg_num == comms->num_tx_msgs)
             comms->curr_tx_msg_num = 0;
+
+        if(comms->curr_tx_msg_num == start_msg_num)
+            break;
+    }
+    if(ret == COMMS_STATUS_DONE)
+        comms->curr_tx_msg_num = SELECTED_MSG_NONE;
     return ret;
 }
 
