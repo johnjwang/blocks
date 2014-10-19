@@ -75,12 +75,12 @@ int main(void)
 
     //****** All user code goes below here ******
 
-    uart_up_comms_init();
+    uart_up_comms_init(1);
     timer_default_init();
 
     IntMasterEnable();
 
-    usb_comms_init();
+    usb_comms_init(1);
     watchdog_init(SysCtlClockGet() / 10);
 
 //	uart_up_comms_demo();
@@ -168,8 +168,8 @@ int main(void)
             uint16_t len = __channels_t_encode_array(buf, 0, buflen, &channel, 1);
 
             //XXX Id of one should be replaced with stack.address
-            usb_comms_publish_id(1, CHANNEL_CHANNELS, buf, len);
-            uart_up_comms_publish_id(1, CHANNEL_CHANNELS, buf, len);
+            usb_comms_publish_id(1, CHANNEL_CHANNELS, buf, 0, len);
+            uart_up_comms_publish_id(1, CHANNEL_CHANNELS, buf, 0, len);
 		}
 
         usb_comms_transmit();

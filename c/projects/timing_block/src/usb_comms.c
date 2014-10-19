@@ -33,7 +33,7 @@ comms_t *usb_comms = NULL;
 
 static void usb_comms_publish_non_blocking(container_t *data);
 
-void usb_comms_init(void)
+void usb_comms_init(uint32_t max_num_tx_origins)
 {
     //
     // Configure the required pins for USB operation.
@@ -69,7 +69,8 @@ void usb_comms_init(void)
     //
     USBDCDCInit(0, &g_sCDCDevice);
 
-    usb_comms = comms_create(100, 100, usb_comms_publish_non_blocking);
+    usb_comms = comms_create(100, 100, max_num_tx_origins,
+                             usb_comms_publish_non_blocking);
 }
 
 static void usb_comms_publish_non_blocking(container_t *data)
@@ -104,9 +105,9 @@ void usb_comms_publish(comms_channel_t channel, uint8_t *msg, uint16_t msg_len)
 }
 
 void usb_comms_publish_id(uint16_t id, comms_channel_t channel,
-                          uint8_t *msg, uint16_t msg_len)
+                          uint8_t *msg, uint32_t tx_origin_num, uint16_t msg_len)
 {
-    comms_publish_id(usb_comms, id, channel, msg, msg_len);
+    comms_publish_id(usb_comms, id, channel, msg, tx_origin_num, msg_len);
 }
 
 comms_status_t usb_comms_transmit(void)
