@@ -4,7 +4,6 @@
  *  Created on: Oct 5, 2014
  *      Author: Jonathan
  */
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -157,7 +156,6 @@ static comms_status_t publish_flush(comms_t *comms, uint32_t tx_origin_num)
 {
     if(comms->curr_tx_orig_num == tx_origin_num)
     {
-        //fprintf(stderr, "tx_origin_num = %d\n", tx_origin_num);
         if(!comms_cfuncs->is_empty(comms->buf_tx[tx_origin_num]))
             comms->publisher(comms->buf_tx[tx_origin_num]);
 
