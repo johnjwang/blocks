@@ -89,7 +89,7 @@ bool usb_comms_write_byte(uint8_t data)
     return usb_comms_write(msg, 1);
 }
 
-bool usb_comms_write(uint8_t *msg, uint16_t datalen)
+bool usb_comms_write(const uint8_t *msg, uint16_t datalen)
 {
     if(usb_configured) {
     	USBBufferWrite((tUSBBuffer *)&g_sTxBuffer, msg, datalen);
@@ -99,13 +99,13 @@ bool usb_comms_write(uint8_t *msg, uint16_t datalen)
 	}
 }
 
-void usb_comms_publish(comms_channel_t channel, uint8_t *msg, uint16_t msg_len)
+void usb_comms_publish(comms_channel_t channel, const uint8_t *msg, uint16_t msg_len)
 {
     comms_publish(usb_comms, channel, msg, msg_len);
 }
 
 void usb_comms_publish_id(uint16_t id, comms_channel_t channel,
-                          uint8_t *msg, uint32_t tx_origin_num, uint16_t msg_len)
+                          const uint8_t *msg, uint32_t tx_origin_num, uint16_t msg_len)
 {
     comms_publish_id(usb_comms, id, channel, msg, tx_origin_num, msg_len);
 }

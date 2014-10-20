@@ -65,24 +65,11 @@ void __stack_init(void)
     TimerEnable(TIMER2_BASE, TIMER_B);
 }
 
-static void receive_pulse(void)
-{
-    GPIOIntClear(stack.gpio_dn_port_base, stack.gpio_dn_pin_int);
-
-    TimerDisable(TIMER2_BASE, TIMER_B);
-    TimerIntClear(TIMER2_BASE, TIMER_TIMB_TIMEOUT);
-
-    // Set up to wait for 300us before timing out the incoming pulses
-    timer_set(TIMER2_BASE, TIMER_B, timer_us_to_tics(300), 16, 8);
-
-    stack.address++;
-
-    TimerIntRegister(TIMER2_BASE, TIMER_B, enumerate_above);
-    TimerEnable(TIMER2_BASE, TIMER_B);
-}
 
 static void timeout_start_enumeration(void)
 {
+    TimerDisable(TIMER2_BASE, TIMER_B);
+    TimerIntUnregister(TIMER2_BASE, TIMER_B);
     TimerIntClear(TIMER2_BASE, TIMER_TIMB_TIMEOUT);
 
     // check your bottom gpio.
@@ -95,7 +82,7 @@ static void timeout_start_enumeration(void)
         if(stack.address != 0) return;
 
         GPIOIntUnregister(stack.gpio_dn_port_base);
-        GPIOIntClear(stack.gpio_dn_port_base, GPIO_FALLING_EDGE);
+        GPIOIntClear(stack.gpio_dn_port_base, stack.gpio_dn_pin_int);
 
         stack.address = 0x01;
         enumerate_above();
@@ -105,8 +92,31 @@ static void timeout_start_enumeration(void)
 }
 
 
+static void receive_pulse(void)
+{
+    GPIOIntClear(stack.gpio_dn_port_base, stack.gpio_dn_pin_int);
+
+    TimerDisable(TIMER2_BASE, TIMER_B);
+    TimerIntClear(TIMER2_BASE, TIMER_TIMB_TIMEOUT);
+
+    stack.address++;
+
+    // Set up to wait for 300us before timing out the incoming pulses
+    //XXX This should be moved somewhere persistent.
+    //    This actually sets the value in the timer to 0.
+    TimerValueSet(TIMER2_BASE, TIMER_B, 0);
+    timer_set(TIMER2_BASE, TIMER_B, timer_us_to_tics(500), 16, 8);
+    TimerIntRegister(TIMER2_BASE, TIMER_B, enumerate_above);
+    TimerEnable(TIMER2_BASE, TIMER_B);
+}
+
+
 static void enumerate_above(void)
 {
+    TimerDisable(TIMER2_BASE, TIMER_B);
+    TimerIntUnregister(TIMER2_BASE, TIMER_B);
+    TimerIntClear(TIMER2_BASE, TIMER_TIMB_TIMEOUT);
+
     switch(stack.enumeration_state)
     {
         case 0:
@@ -131,8 +141,10 @@ static void enumerate_above(void)
             {
                 GPIOPinTypeGPIOInput(stack.gpio_up_port_base, stack.gpio_up_pin);
                 GPIOPadConfigSet(stack.gpio_up_port_base, stack.gpio_up_pin, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPD);
-
                 // Configure pins to capture rising edge
+                //XXX Why do we need to clear the interrupt here? If we don't do this,
+                //    we automatically fall into the rising edge interrupt.
+                GPIOIntClear(stack.gpio_up_port_base, stack.gpio_up_pin_int);
                 GPIOIntTypeSet(stack.gpio_up_port_base, stack.gpio_up_pin, GPIO_RISING_EDGE);
                 GPIOIntEnable(stack.gpio_up_port_base, stack.gpio_up_pin_int);
                 IntPrioritySet(stack.gpio_up_port_int, 0x10);
@@ -159,12 +171,16 @@ static void enumerate_above(void)
 
 static void still_enumertaing(void)
 {
-    GPIOIntClear(stack.gpio_dn_port_base, stack.gpio_dn_pin_int);
+    GPIOIntUnregister(stack.gpio_up_port_base);
+    GPIOIntClear(stack.gpio_up_port_base, stack.gpio_up_pin_int);
 
     TimerDisable(TIMER2_BASE, TIMER_B);
+    TimerIntUnregister(TIMER2_BASE, TIMER_B);
     TimerIntClear(TIMER2_BASE, TIMER_TIMB_TIMEOUT);
 
-    // Configure pins to capture rising edge
+    GPIOPadConfigSet(stack.gpio_up_port_base, stack.gpio_up_pin, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
+
+    // Configure pins to capture falling edge
     GPIOIntTypeSet(stack.gpio_up_port_base, stack.gpio_up_pin, GPIO_FALLING_EDGE);
     GPIOIntEnable(stack.gpio_up_port_base, stack.gpio_up_pin_int);
     IntPrioritySet(stack.gpio_up_port_int, 0x10);
@@ -178,7 +194,7 @@ static void still_enumertaing(void)
 static void finish_enumeration(void)
 {
     GPIOIntUnregister(stack.gpio_up_port_base);
-    GPIOIntClear(stack.gpio_dn_port_base, stack.gpio_dn_pin_int);
+    GPIOIntClear(stack.gpio_up_port_base, stack.gpio_up_pin_int);
 
     TimerDisable(TIMER2_BASE, TIMER_B);
     TimerIntUnregister(TIMER2_BASE, TIMER_B);

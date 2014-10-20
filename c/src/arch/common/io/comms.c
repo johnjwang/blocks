@@ -183,7 +183,7 @@ static comms_status_t publish(comms_t *comms, uint32_t tx_origin_num, uint8_t da
 
 inline comms_status_t comms_publish(comms_t *comms,
                                    comms_channel_t channel,
-                                   uint8_t *msg,
+                                   const uint8_t *msg,
                                    uint16_t msg_len)
 {
     return comms_publish_id(comms, 0, channel, msg, 0, msg_len);
@@ -192,7 +192,7 @@ inline comms_status_t comms_publish(comms_t *comms,
 comms_status_t comms_publish_id(comms_t *comms,
                                uint16_t id,
                                comms_channel_t channel,
-                               uint8_t *msg,
+                               const uint8_t *msg,
                                uint32_t tx_origin_num,
                                uint16_t msg_len)
 {

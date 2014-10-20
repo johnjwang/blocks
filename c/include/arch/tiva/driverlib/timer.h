@@ -269,6 +269,7 @@ extern void TimerLoadSet64(uint32_t ui32Base, uint64_t ui64Value);
 extern uint64_t TimerLoadGet64(uint32_t ui32Base);
 extern uint32_t TimerValueGet(uint32_t ui32Base, uint32_t ui32Timer);
 extern uint64_t TimerValueGet64(uint32_t ui32Base);
+extern void TimerValueSet(uint32_t ui32Base, uint32_t ui32Timer, uint32_t val);
 extern void TimerMatchSet(uint32_t ui32Base, uint32_t ui32Timer,
                           uint32_t ui32Value);
 extern uint32_t TimerMatchGet(uint32_t ui32Base, uint32_t ui32Timer);
