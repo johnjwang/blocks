@@ -1178,6 +1178,34 @@ TimerValueGet64(uint32_t ui32Base)
 
 //*****************************************************************************
 //
+//! Sets the current timer value.
+//!
+//! \param ui32Base is the base address of the timer module.
+//! \param ui32Timer specifies the timer; must be one of \b TIMER_A or
+//! \b TIMER_B.  Only \b TIMER_A should be used when the timer is configured
+//! for full-width operation.
+//!
+//! This function sets the current value of the specified timer.
+//!
+//! \note This function can be used for both full- and half-width modes of
+//! 16/32-bit timers and for half-width modes of 32/64-bit timers.
+//! Use TimerValueSet64() for full-width modes of 32/64-bit timers (Not yet implemented)
+//
+//*****************************************************************************
+void
+TimerValueSet(uint32_t ui32Base, uint32_t ui32Timer, uint32_t val)
+{
+    //
+    // Check the arguments.
+    //
+    ASSERT(_TimerBaseValid(ui32Base));
+    ASSERT((ui32Timer == TIMER_A) || (ui32Timer == TIMER_B));
+
+    HWREG(ui32Base + ((ui32Timer == TIMER_A) ? TIMER_O_TAV : TIMER_O_TBV)) = val;
+}
+
+//*****************************************************************************
+//
 //! Sets the timer match value.
 //!
 //! \param ui32Base is the base address of the timer module.

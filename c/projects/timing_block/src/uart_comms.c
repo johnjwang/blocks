@@ -80,7 +80,7 @@ bool uart_up_comms_write_byte(uint8_t byte)
     return true;
 }
 
-bool uart_up_comms_write(uint8_t *msg, uint16_t dataLen)
+bool uart_up_comms_write(const uint8_t *msg, uint16_t dataLen)
 {
 	uint32_t i;
 	for(i = 0; i < dataLen; ++i)
@@ -90,13 +90,13 @@ bool uart_up_comms_write(uint8_t *msg, uint16_t dataLen)
 	return true;
 }
 
-void uart_up_comms_publish(comms_channel_t channel, uint8_t *msg, uint16_t msg_len)
+void uart_up_comms_publish(comms_channel_t channel, const uint8_t *msg, uint16_t msg_len)
 {
     comms_publish(uart_up_comms, channel, msg, msg_len);
 }
 
 void uart_up_comms_publish_id(uint16_t id, comms_channel_t channel,
-                              uint8_t *msg, uint32_t tx_origin_num, uint16_t msg_len)
+                              const uint8_t *msg, uint32_t tx_origin_num, uint16_t msg_len)
 {
     comms_publish_id(uart_up_comms, id, channel, msg, tx_origin_num, msg_len);
 }

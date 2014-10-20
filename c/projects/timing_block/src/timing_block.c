@@ -21,11 +21,12 @@
 
 #include "eeprom.h"
 #include "bootloader.h"
-#include "timing_block_util.h"
+#include "stack.h"
 #include "time_util.h"
+#include "timer_capture_generate.h"
+#include "timing_block_util.h"
 #include "uart_comms.h"
 #include "usb_comms.h"
-#include "timer_capture_generate.h"
 #include "watchdog.h"
 
 #include "lcmtypes/channels_t.h"
@@ -67,10 +68,11 @@ int main(void)
     SysCtlClockSet(SYSCTL_SYSDIV_2_5 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
 
     IntMasterDisable();
-
     eeprom_init();
     leds_init();
     time_init();
+    IntMasterEnable();
+    stack_enumerate(E, 1, E, 0);
     bootloader_check_upload();
 
     //****** All user code goes below here ******
@@ -78,10 +80,10 @@ int main(void)
     uart_up_comms_init(2);
     timer_default_init();
 
-    IntMasterEnable();
+//    IntMasterEnable();
 
     usb_comms_init(2);
-    watchdog_init(SysCtlClockGet() / 10);
+//    watchdog_init(SysCtlClockGet() / 10);
 
 //	uart_up_comms_demo();
 //	usb_demo();
@@ -112,7 +114,7 @@ int main(void)
 
     timer_register_switch_monitor(main_manual_auto_switch_handler);
 
-    static const int num_blinks = 3, num_leds = 1;
+    static volatile uint16_t *num_blinks = &stack.address, num_leds = 1;
     static int start_idx = 1;
     int i = start_idx, next_i = start_idx, j = 1;
 
@@ -122,16 +124,16 @@ int main(void)
 
     while(1)
     {
-        watchdog_feed();
+//        watchdog_feed();
     	if(!is_blinking(i))
     	{
-    		i = next_i;
-    		blink_led(i, j);
-    		j++;
-    		if(j > num_blinks){
-    			next_i = (i + 1 - start_idx) % num_leds + start_idx;
-				j = 1;
-			}
+//    		i = next_i;
+    		blink_led(i, *num_blinks);
+//    		j++;
+//    		if(j > *num_blinks){
+//    			next_i = (i + 1 - start_idx) % num_leds + start_idx;
+//				j = 1;
+//			}
     	}
 
     	uint64_t utime = timestamp_now();
@@ -156,7 +158,7 @@ int main(void)
                         timer_default_read_pulse(timer_ind));
             }
             channel.channels = channel_val;
-            // XXX: had a very weird but where receiving too much or something basically
+            // XXX: had a very weird bug where we were receiving too much or something basically
             //      broke all of the channels, I think it was because we were receiving
             //      on both the Xbee and the USB on the same time
             // XXX: Every now and then sometimes get a randome signal value on an output that
@@ -206,14 +208,14 @@ static void main_kill_msg_handler(void *usr, uint16_t id, comms_channel_t channe
     kill_t kill;
     memset(&kill, 0, sizeof(kill));
     if (__kill_t_decode_array(msg, 0, msg_len, &kill, 1) >= 0) {
-        //if((id == 0) || (id == stack.address))
-        //{
+        if((id == 0) || (id == stack.address))
+        {
             timer_default_disconnect_all();
             // XXX: this will actually flatline after 200 ms due to sigtimeout, may need to check
             //      if that is safe
             timer_default_pulse_allpwm(timer_us_to_tics(1000));
             killed = 1;
-        //}
+        }
     }
     __kill_t_decode_array_cleanup(&kill, 1);
 }
@@ -225,8 +227,8 @@ static void main_channels_msg_handler(void *usr, uint16_t id, comms_channel_t ch
     memset(&channels, 0, sizeof(channels));
     if (__channels_t_decode_array(msg, 0, msg_len, &channels, 1) >= 0) {
 
-        //if((id == 0) || (id == stack.address))
-        //{
+        if((id == 0) || (id == stack.address))
+        {
             // Ensure we are autonomous enabled
             last_autonomy_cmd_utime = timestamp_now();
             if (autonomous_ready == 1) {
@@ -240,7 +242,7 @@ static void main_channels_msg_handler(void *usr, uint16_t id, comms_channel_t ch
                     }
                 }
             }
-        //}
+        }
     }
     __channels_t_decode_array_cleanup(&channels, 1);
 }
@@ -251,8 +253,8 @@ static void main_cfg_usb_sn_msg_handler(void *usr, uint16_t id, comms_channel_t 
     cfg_usb_serial_num_t sn;
     memset(&sn, 0, sizeof(sn));
     if (__cfg_usb_serial_num_t_decode_array(msg, 0, msg_len, &sn, 1) >= 0) {
-        //if((id == 0) || (id == stack.address))
-        //{
+        if((id == 0) || (id == stack.address))
+        {
             // write usb serial number out of eeprom
             eeprom_write_word(EEPROM_USB_SN_UPPER_ADDR,   (((uint32_t)sn.sn_chars[0]) << 24)
                                                         | (((uint32_t)sn.sn_chars[1]) << 16)
@@ -266,7 +268,7 @@ static void main_cfg_usb_sn_msg_handler(void *usr, uint16_t id, comms_channel_t 
 
             usb_comms_publish_id(1, CHANNEL_CFG_USB_SN, msg, 1, msg_len);
             uart_up_comms_publish_id(1, CHANNEL_CFG_USB_SN, msg, 1, msg_len);
-        //}
+        }
     }
     __cfg_usb_serial_num_t_decode_array_cleanup(&sn, 1);
 }
@@ -277,12 +279,12 @@ static void main_cfg_data_freq_msg_handler(void *usr, uint16_t id, comms_channel
     cfg_data_frequency_t data_freq;
     memset(&data_freq, 0, sizeof(data_freq));
     if (__cfg_data_frequency_t_decode_array(msg, 0, msg_len, &data_freq, 1) >= 0) {
-        //if((id == 0) || (id == stack.address))
-        //{
+        if((id == 0) || (id == stack.address))
+        {
             send_period_us = 1000000 / (uint16_t)data_freq.hz;
             usb_comms_publish_id(1, CHANNEL_CFG_DATA_FREQUENCY, msg, 1, msg_len);
             uart_up_comms_publish_id(1, CHANNEL_CFG_DATA_FREQUENCY, msg, 1, msg_len);
-        //}
+        }
     }
     __cfg_data_frequency_t_decode_array_cleanup(&data_freq, 1);
 }

@@ -62,12 +62,12 @@ void bootloader_check_upload()
         turn_on_led(2);
         turn_on_led(3);
         turn_on_led(4);
-        SysCtlDelay(6000000);
+        SysCtlDelay(5000000);
         turn_off_led(1);
         turn_off_led(2);
         turn_off_led(3);
         turn_off_led(4);
-        SysCtlDelay(4000000);
+        SysCtlDelay(3000000);
 	}
     SysCtlDelay(10000000);
 

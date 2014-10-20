@@ -88,7 +88,8 @@ static void timer_ppm_int_handler(void);
 
 static uint8_t  sigtimeout_timer_base_ind    = TIMER2;
 static uint8_t  sigtimeout_timer_sel_ind     = TIMERA;
-static uint32_t sigtimeout_timer_cfg         = TIMER_CFG_SPLIT_PAIR | TIMER_CFG_A_PERIODIC_UP;
+//XXX This next line is huge dependency for the stack_enumerate procedure. See comments below (~line 171) file
+//static uint32_t sigtimeout_timer_cfg         = TIMER_CFG_SPLIT_PAIR | TIMER_CFG_A_PERIODIC_UP | TIMER_CFG_B_ONE_SHOT_UP;
 static uint32_t sigtimeout_timer_overflow_us = OVERFLOW_SIGTIMEOUT;
 static void sigtimeout_timer_int_handler(void);
 
@@ -166,7 +167,9 @@ void timer_default_init(void)
     // Configure signal timeout timer
     uint32_t sigtimeout_timer_base = timer_bases[sigtimeout_timer_base_ind];
     uint32_t sigtimeout_timer_sel  = timer_sels[sigtimeout_timer_sel_ind];
-    TimerConfigure(sigtimeout_timer_base, sigtimeout_timer_cfg);
+    //XXX The following is called in stack.c as part of the enumeration process.
+    //    Unfortunately global timer configuration hasn't been writen yet to remove this dependency.
+    // TimerConfigure(sigtimeout_timer_base, sigtimeout_timer_cfg);
 
     uint32_t total_load = timer_us_to_tics(sigtimeout_timer_overflow_us);
     uint32_t prescaler;
@@ -665,6 +668,15 @@ static uint64_t timer_get_total_load(timer_cap_gen_t *timer)
 uint64_t timer_default_get_total_load(uint8_t iotimer)
 {
     return timer_get_total_load(&default_timers[iotimer]);
+}
+
+void timer_set(uint32_t base, uint32_t timer, uint64_t val, uint8_t num_timer_bits, uint8_t num_prescaler_bits)
+{
+    uint32_t prescaler = (val >> num_timer_bits) & ((1 << num_prescaler_bits) - 1);
+    uint32_t load = val & ((1 << num_timer_bits) - 1);
+
+    TimerPrescaleSet(base, timer, prescaler);
+    TimerLoadSet(base, timer, load);
 }
 
 static void timer_base_ind_calc_ps_load_from_total(uint8_t timer_base_ind, uint32_t *prescale,
