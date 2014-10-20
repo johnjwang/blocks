@@ -75,12 +75,12 @@ int main(void)
 
     //****** All user code goes below here ******
 
-    uart_up_comms_init(1);
+    uart_up_comms_init(2);
     timer_default_init();
 
     IntMasterEnable();
 
-    usb_comms_init(1);
+    usb_comms_init(2);
     watchdog_init(SysCtlClockGet() / 10);
 
 //	uart_up_comms_demo();
@@ -263,6 +263,9 @@ static void main_cfg_usb_sn_msg_handler(void *usr, uint16_t id, comms_channel_t 
                                                         | (((uint32_t)sn.sn_chars[5]) << 16)
                                                         | (((uint32_t)sn.sn_chars[6]) <<  8)
                                                         | (((uint32_t)sn.sn_chars[7]) <<  0));
+
+            usb_comms_publish_id(1, CHANNEL_CFG_USB_SN, msg, 1, msg_len);
+            uart_up_comms_publish_id(1, CHANNEL_CFG_USB_SN, msg, 1, msg_len);
         //}
     }
     __cfg_usb_serial_num_t_decode_array_cleanup(&sn, 1);
@@ -277,6 +280,8 @@ static void main_cfg_data_freq_msg_handler(void *usr, uint16_t id, comms_channel
         //if((id == 0) || (id == stack.address))
         //{
             send_period_us = 1000000 / (uint16_t)data_freq.hz;
+            usb_comms_publish_id(1, CHANNEL_CFG_DATA_FREQUENCY, msg, 1, msg_len);
+            uart_up_comms_publish_id(1, CHANNEL_CFG_DATA_FREQUENCY, msg, 1, msg_len);
         //}
     }
     __cfg_data_frequency_t_decode_array_cleanup(&data_freq, 1);
