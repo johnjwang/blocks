@@ -75,12 +75,13 @@ const uint8_t g_pui8ProdectString[] =
 // The serial number string.
 //
 //*****************************************************************************
-const uint8_t g_pui8SerialNumberString[] =
-{
-    2 + (8 * 2),
-    USB_DTYPE_STRING,
-    'B', 0, '0', 0, '0', 0, 'B', 0, '1', 0, '3', 0, '5', 0, '5', 0
-};
+// We are reading this from memory
+uint8_t g_pui8SerialNumberString[18];
+//{
+//    2 + (8 * 2),
+//    USB_DTYPE_STRING,
+//    'M', 0, 'E', 0, 'M', 0, ' ', 0, 'R', 0, 'E', 0, 'A', 0, 'D', 0
+//};
 
 //*****************************************************************************
 //

@@ -11,60 +11,64 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "datastruct/container.h"
+
 typedef enum comms_channel_t
 {
+    CHANNEL_ALL,
     CHANNEL_KILL,
     CHANNEL_CHANNELS,
     CHANNEL_TELEMETRY,
+    CHANNEL_CFG_USB_SN,
+    CHANNEL_CFG_DATA_FREQUENCY,
     CHANNEL_DEBUG,
     CHANNEL_NUM_CHANNELS
 
 } comms_channel_t;
 
-
-typedef bool (*publisher_t)(uint8_t publish_byte);
-typedef void (*subscriber_t)(uint8_t *msg, uint16_t msg_len);
-
-typedef struct comms_t
+typedef enum comms_status_t
 {
-    uint8_t *decode_buf;
-    uint32_t decode_buf_len;
+    COMMS_STATUS_INVALID_ARGUMENT,
+    COMMS_STATUS_BUFFER_FULL,
+    COMMS_STATUS_WAITING,
+    COMMS_STATUS_IN_PROGRESS,
+    COMMS_STATUS_NO_ACTION,
+    COMMS_STATUS_DONE,
+    COMMS_STATUS_NUM_STATUSES
 
-    publisher_t *publishers; // An array of publisher function pointers
-    uint8_t num_publishers;
+} comms_status_t;
 
-    subscriber_t *subscribers[CHANNEL_NUM_CHANNELS]; // An array of arrays of
-    uint8_t num_subscribers[CHANNEL_NUM_CHANNELS];   // subscriber function pointers
+typedef struct comms_t comms_t;
 
-    // Variables to handle decoding
-    comms_channel_t decode_channel;
-    uint16_t decode_data_len;
-    uint16_t decode_num_data_read;
-    uint16_t decode_checksum;
-    uint8_t  decode_state;
-    uint8_t  decode_id;
-    uint8_t checksum_rx1, checksum_rx2;
-    uint8_t checksum_tx1, checksum_tx2;
+extern container_funcs_t *comms_cfuncs;
 
-} comms_t;
+typedef void (*publisher_t)(container_t *data);
 
-// XXX: change this to a uint32_t and all related buffers
-comms_t* comms_create(int32_t buf_len);
+typedef void (*subscriber_t)(void *usr, uint16_t id, comms_channel_t channel,
+                             const uint8_t *msg, uint16_t len);
 
-void comms_add_publisher(comms_t *comms, publisher_t publisher);
 
-void comms_subscribe(comms_t *comms, comms_channel_t channel, subscriber_t subscriber);
 
-void comms_publish_blocking_id(comms_t *comms,
-                               uint8_t id,
-                               comms_channel_t channel,
-                               uint8_t *msg,
-                               uint16_t msg_len);
 
-inline void comms_publish_blocking(comms_t *comms,
-                                   comms_channel_t channel,
-                                   uint8_t *msg,
-                                   uint16_t msg_len);
+comms_t* comms_create(uint32_t buf_len_rx, uint32_t buf_len_tx,
+                      uint32_t num_tx_orig, publisher_t publisher);
+
+void comms_subscribe(comms_t *comms, comms_channel_t channel,
+                     subscriber_t subscriber, void *usr);
+
+comms_status_t comms_publish(comms_t *comms,
+                             comms_channel_t channel,
+                             uint8_t *msg,
+                             uint16_t msg_len);
+
+comms_status_t comms_publish_id(comms_t *comms,
+                                uint16_t id,
+                                comms_channel_t channel,
+                                uint8_t *msg,
+                                uint32_t tx_orig_num,
+                                uint16_t msg_len);
+
+inline comms_status_t comms_transmit(comms_t *comms);
 
 void comms_handle(comms_t *comms, uint8_t byte);
 

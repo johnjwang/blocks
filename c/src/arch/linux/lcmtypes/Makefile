@@ -10,6 +10,8 @@ all:lcm-gen
 	gcc -c ${CFLAGS} kill_t.c -o      ${BUILD_DIR}/kill_t.o
 	gcc -c ${CFLAGS} rpms_t.c -o      ${BUILD_DIR}/rpms_t.o
 	gcc -c ${CFLAGS} telemetry_t.c -o ${BUILD_DIR}/telemetry_t.o
+	gcc -c ${CFLAGS} cfg_usb_serial_num_t.c -o ${BUILD_DIR}/cfg_usb_serial_num_t.o
+	gcc -c ${CFLAGS} cfg_data_frequency_t.c -o ${BUILD_DIR}/cfg_data_frequency_t.o
 
 debug: CFLAGS+=-g
 debug: all

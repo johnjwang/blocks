@@ -10,7 +10,7 @@ public class LCMPublisher
 {
     LCM lcm;
 
-    public LCMPublisher(String lcm_url)
+    public LCMPublisher(String lcm_url, String usbSerial)
     {
         try {
             lcm = new LCM(lcm_url);
@@ -21,8 +21,13 @@ public class LCMPublisher
             System.exit(1);
         }
 
+        if(usbSerial != null) {
+            broadcastUsbSerialNum(usbSerial);
+            System.exit(0);
+        }
+
         //broadcastTelemetry();
-        broadcastKill();
+        //broadcastKill();
         //broadcastChannels();
     }
 
@@ -85,13 +90,29 @@ public class LCMPublisher
         }
     }
 
+    private void broadcastUsbSerialNum(String usbSerial)
+    {
+        char chars[] = usbSerial.toCharArray();
+        if(chars.length > 8)
+        {
+            System.err.println("usb serial number must be 8 characters");
+            return;
+        }
+
+        cfg_usb_serial_num_t usbnum = new cfg_usb_serial_num_t();
+        for(int i = 0; i < usbnum.sn_chars.length; i++)
+            usbnum.sn_chars[i] = (byte) chars[i];
+        lcm.publish("USB_SERIAL_NUM", usbnum);
+    }
+
     public static void main(String args[])
     {
         String lcm_url = null;
 
         GetOpt gopt = new GetOpt();
         gopt.addBoolean('h', "help", false, "Show this help");
-        gopt.addString('u', "lcm-url", lcm_url, "lcm url to broadcast on. (Null for default)");
+        gopt.addString('u', "lcm-url", lcm_url, "lcm url to broadcast on. (omit for default)");
+        gopt.addString('s', "usb-serial", null, "Serial number for usb broadcast");
         //gopt.addInt('c', "channels", 1000, "Channels to broadcast");
 
         if (!gopt.parse(args) || gopt.getBoolean("help")) {
@@ -101,6 +122,6 @@ public class LCMPublisher
 
         lcm_url = gopt.getString("lcm-url");
 
-        new LCMPublisher(lcm_url);
+        new LCMPublisher(lcm_url, gopt.getString("usb-serial"));
     }
 }

@@ -26,18 +26,31 @@
 
 #include "io/comms.h"
 
-#include "timer_capture_generate.h"
+#include "eeprom.h"
 
 static bool usb_configured = false;
-static comms_t *usb_comms = NULL;
+comms_t *usb_comms = NULL;
 
-void usb_comms_init(void)
+static void usb_comms_publish_non_blocking(container_t *data);
+
+void usb_comms_init(uint32_t max_num_tx_origins)
 {
     //
     // Configure the required pins for USB operation.
     //
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
 	GPIOPinTypeUSBAnalog(GPIO_PORTD_BASE, GPIO_PIN_5 | GPIO_PIN_4);
+
+	// Read usb serial number out of eeprom
+	uint64_t serial_num =   ((uint64_t)eeprom_read_word(EEPROM_USB_SN_UPPER_ADDR)) << 32
+	                      | ((uint64_t)eeprom_read_word(EEPROM_USB_SN_LOWER_ADDR));
+	g_pui8SerialNumberString[0] = 2 + (8 * 2); // Size byte
+	g_pui8SerialNumberString[1] = USB_DTYPE_STRING;
+	uint8_t i;
+	for (i=0; i<8; ++i) {
+	    g_pui8SerialNumberString[2*i + 2] = (serial_num >> (8*(7-i))) & 0x00000000000000FF;
+	    g_pui8SerialNumberString[2*i + 3] = 0;
+	}
 
     //
     // Initialize the transmit and receive buffers.
@@ -56,8 +69,17 @@ void usb_comms_init(void)
     //
     USBDCDCInit(0, &g_sCDCDevice);
 
-    usb_comms = comms_create(256);
-    comms_add_publisher(usb_comms, usb_comms_write_byte);
+    usb_comms = comms_create(100, 100, max_num_tx_origins,
+                             usb_comms_publish_non_blocking);
+}
+
+static void usb_comms_publish_non_blocking(container_t *data)
+{
+    // While we successfully move a byte into the buffer, keep doing so
+    while(!comms_cfuncs->is_empty(data) &&
+            USBBufferWrite((tUSBBuffer *)&g_sTxBuffer,
+                         (const uint8_t*)comms_cfuncs->front(data), 1) == 1)
+        comms_cfuncs->remove_front(data);
 }
 
 bool usb_comms_write_byte(uint8_t data)
@@ -67,7 +89,7 @@ bool usb_comms_write_byte(uint8_t data)
     return usb_comms_write(msg, 1);
 }
 
-bool usb_comms_write(uint8_t *msg, uint32_t datalen)
+bool usb_comms_write(uint8_t *msg, uint16_t datalen)
 {
     if(usb_configured) {
     	USBBufferWrite((tUSBBuffer *)&g_sTxBuffer, msg, datalen);
@@ -77,14 +99,25 @@ bool usb_comms_write(uint8_t *msg, uint32_t datalen)
 	}
 }
 
-void usb_comms_publish_blocking(comms_channel_t channel, uint8_t *msg, uint16_t msg_len)
+void usb_comms_publish(comms_channel_t channel, uint8_t *msg, uint16_t msg_len)
 {
-    comms_publish_blocking(usb_comms, channel, msg, msg_len);
+    comms_publish(usb_comms, channel, msg, msg_len);
 }
 
-void usb_comms_subscribe(comms_channel_t channel, subscriber_t subscriber)
+void usb_comms_publish_id(uint16_t id, comms_channel_t channel,
+                          uint8_t *msg, uint32_t tx_origin_num, uint16_t msg_len)
 {
-    comms_subscribe(usb_comms, channel, subscriber);
+    comms_publish_id(usb_comms, id, channel, msg, tx_origin_num, msg_len);
+}
+
+comms_status_t usb_comms_transmit(void)
+{
+    return comms_transmit(usb_comms);
+}
+
+void usb_comms_subscribe(comms_channel_t channel, subscriber_t subscriber, void *usr)
+{
+    comms_subscribe(usb_comms, channel, subscriber, usr);
 }
 
 void usb_comms_demo()

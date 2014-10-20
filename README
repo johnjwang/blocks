@@ -1,22 +1,87 @@
+*************************************************
+*************************************************
+********* Welcome to the blocks repo ************
+*************************************************
+*************************************************
+*************************************************
 
-First defined $BLOCKS_HOME in bash
-    ie, export BLOCKS_HOME=/home/<username>/blocks
 
+
+*******  This part of the setup is mandatory ********
+
+
+-------------------------------------------------------------------------------
+Bash Environment Setup
+-------------------------------------------------------------------------------
+First, define $BLOCKS_HOME in bash
+    ie, $ export BLOCKS_HOME=/home/<username>/blocks
+    This would be useful to add to your ~/.bashrc to make the change persistent
+        $ echo 'export BLOCKS_HOME=/home/<username>/blocks' >> ~/.bashrc
+Next we sync our udev rules to work with our physical devices
+    $ $BLOCKS_HOME/setup/udev/sync_udev.sh
+
+
+-------------------------------------------------------------------------------
 Installing required java packages
-----------------------------------
-    Download the file at the following link.
-    http://apache.osuosl.org//commons/collections/binaries/commons-collections-3.2.1-bin.tar.gz
-    move the commons-collections-3.2.1.jar into your $BLOCKS_HOME/java folder
-    add the jar to your classpath in your mybashrc
-        export CLASSPATH:=$CLASSPATH:$BLOCKS_HOME/java/commons-collections-3.2.1.jar
+-------------------------------------------------------------------------------
+    Go to the github page for the blocks repo's releases here:
+        https://github.com/SkySpecs/blocks/releases
+    Download all release jars and place them in your $BLOCKS_HOME/java directory
+    Add the jars to your classpath in you ~/.bashrc to make the changes persistent
+    This only has to be done once. No need to run the following commands more than once
+        $ echo 'export CLASSPATH=$CLASSPATH:$BLOCKS_HOME/java/commons-collections-3.2.1.jar' >> ~/.bashrc
+        $ echo 'export CLASSPATH=$CLASSPATH:$BLOCKS_HOME/java/skyspecs.jar' >> ~/.bashrc
+        $ echo 'export CLASSPATH=$CLASSPATH:$BLOCKS_HOME/java/april.jar' >> ~/.bashrc
+        $ echo 'export CLASSPATH=$CLASSPATH:$BLOCKS_HOME/java/blocks.jar' >> ~/.bashrc
+        
 
-Setting up the CCS Workspace
----------------------------
+-------------------------------------------------------------------------------
+Installing LCM
+-------------------------------------------------------------------------------
+Follow the instructions to install LCM at the following link:
+    https://code.google.com/p/lcm/wiki/BuildInstructions
+    Make sure lcm.jar is in your classpath
+        $ export CLASSPATH=$CLASSPATH:/usr/local/share/java/lcm.jar
+        This would be useful to add to your ~/.bashrc to make the change persistent
+            $ echo 'export CLASSPATH=$CLASSPATH:/usr/local/share/java/lcm.jar' >> ~/.bashrc
+
+
+-------------------------------------------------------------------------------
+Making the repository
+-------------------------------------------------------------------------------
+$ cd $BLOCKS_HOME
+$ make
+
+
+-------------------------------------------------------------------------------
+Running drivers and guis
+-------------------------------------------------------------------------------
+Some relevant files you might be interested in are:
+    $ $BLOCKS_HOME/bin/projects/comms_driver (binary that interacts with the timing_blocks and lcm)
+    $ java blocks.gui.GUI
+    If you use the telemetry_t.lcm type defined in $BLOCKS_HOME/lcmtypes in 
+    your custom code, there is a special lcm-spy plugin that will let you 
+    view the data in the type (This is untested)
+    
+
+    
+
+
+
+
+
+
+
+*******  This part of the setup is optional ********
+
+
+-------------------------------------------------------------------------------
+Setting up the CCS Environment for firmware coding
+-------------------------------------------------------------------------------
 Launch CCS
 Set your ccs workspace to be the workspace in this git repo (not required)
 Open ccs and setup path requirements:
 	Window->Preferences->General->Workspace->Linked Resources
-	Click new and in the "name" section enter 'TIVAWARE' (without quotes) and click folder. Navigate to the installation location of tivaware on your system." Click "Ok"
 	Click new again and then in the "name" section enter 'BLOCKS_HOME' (without quotes) and click folder. Navigate to this directory and click Ok.
     Click Ok again to exit preferences.
 
@@ -39,26 +104,15 @@ Import blocks projects
 
 Fix ccs util for building binary files (Linux only)
     Navigate to your ccs installation directory. Ie, ~/ti/ccsv6
-    Open the file utils/tiobj2bin and change the first line from 
+    Open the file utils/tiobj2bin/tiobj2bin and change the first line from 
         #!/bin/sh
         to
         #!/bin/bash
 
-Download UniFlash to be able to flash Tiva from command line
-    wget https://dl.dropboxusercontent.com/u/36951037/UNIFLASH2.2.0.00016_linux.tar.gz
-    extract the tar.gz with 'tar -xvaf uniflash.tar.gz'
-    run the uniflash_setup script without sudo permission
-    install into your ti installation directory
-    Once completed navigate to the uniflash installation directory. Ie ~/ti/uniflashv2
-    Run the following command $sudo ./install_scripts/install_drivers.sh
-
-
-
-
-
 
 -------------------------------------------------------------------------------
 Manually adding driverlib and usblib
+-------------------------------------------------------------------------------
 
 Import driverlib and usblib in ccs:
     Click'Import Project'
@@ -83,19 +137,34 @@ Import driverlib and usblib in ccs:
     
     Then, make sure that you clean and recompile all dependencies.
 
----------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------
+*** This currently does not work as ti has not yet written linux drivers for firmware upgrade ***
+Download UniFlash to be able to flash Tiva from command line
+-------------------------------------------------------------------------------
+    wget https://dl.dropboxusercontent.com/u/36951037/UNIFLASH2.2.0.00016_linux.tar.gz
+    extract the tar.gz with 'tar -xvaf uniflash.tar.gz'
+    run the uniflash_setup script without sudo permission
+    install into your ti installation directory
+    Once completed navigate to the uniflash installation directory. Ie ~/ti/uniflashv2
+    Run the following command $sudo ./install_scripts/install_drivers.sh
+
+
+-------------------------------------------------------------------------------
 Todo list:
+-------------------------------------------------------------------------------
 x watchdog the signals
-- watchdog the device itself
-- make bootload faster
-	- add another bit to EEPROM that is "ignore bootload"
+x watchdog the device itself
+x make bootload faster
+	x add another bit to EEPROM that is "ignore bootload"
 	  use when rebooting because of watchdogs
 x kill listener
 x hardcode a manual/autonomous switch line
-- board side comms
-- linux side comms
-- linux side kill program
-- write another program that uploads a serial number to eeprom
+\ board side comms
+\ linux side comms
+\ linux side kill program
+x write another program that uploads a serial number to eeprom
 - touch base with Ella, remind her that she needs USB hubs
 - test flight
 - detect if an xbee is plugged in above it
