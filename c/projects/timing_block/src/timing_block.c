@@ -111,9 +111,9 @@ int main(void)
     //     comms protocol from within interrupts
     // usb_comms_subscribe(CHANNEL_ALL, (subscriber_t)comms_publish_id, uart_up_comms);
 
-//    timer_register_switch_monitor(main_manual_auto_switch_handler);
+    timer_register_switch_monitor(main_manual_auto_switch_handler);
 
-    static const int num_blinks = 3, num_leds = 1;
+    static volatile uint16_t *num_blinks = &stack.address, num_leds = 1;
     static int start_idx = 1;
     int i = start_idx, next_i = start_idx, j = 1;
 
@@ -129,7 +129,7 @@ int main(void)
     		i = next_i;
     		blink_led(i, j);
     		j++;
-    		if(j > num_blinks){
+    		if(j > *num_blinks){
     			next_i = (i + 1 - start_idx) % num_leds + start_idx;
 				j = 1;
 			}
@@ -153,11 +153,11 @@ int main(void)
                 if (chan_i <= TIMER_INPUT_8) timer_ind = chan_i;
                 else                         timer_ind = chan_i - (TIMER_INPUT_8 + 1) + TIMER_OUTPUT_1;
 
-//                channel_val[chan_i] = timer_tics_to_us(
-//                        timer_default_read_pulse(timer_ind));
+                channel_val[chan_i] = timer_tics_to_us(
+                        timer_default_read_pulse(timer_ind));
             }
             channel.channels = channel_val;
-            // XXX: had a very weird but where receiving too much or something basically
+            // XXX: had a very weird bug where we were receiving too much or something basically
             //      broke all of the channels, I think it was because we were receiving
             //      on both the Xbee and the USB on the same time
             // XXX: Every now and then sometimes get a randome signal value on an output that
