@@ -11,10 +11,10 @@ all debug:
 		$(MAKE) $(SILENT) -C $$dir $@ || exit 2; done
 	mkdir -p ${LIB_DIR}
 	ar rc ${LIB} ${OBJS}
-	$(MAKE) $(SILENT) -C test $@ || exit 2; done
+	$(MAKE) $(SILENT) -C test $@ || exit 2
 
 clean:
 	@for dir in $(SUBDIRS) ; do \
 		$(MAKE) $(SILENT) -C $$dir $@ || exit 2; done
-	$(MAKE) $(SILENT) -C test $@ || exit 2; done
+	$(MAKE) $(SILENT) -C test $@ || exit 2
 	rm -f ${LIB}
